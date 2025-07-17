@@ -64,5 +64,7 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 	</dict>
+	<key>SKStoreKitConfiguration</key>
+	<string>StoreKit Configuration</string>
 </dict>
 </plist> 

@@ -2,11 +2,26 @@ import SwiftUI
 
 struct PaywallView: View {
     @Binding var isPresented: Bool
-    @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
+    @StateObject private var subscriptionService = SubscriptionServiceSK2.shared
+    @StateObject private var parentGate = ParentGateManager.shared
     
-    @State private var selectedProductId = "baby.annual"
+    @State private var selectedProduct: Product?
     @State private var showParentGate = false
-    @State private var isLoading = false
+    @State private var parentGateContext: ParentGateManager.GateContext = .paywall
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    private var purchaseButtonTitle: String {
+        guard let product = selectedProduct else {
+            return "Select a Plan"
+        }
+        
+        if let trialInfo = subscriptionService.trialInfo(for: product) {
+            return "Start \(trialInfo)"
+        } else {
+            return "Subscribe for \(subscriptionService.formattedPrice(for: product))"
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -77,27 +92,37 @@ struct PaywallView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                         
-                        VStack(spacing: 12) {
-                            SubscriptionCard(
-                                productId: "baby.annual",
-                                title: "Annual Plan",
-                                price: "$19.99/year",
-                                savings: "Save 50%",
-                                trialText: "7-day free trial",
-                                isSelected: selectedProductId == "baby.annual"
-                            ) {
-                                selectedProductId = "baby.annual"
+                        if subscriptionService.availableProducts.isEmpty {
+                            if subscriptionService.isLoading {
+                                VStack(spacing: 16) {
+                                    ProgressView()
+                                    Text("Loading subscription options...")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(height: 120)
+                            } else {
+                                VStack(spacing: 8) {
+                                    Image(systemName: "exclamationmark.triangle")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.orange)
+                                    Text("Unable to load subscription options")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(height: 120)
                             }
-                            
-                            SubscriptionCard(
-                                productId: "baby.monthly", 
-                                title: "Monthly Plan",
-                                price: "$3.99/month",
-                                savings: nil,
-                                trialText: "7-day free trial",
-                                isSelected: selectedProductId == "baby.monthly"
-                            ) {
-                                selectedProductId = "baby.monthly"
+                        } else {
+                            VStack(spacing: 12) {
+                                ForEach(subscriptionService.availableProducts, id: \.id) { product in
+                                    SubscriptionCardStoreKit(
+                                        product: product,
+                                        isSelected: selectedProduct?.id == product.id,
+                                        subscriptionService: subscriptionService
+                                    ) {
+                                        selectedProduct = product
+                                    }
+                                }
                             }
                         }
                     }
@@ -106,15 +131,16 @@ struct PaywallView: View {
                     // CTA Buttons
                     VStack(spacing: 16) {
                         Button(action: {
+                            parentGateContext = .paywall
                             showParentGate = true
                         }) {
                             HStack {
-                                if isLoading {
+                                if subscriptionService.isLoading {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                         .scaleEffect(0.8)
                                 } else {
-                                    Text("Start 7-Day Free Trial")
+                                    Text(purchaseButtonTitle)
                                         .font(.headline)
                                         .fontWeight(.semibold)
                                 }
@@ -133,7 +159,14 @@ struct PaywallView: View {
                                     )
                             )
                         }
-                        .disabled(isLoading)
+                        .disabled(subscriptionService.isLoading || selectedProduct == nil)
+                        
+                        Button("Restore Purchases") {
+                            parentGateContext = .restore
+                            showParentGate = true
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
                         
                         Button("Maybe Later") {
                             isPresented = false
@@ -191,47 +224,79 @@ struct PaywallView: View {
                 }
             }
         }
+        .onAppear {
+            // Set default selection to annual plan
+            if selectedProduct == nil && !subscriptionService.availableProducts.isEmpty {
+                selectedProduct = subscriptionService.product(for: .annual) ?? subscriptionService.availableProducts.first
+            }
+            
+            // Initialize subscription service if needed
+            Task {
+                await subscriptionService.initialize()
+            }
+        }
         .sheet(isPresented: $showParentGate) {
             ParentGateView(
                 isPresented: $showParentGate,
+                context: parentGateContext,
                 onSuccess: {
                     Task {
-                        await purchaseSubscription()
+                        await handleParentGateSuccess()
                     }
                 }
             )
         }
+        .alert("Subscription Error", isPresented: $showAlert) {
+            Button("OK") { }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+    
+    private func handleParentGateSuccess() async {
+        switch parentGateContext {
+        case .paywall:
+            await purchaseSubscription()
+        case .restore:
+            await restorePurchases()
+        default:
+            break
+        }
     }
     
     private func purchaseSubscription() async {
-        isLoading = true
-        defer { isLoading = false }
+        guard let product = selectedProduct else {
+            showError("Please select a subscription plan")
+            return
+        }
         
         do {
-            try await subscriptionService.purchase(productId: selectedProductId)
-            // TODO: Track analytics event: purchase_success
+            let transaction = try await subscriptionService.purchase(product)
+            print("[PaywallView] Purchase successful: \(transaction.productID)")
             isPresented = false
+        } catch SubscriptionError.userCancelled {
+            // User cancelled, no need to show error
+            print("[PaywallView] Purchase cancelled by user")
         } catch {
-            // TODO: Handle purchase error
-            // TODO: Track analytics event: purchase_fail
-            print("Purchase failed: \(error)")
+            print("[PaywallView] Purchase error: \(error)")
+            showError(error.localizedDescription)
         }
     }
     
     private func restorePurchases() async {
-        isLoading = true
-        defer { isLoading = false }
-        
         do {
             try await subscriptionService.restorePurchases()
-            // TODO: Track analytics event: restore
-            if subscriptionService.isPremium {
-                isPresented = false
-            }
+            print("[PaywallView] Restore successful")
+            isPresented = false
         } catch {
-            // TODO: Handle restore error
-            print("Restore failed: \(error)")
+            print("[PaywallView] Restore error: \(error)")
+            showError(error.localizedDescription)
         }
+    }
+    
+    private func showError(_ message: String) {
+        alertMessage = message
+        showAlert = true
     }
 }
 

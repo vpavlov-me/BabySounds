@@ -1,190 +1,533 @@
 import SwiftUI
+import AVFoundation
 
+// MARK: - Parent Gate View
+
+/// Enhanced parental gate with multiple challenge types and security features
 struct ParentGateView: View {
     @Binding var isPresented: Bool
+    let context: ParentGateContext
     let onSuccess: () -> Void
     
-    @State private var firstNumber = 0
-    @State private var secondNumber = 0
-    @State private var correctAnswer = 0
-    @State private var answerOptions: [Int] = []
-    @State private var selectedAnswer: Int? = nil
+    @State private var currentChallenge: ParentGateChallenge?
+    @State private var selectedAnswer: String? = nil
+    @State private var textAnswer: String = ""
     @State private var showError = false
     @State private var attempts = 0
+    @State private var timeRemaining = 30
+    @State private var isLocked = false
+    @State private var lockoutEndTime: Date?
     
-    private let maxAttempts = 3
+    @Environment(\.dismiss) private var dismiss
+    
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 32) {
-                Spacer()
+            ZStack {
+                // Background
+                Color(.systemBackground)
+                    .ignoresSafeArea()
                 
-                // Header
+                if isLocked {
+                    lockedOutView
+                } else {
+                    mainContent
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("✕") {
+                        handleCancel()
+                    }
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if !isLocked {
+                        Text("\(timeRemaining)s")
+                            .font(.caption)
+                            .foregroundColor(timeRemaining <= 10 ? .red : .secondary)
+                            .monospacedDigit()
+                    }
+                }
+            }
+        }
+        .onAppear {
+            setupChallenge()
+            startTimer()
+        }
+        .onReceive(timer) { _ in
+            updateTimer()
+        }
+        .interactiveDismissDisabled() // Prevent swipe to dismiss
+    }
+    
+    // MARK: - Main Content
+    
+    private var mainContent: some View {
+        ScrollView {
+            VStack(spacing: 32) {
+                Spacer(minLength: 20)
+                
+                // Security Header
                 VStack(spacing: 16) {
-                    Image(systemName: "shield.checkerboard")
+                    Image(systemName: context.icon)
                         .font(.system(size: 64))
-                        .foregroundColor(.blue)
+                        .foregroundColor(context.color)
+                        .symbolEffect(.pulse, options: .repeating)
                     
-                    Text("Parent Verification")
-                        .font(.title)
+                    Text(context.title)
+                        .font(.title2)
                         .fontWeight(.bold)
+                        .multilineTextAlignment(.center)
                     
-                    Text("To continue, please solve this simple math problem:")
+                    Text(context.description)
                         .font(.body)
                         .multilineTextAlignment(.center)
                         .foregroundColor(.secondary)
                         .padding(.horizontal)
                 }
                 
-                // Math Problem
-                VStack(spacing: 24) {
-                    Text("\(firstNumber) + \(secondNumber) = ?")
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
-                    
-                    // Answer Options
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: 16) {
-                        ForEach(answerOptions, id: \.self) { option in
-                            Button(action: {
-                                selectAnswer(option)
-                            }) {
-                                Text("\(option)")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(selectedAnswer == option ? .white : .primary)
-                                    .frame(height: 64)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(selectedAnswer == option ? Color.blue : Color(.systemGray6))
-                                    )
-                            }
-                            .buttonStyle(PlainButtonStyle())
+                // Challenge Content
+                if let challenge = currentChallenge {
+                    VStack(spacing: 24) {
+                        challengeView(for: challenge)
+                        
+                        // Error Message
+                        if showError {
+                            errorView
+                        }
+                        
+                        // Submit Button
+                        if canSubmit {
+                            submitButton
                         }
                     }
-                    .padding(.horizontal)
                 }
                 
-                // Error Message
-                if showError {
-                    VStack(spacing: 8) {
-                        Text("Incorrect answer. Please try again.")
-                            .font(.body)
-                            .foregroundColor(.red)
-                        
-                        Text("Attempts: \(attempts)/\(maxAttempts)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                Spacer(minLength: 40)
+            }
+            .padding()
+        }
+    }
+    
+    // MARK: - Challenge Views
+    
+    @ViewBuilder
+    private func challengeView(for challenge: ParentGateChallenge) -> some View {
+        switch challenge.type {
+        case .mathAddition(let a, let b, let options):
+            mathChallengeView(
+                question: "\(a) + \(b) = ?",
+                options: options.map(String.init),
+                correctAnswer: String(a + b)
+            )
+            
+        case .mathSubtraction(let a, let b, let options):
+            mathChallengeView(
+                question: "\(a) - \(b) = ?",
+                options: options.map(String.init),
+                correctAnswer: String(a - b)
+            )
+            
+        case .readingChallenge(let word, let options):
+            readingChallengeView(
+                word: word,
+                options: options
+            )
+            
+        case .timeChallenge(let hour, let minute, let options):
+            timeChallengeView(
+                hour: hour,
+                minute: minute,
+                options: options
+            )
+            
+        case .textInput(let question, let answer):
+            textInputChallengeView(
+                question: question,
+                expectedAnswer: answer
+            )
+        }
+    }
+    
+    private func mathChallengeView(question: String, options: [String], correctAnswer: String) -> some View {
+        VStack(spacing: 24) {
+            Text(question)
+                .font(.system(size: 44, weight: .bold, design: .rounded))
+                .foregroundColor(.primary)
+            
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 16) {
+                ForEach(options, id: \.self) { option in
+                    answerButton(option: option, correctAnswer: correctAnswer)
+                }
+            }
+        }
+    }
+    
+    private func readingChallengeView(word: String, options: [String]) -> some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Text("Read this word:")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
+                Text(word)
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
                     .padding()
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.red.opacity(0.1))
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(.systemGray6))
                     )
-                    .padding(.horizontal)
-                }
-                
-                Spacer()
-                
-                // Action Buttons
-                VStack(spacing: 16) {
-                    if let selectedAnswer = selectedAnswer {
-                        Button(action: checkAnswer) {
-                            Text("Submit Answer")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(Color.blue)
-                                .cornerRadius(12)
-                        }
-                        .padding(.horizontal)
-                    }
-                    
-                    Button("Cancel") {
-                        isPresented = false
-                    }
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                }
-                .padding(.bottom)
             }
-            .navigationBarHidden(true)
-        }
-        .onAppear {
-            generateMathProblem()
-        }
-        .onChange(of: attempts) { newAttempts in
-            if newAttempts >= maxAttempts {
-                // Lock out for a few seconds on too many attempts
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    isPresented = false
+            
+            Text("Which word did you just read?")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 16) {
+                ForEach(options, id: \.self) { option in
+                    answerButton(option: option, correctAnswer: word)
                 }
             }
         }
     }
     
-    private func generateMathProblem() {
-        firstNumber = Int.random(in: 2...7)
-        secondNumber = Int.random(in: 2...7)
-        correctAnswer = firstNumber + secondNumber
-        
-        // Generate wrong answers
-        var options = [correctAnswer]
-        while options.count < 3 {
-            let wrongAnswer = correctAnswer + Int.random(in: -3...3)
-            if wrongAnswer > 0 && wrongAnswer != correctAnswer && !options.contains(wrongAnswer) {
-                options.append(wrongAnswer)
+    private func timeChallengeView(hour: Int, minute: Int, options: [String]) -> some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Text("What time is shown?")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
+                ClockView(hour: hour, minute: minute)
+                    .frame(width: 120, height: 120)
+            }
+            
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 16) {
+                ForEach(options, id: \.self) { option in
+                    answerButton(option: option, correctAnswer: String(format: "%d:%02d", hour, minute))
+                }
             }
         }
+    }
+    
+    private func textInputChallengeView(question: String, expectedAnswer: String) -> some View {
+        VStack(spacing: 24) {
+            Text(question)
+                .font(.title3)
+                .fontWeight(.medium)
+                .multilineTextAlignment(.center)
+            
+            TextField("Your answer", text: $textAnswer)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .font(.title3)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+                .onSubmit {
+                    if canSubmit {
+                        checkAnswer()
+                    }
+                }
+        }
+    }
+    
+    private func answerButton(option: String, correctAnswer: String) -> some View {
+        Button(action: {
+            selectAnswer(option)
+        }) {
+            Text(option)
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(selectedAnswer == option ? .white : .primary)
+                .frame(height: 64)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(selectedAnswer == option ? context.color : Color(.systemGray6))
+                )
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+    
+    // MARK: - Error & Submit Views
+    
+    private var errorView: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                
+                Text("Incorrect answer. Please try again.")
+                    .font(.body)
+                    .foregroundColor(.red)
+            }
+            
+            Text("Attempts: \(attempts)/\(ParentGateManager.maxAttempts)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                
+            if attempts >= ParentGateManager.maxAttempts - 1 {
+                Text("One more incorrect attempt will result in a temporary lockout.")
+                    .font(.caption2)
+                    .foregroundColor(.orange)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.orange.opacity(0.1))
+        )
+    }
+    
+    private var submitButton: some View {
+        Button(action: checkAnswer) {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                Text("Submit Answer")
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(context.color)
+            .cornerRadius(12)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+    
+    // MARK: - Locked Out View
+    
+    private var lockedOutView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            
+            Image(systemName: "lock.circle.fill")
+                .font(.system(size: 80))
+                .foregroundColor(.red)
+            
+            Text("Too Many Attempts")
+                .font(.title2)
+                .fontWeight(.bold)
+            
+            Text("Please wait before trying again.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            if let lockoutEnd = lockoutEndTime {
+                Text("Try again in \(Int(lockoutEnd.timeIntervalSinceNow))s")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundColor(.red)
+                    .monospacedDigit()
+            }
+            
+            Spacer()
+            
+            Button("Close") {
+                handleCancel()
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Color.gray)
+            .cornerRadius(12)
+            .padding(.horizontal)
+        }
+        .padding()
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var canSubmit: Bool {
+        guard let challenge = currentChallenge else { return false }
         
-        answerOptions = options.shuffled()
+        switch challenge.type {
+        case .textInput:
+            return !textAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        default:
+            return selectedAnswer != nil
+        }
+    }
+    
+    // MARK: - Actions
+    
+    private func setupChallenge() {
+        currentChallenge = ParentGateManager.generateChallenge(for: context)
         selectedAnswer = nil
+        textAnswer = ""
         showError = false
     }
     
-    private func selectAnswer(_ answer: Int) {
+    private func selectAnswer(_ answer: String) {
         selectedAnswer = answer
         showError = false
+        
+        // Auto-submit after selection for better UX
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            if selectedAnswer == answer { // Only if still selected
+                checkAnswer()
+            }
+        }
     }
     
     private func checkAnswer() {
-        guard let selectedAnswer = selectedAnswer else { return }
+        guard let challenge = currentChallenge else { return }
         
-        if selectedAnswer == correctAnswer {
-            // Correct answer - dismiss and call success callback
-            isPresented = false
+        let userAnswer: String
+        switch challenge.type {
+        case .textInput:
+            userAnswer = textAnswer.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        default:
+            userAnswer = selectedAnswer ?? ""
+        }
+        
+        if challenge.isCorrectAnswer(userAnswer) {
+            // Success!
+            ParentGateManager.recordSuccess(for: context)
+            
+            // Haptic feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+            
+            dismiss()
             onSuccess()
         } else {
-            // Wrong answer - show error and generate new problem
+            // Wrong answer
             attempts += 1
             showError = true
             
-            if attempts < maxAttempts {
+            ParentGateManager.recordFailedAttempt(for: context)
+            
+            // Error haptic
+            let notificationFeedback = UINotificationFeedbackGenerator()
+            notificationFeedback.notificationOccurred(.error)
+            
+            if attempts >= ParentGateManager.maxAttempts {
+                triggerLockout()
+            } else {
+                // Generate new challenge after delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    generateMathProblem()
+                    if !isLocked {
+                        setupChallenge()
+                    }
                 }
+            }
+        }
+    }
+    
+    private func triggerLockout() {
+        isLocked = true
+        lockoutEndTime = Date().addingTimeInterval(ParentGateManager.lockoutDuration)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + ParentGateManager.lockoutDuration) {
+            dismiss()
+        }
+    }
+    
+    private func handleCancel() {
+        ParentGateManager.recordCancellation(for: context)
+        dismiss()
+    }
+    
+    private func startTimer() {
+        timeRemaining = 30
+    }
+    
+    private func updateTimer() {
+        if isLocked {
+            // Update lockout countdown
+            if let lockoutEnd = lockoutEndTime, lockoutEnd <= Date() {
+                dismiss()
+            }
+        } else {
+            timeRemaining -= 1
+            if timeRemaining <= 0 {
+                // Time expired
+                ParentGateManager.recordTimeout(for: context)
+                dismiss()
             }
         }
     }
 }
 
-// MARK: - Voice Instructions (Future Enhancement)
+// MARK: - Clock View
 
-struct VoiceInstructionsHelper {
-    // TODO: Add text-to-speech support for accessibility
-    static func speakInstructions() {
-        // Could use AVSpeechSynthesizer for voice instructions
-        // "Please solve the math problem to continue"
+struct ClockView: View {
+    let hour: Int
+    let minute: Int
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.primary, lineWidth: 2)
+            
+            // Hour markers
+            ForEach(0..<12) { i in
+                Rectangle()
+                    .fill(Color.primary)
+                    .frame(width: 2, height: 8)
+                    .offset(y: -40)
+                    .rotationEffect(.degrees(Double(i) * 30))
+            }
+            
+            // Hour hand
+            Rectangle()
+                .fill(Color.primary)
+                .frame(width: 3, height: 25)
+                .offset(y: -12.5)
+                .rotationEffect(.degrees(Double(hour % 12) * 30 + Double(minute) * 0.5))
+            
+            // Minute hand
+            Rectangle()
+                .fill(Color.primary)
+                .frame(width: 2, height: 35)
+                .offset(y: -17.5)
+                .rotationEffect(.degrees(Double(minute) * 6))
+            
+            // Center dot
+            Circle()
+                .fill(Color.primary)
+                .frame(width: 6, height: 6)
+        }
     }
 }
 
+// MARK: - Preview
+
 #Preview {
-    ParentGateView(isPresented: .constant(true)) {
-        print("Parent gate passed!")
+    Group {
+        ParentGateView(
+            isPresented: .constant(true),
+            context: .settings,
+            onSuccess: {
+                print("Parent gate passed!")
+            }
+        )
+        
+        ParentGateView(
+            isPresented: .constant(true),
+            context: .paywall,
+            onSuccess: {
+                print("Paywall access granted!")
+            }
+        )
     }
 } 

@@ -6,6 +6,7 @@ struct SoundPlayerView: View {
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var soundCatalog: SoundCatalog
+    @EnvironmentObject var premiumManager: PremiumManager
     
     @State private var selectedTimerMinutes = 0 // 0 = infinite
     @State private var showPaywall = false
@@ -78,13 +79,13 @@ struct SoundPlayerView: View {
                                     .fill(sound.color.color)
                             )
                         }
-                        .disabled(sound.premium && !subscriptionService.isPremium)
-                        .opacity(sound.premium && !subscriptionService.isPremium ? 0.6 : 1.0)
+                        .disabled(sound.premium && !premiumManager.canPlayPremiumSound())
+                        .opacity(sound.premium && !premiumManager.canPlayPremiumSound() ? 0.6 : 1.0)
                         
                         // Premium Unlock Message
-                        if sound.premium && !subscriptionService.isPremium {
+                        if sound.premium && !premiumManager.canPlayPremiumSound() {
                             Button("Unlock Premium to Play") {
-                                showPaywall = true
+                                premiumManager.requestAccess(to: .premiumSounds)
                             }
                             .foregroundColor(.orange)
                             .font(.headline)
@@ -186,6 +187,7 @@ struct SoundPlayerView: View {
         .sheet(isPresented: $showPaywall) {
             PaywallView(isPresented: $showPaywall)
         }
+        .premiumGateAlert(premiumManager: premiumManager, showPaywall: $showPaywall)
         .onDisappear {
             if audioManager.isPlaying {
                 audioManager.stopSound()
@@ -198,8 +200,8 @@ struct SoundPlayerView: View {
     }
     
     private func togglePlayback() {
-        if sound.premium && !subscriptionService.isPremium {
-            showPaywall = true
+        if sound.premium && !premiumManager.canPlayPremiumSound() {
+            premiumManager.requestAccess(to: .premiumSounds)
             return
         }
         
@@ -214,8 +216,8 @@ struct SoundPlayerView: View {
     }
     
     private func selectTimer(_ minutes: Int) {
-        if minutes > 30 && !subscriptionService.isPremium {
-            showPaywall = true
+        if !premiumManager.canSetTimer(minutes: minutes) {
+            premiumManager.requestAccess(to: .extendedTimer)
             return
         }
         
@@ -230,6 +232,11 @@ struct SoundPlayerView: View {
         if isFavorite {
             soundCatalog.favorites.remove(sound.id)
         } else {
+            // Check if user can add more favorites
+            if !premiumManager.canAddFavorite(currentCount: soundCatalog.favorites.count) {
+                premiumManager.requestAccess(to: .unlimitedFavorites)
+                return
+            }
             soundCatalog.favorites.insert(sound.id)
         }
     }

@@ -1,0 +1,91 @@
+{
+  "identifier" : "FA8F3A50",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6670503696",
+    "_developerTeamID" : "YOUR_TEAM_ID",
+    "_lastSynchronizedDate" : 757516798.21004701
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21548343",
+      "localizations" : [
+        {
+          "description" : "Premium access to all baby sounds and features",
+          "displayName" : "Baby Sounds Premium",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "BabySoundsPremium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6671054231",
+          "introductoryOffer" : {
+            "internalID" : "6671054234",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Premium baby sounds subscription with 7-day free trial. Play unlimited premium sounds, mix up to 4 sounds, extended timer up to 12 hours, and unlimited favorites.",
+              "displayName" : "Monthly Premium",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "baby.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Baby Sounds Monthly Premium",
+          "subscriptionGroupID" : "21548343",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6671054232",
+          "introductoryOffer" : {
+            "internalID" : "6671054235",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Premium baby sounds annual subscription with 7-day free trial. Save 50% compared to monthly plan. Play unlimited premium sounds, mix up to 4 sounds, extended timer up to 12 hours, and unlimited favorites.",
+              "displayName" : "Annual Premium",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "baby.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Baby Sounds Annual Premium",
+          "subscriptionGroupID" : "21548343",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+} 

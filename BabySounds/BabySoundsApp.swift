@@ -4,8 +4,9 @@ import AVFoundation
 @main
 struct BabySoundsApp: App {
     @StateObject private var audioManager = AudioEngineManager.shared
-    @StateObject private var subscriptionService = SubscriptionServiceSK2()
+    @StateObject private var subscriptionService = SubscriptionServiceSK2.shared
     @StateObject private var soundCatalog = SoundCatalog()
+    @StateObject private var premiumManager = PremiumManager.shared
     
     init() {
         setupAudioSession()
@@ -17,9 +18,10 @@ struct BabySoundsApp: App {
                 .environmentObject(audioManager)
                 .environmentObject(subscriptionService)
                 .environmentObject(soundCatalog)
+                .environmentObject(premiumManager)
                 .onAppear {
                     Task {
-                        await subscriptionService.observeTransactionUpdates()
+                        await subscriptionService.initialize()
                     }
                 }
         }
