@@ -1,0 +1,125 @@
+# CODEOWNERS file for BabySounds iOS App
+# This file defines who gets automatically requested for review
+# when changes are made to specific parts of the codebase
+
+# Global owners - required for all changes
+* @vpavlov-me @senior-dev
+
+# iOS App Core
+/BabySounds/ @vpavlov-me @ios-team-lead
+/BabySounds/BabySoundsApp.swift @vpavlov-me @senior-dev
+/BabySounds/ContentView.swift @vpavlov-me @ui-specialist
+
+# Audio Engine - Critical for app functionality
+/BabySounds/CoreAudio/ @vpavlov-me @audio-engineer @senior-dev
+/BabySounds/CoreAudio/AudioEngineManager.swift @audio-engineer @performance-specialist
+/BabySounds/CoreAudio/BackgroundAudioManager.swift @audio-engineer @qa-lead
+/BabySounds/CoreAudio/SafeVolumeManager.swift @audio-engineer @safety-compliance
+
+# Data Management - Kids Category compliance critical
+/BabySounds/Data/ @vpavlov-me @data-architect @privacy-specialist
+/BabySounds/Data/PremiumManager.swift @subscription-specialist @business-analyst
+/BabySounds/Data/ParentGateManager.swift @safety-compliance @kids-category-expert
+/BabySounds/Data/NotificationPermissionManager.swift @permissions-specialist
+
+# Models - Data structure changes need careful review
+/BabySounds/Models/ @vpavlov-me @data-architect
+/BabySounds/Models/Sound.swift @audio-engineer @data-architect
+/BabySounds/Models/SleepSchedule.swift @feature-lead @data-architect
+
+# Views - UI/UX and accessibility critical
+/BabySounds/Views/ @vpavlov-me @ui-specialist @accessibility-expert
+/BabySounds/Views/SoundPlayerView.swift @ui-specialist @audio-engineer
+/BabySounds/Views/PaywallView.swift @subscription-specialist @ui-specialist
+/BabySounds/Views/ParentGateView.swift @safety-compliance @kids-category-expert
+/BabySounds/Views/SafetyNoticeView.swift @safety-compliance @legal-review
+/BabySounds/Views/SafetySettingsView.swift @safety-compliance @audio-engineer
+/BabySounds/Views/PremiumGateView.swift @subscription-specialist @ui-specialist
+/BabySounds/Views/*Accessibility*.swift @accessibility-expert @ui-specialist
+
+# Subscriptions - Business critical
+/BabySounds/Subscriptions/ @vpavlov-me @subscription-specialist @business-analyst
+/BabySounds/Subscriptions/SubscriptionServiceSK2.swift @subscription-specialist @ios-payments-expert
+
+# Resources - Content and localization
+/BabySounds/Resources/ @vpavlov-me @content-manager
+/BabySounds/Resources/Sounds/ @audio-engineer @content-manager @legal-review
+/BabySounds/Resources/sounds.json @audio-engineer @content-manager
+/BabySounds/Resources/Localizable.strings @localization-specialist @content-manager
+/BabySounds/Resources/ru.lproj/ @localization-specialist @russian-reviewer
+
+# Configuration Files
+/BabySounds/Info.plist @vpavlov-me @ios-team-lead @compliance-specialist
+/BabySounds/StoreKit*.* @subscription-specialist @ios-payments-expert
+
+# GitHub Configuration - DevOps and process
+/.github/ @vpavlov-me @devops-lead
+/.github/workflows/ @devops-lead @ci-cd-specialist
+/.github/ISSUE_TEMPLATE/ @community-manager @qa-lead
+/.github/pull_request_template.md @engineering-lead @process-manager
+/.github/SECURITY.md @security-team @legal-review
+
+# CI/CD and DevOps
+/.github/workflows/ios-build.yml @devops-lead @ios-build-specialist
+/.github/workflows/release-testflight.yml @devops-lead @release-manager
+/.github/workflows/danger-lint.yml @devops-lead @code-quality-lead
+
+# Build and Dependencies
+/Makefile @devops-lead @build-specialist
+/fastlane/ @devops-lead @release-manager @ios-build-specialist
+/fastlane/Fastfile @release-manager @ios-automation-specialist
+/scripts/ @devops-lead @automation-specialist
+/scripts/pre-commit @code-quality-lead @devops-lead
+
+# Documentation - Community and developer experience
+/README.md @vpavlov-me @community-manager @technical-writer
+/CONTRIBUTING.md @community-manager @engineering-lead @technical-writer
+/CHANGELOG.md @release-manager @community-manager
+/RELEASE_PR_EXAMPLE.md @release-manager @process-manager
+/TECHNICAL_NOTES.md @technical-writer @senior-dev
+/APP_STORE_CHECKLIST.md @release-manager @marketing-lead @compliance-specialist
+
+# Code Quality
+/Dangerfile @code-quality-lead @process-manager
+/.swiftlint.yml @code-quality-lead @ios-team-lead
+
+# Demo and Testing
+/DemoApp/ @vpavlov-me @demo-specialist
+/TestBabySounds.swift @qa-lead @test-automation-specialist
+/BabySoundsPlayground.swift @vpavlov-me @education-specialist
+
+# Root configuration files
+/.gitignore @devops-lead
+/.gitattributes @devops-lead
+/LICENSE @legal-review @vpavlov-me
+
+# Kids Category Compliance - Requires special approval
+*ParentGate* @safety-compliance @kids-category-expert @legal-review
+*Safety* @safety-compliance @kids-category-expert @audio-engineer
+*Premium* @subscription-specialist @kids-category-expert @business-analyst
+*Volume* @audio-engineer @safety-compliance @who-compliance-specialist
+*Notification* @permissions-specialist @kids-category-expert
+
+# Audio and Hearing Safety - WHO Guidelines Compliance
+*Audio* @audio-engineer @safety-compliance @who-compliance-specialist
+*Sound* @audio-engineer @content-manager @safety-compliance
+*Volume* @audio-engineer @safety-compliance @who-compliance-specialist
+
+# Accessibility - WCAG Compliance
+*Accessibility* @accessibility-expert @ui-specialist @compliance-specialist
+*VoiceOver* @accessibility-expert @ios-accessibility-specialist
+*A11y* @accessibility-expert @ui-specialist
+
+# Security and Privacy - COPPA Compliance
+*Security* @security-team @privacy-specialist @legal-review
+*Privacy* @privacy-specialist @kids-category-expert @legal-review
+*Permission* @permissions-specialist @privacy-specialist
+
+# Business and Marketing
+*Subscription* @subscription-specialist @business-analyst
+*Paywall* @subscription-specialist @conversion-specialist @ui-specialist
+*Marketing* @marketing-lead @business-analyst
+
+# Localization
+*.strings @localization-specialist @content-manager
+*/ru.lproj/ @localization-specialist @russian-reviewer @content-manager 

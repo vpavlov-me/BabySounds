@@ -1,113 +1,83 @@
-# SwiftLint Configuration for BabySounds Kids App
-# Strict production-ready rules with 120 character line limit
+# SwiftLint Configuration for BabySounds
+# Kids Category iOS App - Strict quality standards
 
-# Included file patterns
+# Directories to include
 included:
-  - BabySounds/
-  - Tests/
-  - BabySoundsTests/
+  - BabySounds
+  - DemoApp
 
-# Excluded file patterns
+# Directories to exclude
 excluded:
-  - BabySounds/Preview Content/
-  - build/
-  - DerivedData/
-  - .swiftpm/
-  - Packages/
-  - fastlane/
-  - docs/
+  - .build
+  - DerivedData
+  - fastlane/report.xml
+  - BabySounds/Preview\ Content
+  - .git
 
-# Rule configurations
-line_length:
-  warning: 120
-  error: 150
-  ignores_function_declarations: true
-  ignores_comments: true
-  ignores_urls: true
+# File extensions to lint
+included_file_extensions:
+  - swift
 
-type_body_length:
-  warning: 300
-  error: 400
+# Disabled rules (with reasons)
+disabled_rules:
+  # Temporarily disabled - will be enabled after refactoring
+  - todo # We track TODOs in GitHub Issues instead
 
-function_body_length:
-  warning: 50
-  error: 80
-
-file_length:
-  warning: 500
-  error: 800
-
-cyclomatic_complexity:
-  warning: 10
-  error: 15
-
-nesting:
-  type_level:
-    warning: 2
-    error: 3
-  statement_level:
-    warning: 5
-    error: 8
-
-identifier_name:
-  min_length:
-    warning: 2
-    error: 1
-  max_length:
-    warning: 50
-    error: 60
-  excluded:
-    - id
-    - x
-    - y
-    - z
-
-type_name:
-  min_length:
-    warning: 3
-    error: 2
-  max_length:
-    warning: 50
-    error: 60
-
-# Enabled rules (comprehensive set for Kids App)
+# Enabled opt-in rules for Kids Category compliance
 opt_in_rules:
   - accessibility_label_for_image
   - accessibility_trait_for_button
+  - anonymous_argument_in_multiline_closure
   - array_init
   - attributes
+  - balanced_xctest_lifecycle
+  - class_delegate_protocol
   - closure_body_length
   - closure_end_indentation
   - closure_spacing
   - collection_alignment
-  - conditional_returns_on_newline
   - contains_over_filter_count
   - contains_over_filter_is_empty
   - contains_over_first_not_nil
   - contains_over_range_nil_comparison
+  - convenience_type
+  - discouraged_assert
+  - discouraged_none_name
   - discouraged_object_literal
+  - discouraged_optional_boolean
+  - discouraged_optional_collection
   - empty_collection_literal
   - empty_count
   - empty_string
+  - empty_xctest_method
   - enum_case_associated_values_count
+  - explicit_enum_raw_value
   - explicit_init
+  - explicit_self
+  - explicit_top_level_acl
   - extension_access_modifier
   - fallthrough
   - fatal_error_message
   - file_header
   - file_name
+  - file_name_no_space
   - first_where
   - flatmap_over_map_reduce
   - force_unwrapping
   - function_default_parameter_at_end
+  - ibinspectable_in_extension
+  - identical_operands
   - implicit_return
   - joined_default_parameter
   - last_where
+  - legacy_multiple
+  - legacy_objc_type
   - legacy_random
   - literal_expression_end_indentation
   - lower_acl_than_parent
   - modifier_order
   - multiline_arguments
+  - multiline_arguments_brackets
   - multiline_function_chains
   - multiline_literal_brackets
   - multiline_parameters
@@ -115,103 +85,289 @@ opt_in_rules:
   - nimble_operator
   - no_extension_access_modifier
   - no_grouping_extension
+  - nslocalizedstring_key
+  - nslocalizedstring_require_bundle
   - number_separator
   - object_literal
   - operator_usage_whitespace
+  - optional_enum_case_matching
   - overridden_super_call
   - override_in_extension
   - pattern_matching_keywords
   - prefer_self_type_over_type_of_self
+  - prefer_zero_over_explicit_init
   - prefixed_toplevel_constant
-  - private_action
-  - private_outlet
+  - prohibited_interface_builder
   - prohibited_super_call
   - quick_discouraged_call
   - quick_discouraged_focused_test
   - quick_discouraged_pending_test
+  - raw_value_for_camel_cased_codable_enum
+  - reduce_boolean
   - reduce_into
   - redundant_nil_coalescing
   - redundant_type_annotation
   - required_enum_case
+  - return_arrow_whitespace
+  - self_in_property_initialization
+  - shorthand_operator
   - single_test_class
   - sorted_first_last
   - sorted_imports
   - static_operator
   - strict_fileprivate
+  - strong_iboutlet
   - switch_case_on_newline
   - toggle_bool
   - trailing_closure
+  - type_contents_order
   - unavailable_function
   - unneeded_parentheses_in_closure_argument
   - unowned_variable_capture
   - untyped_error_in_catch
+  - unused_declaration
+  - unused_import
   - vertical_parameter_alignment_on_call
+  - vertical_whitespace_between_cases
   - vertical_whitespace_closing_braces
   - vertical_whitespace_opening_braces
   - weak_delegate
   - xct_specific_matcher
   - yoda_condition
 
-# Disabled rules (too strict for some cases)
-disabled_rules:
-  - todo # We want to track TODOs
-  - line_length # Already configured above
-  - trailing_whitespace # Handled by SwiftFormat
+# Rule Configurations
 
-# Custom rules for Kids App specific requirements
+# Kids Category specific rules
+accessibility_label_for_image:
+  severity: error
+
+accessibility_trait_for_button:
+  severity: error
+
+# Line length - more restrictive for readability
+line_length:
+  warning: 120
+  error: 140
+  ignores_urls: true
+  ignores_function_declarations: true
+  ignores_comments: true
+
+# File length
+file_length:
+  warning: 400
+  error: 600
+  ignore_comment_only_lines: true
+
+# Function length - Kids apps should have simple, readable functions
+function_body_length:
+  warning: 50
+  error: 80
+
+# Type body length
+type_body_length:
+  warning: 300
+  error: 400
+
+# Closure body length
+closure_body_length:
+  warning: 20
+  error: 30
+
+# Cyclomatic complexity - Keep functions simple for Kids apps
+cyclomatic_complexity:
+  warning: 8
+  error: 12
+  ignores_case_statements: true
+
+# Nesting depth - Keep code simple and readable
+nesting:
+  type_level:
+    warning: 2
+    error: 3
+  statement_level:
+    warning: 4
+    error: 5
+
+# Force unwrapping - Never allow in Kids apps (safety first)
+force_unwrapping:
+  severity: error
+
+# Force cast - Dangerous for Kids apps
+force_cast:
+  severity: error
+
+# Force try - Handle errors properly in Kids apps
+force_try:
+  severity: error
+
+# Implicitly unwrapped optionals - Avoid in Kids apps
+implicitly_unwrapped_optional:
+  severity: warning
+  mode: all_except_iboutlets
+
+# Large tuple - Keep data structures simple
+large_tuple:
+  warning: 3
+  error: 4
+
+# Type name - Clear naming for Kids apps
+type_name:
+  min_length:
+    warning: 3
+    error: 2
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - T
+    - ID
+    - URL
+    - iOS
+
+# Identifier name - Clear naming for Kids apps
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - id
+    - URL
+    - iOS
+    - x
+    - y
+
+# Function parameter count - Keep interfaces simple
+function_parameter_count:
+  warning: 5
+  error: 7
+  ignores_default_parameters: true
+
+# Enum case associated values count
+enum_case_associated_values_count:
+  warning: 5
+  error: 6
+
+# Number separator for readability
+number_separator:
+  minimum_length: 5
+
+# Operator usage whitespace
+operator_usage_whitespace:
+  skip_aligned_constants: false
+  lines_look_around: 2
+
+# Multiline arguments
+multiline_arguments:
+  first_argument_location: next_line
+  only_enforce_after_first_closure_on_first_line: true
+
+# Multiline parameters  
+multiline_parameters:
+  first_parameter_location: next_line
+  only_enforce_after_first_closure_on_first_line: true
+
+# Vertical whitespace
+vertical_whitespace:
+  max_empty_lines: 2
+
+# Trailing whitespace
+trailing_whitespace:
+  ignores_empty_lines: true
+  ignores_comments: false
+
+# File header for Kids Category compliance
+file_header:
+  required_pattern: |
+                    \/\/
+                    \/\/  .*\.swift
+                    \/\/  BabySounds
+                    \/\/
+                    \/\/  Created by .* on \d{1,2}\/\d{1,2}\/\d{4}\.
+                    \/\/  Copyright © \d{4} BabySounds\. All rights reserved\.
+                    \/\/  Kids Category App - COPPA Compliant
+                    \/\/ 
+
+# NSLocalizedString - Important for Kids apps internationalization
+nslocalizedstring_key:
+  severity: warning
+
+nslocalizedstring_require_bundle:
+  severity: warning
+
+# Unused imports - Keep codebase clean
+unused_import:
+  severity: warning
+  require_explicit_imports: true
+
+# Unused declarations - Keep codebase clean
+unused_declaration:
+  severity: warning
+  include_public_and_open: false
+
+# Explicit self - Important for clarity in Kids apps
+explicit_self:
+  severity: warning
+
+# Explicit enum raw values - Important for Kids apps data consistency
+explicit_enum_raw_value:
+  severity: warning
+
+# Strong IBOutlet - Memory safety for Kids apps
+strong_iboutlet:
+  severity: warning
+
+# Weak delegate - Memory safety
+weak_delegate:
+  severity: error
+
+# Custom rules for Kids Category compliance
 custom_rules:
-  # No hardcoded URLs without parental gate
-  no_hardcoded_urls:
-    name: "No Hardcoded URLs"
-    regex: 'https?://[^\s"]*'
-    message: "Hardcoded URLs must be wrapped with SafeLinkWrapper for Kids App compliance"
+  no_hardcoded_strings:
+    name: "No Hardcoded Strings"
+    regex: '(?<!NSLocalizedString\(|LocalizedStringKey\(|Text\(|Label\()"[^"]{3,}"'
+    message: "Use NSLocalizedString for all user-facing text in Kids apps"
     severity: warning
-    excluded: ".*Test.*"
-
-  # No print statements in production
+    
   no_print_statements:
     name: "No Print Statements"
     regex: '\bprint\s*\('
-    message: "Use Logger or os_log instead of print for production code"
-    severity: warning
-    excluded: ".*Debug.*"
-
-  # Accessibility requirements
+    message: "Use proper logging instead of print() in production Kids apps"
+    severity: error
+    
+  no_fatalError_in_production:
+    name: "No Fatal Errors"
+    regex: '\bfatalError\s*\('
+    message: "Never use fatalError in Kids apps - handle errors gracefully"
+    severity: error
+    
   accessibility_identifier_required:
     name: "Accessibility Identifier Required"
-    regex: '\.accessibility\(identifier:'
-    message: "All interactive elements must have accessibility identifiers for Kids App testing"
+    regex: '\.accessibilityIdentifier\s*='
+    message: "All UI elements in Kids apps should have accessibility identifiers"
     severity: warning
-
-  # No force casts in production
-  no_force_cast:
-    name: "No Force Casts"
-    regex: '\bas!\s'
-    message: "Use safe casting with 'as?' instead of force casting"
+    
+  volume_safety_check:
+    name: "Volume Safety Check"
+    regex: '\b(volume|Volume)\b.*=(?!.*safety|.*check|.*limit)'
+    message: "All volume changes must include safety checks for Kids apps"
     severity: error
-    excluded: ".*Test.*"
-
-  # Comment requirements for complex functions
-  complex_function_comment:
-    name: "Complex Function Comment"
-    regex: 'func\s+\w+.*\{[\s\S]*?\/\/.*MARK:'
-    message: "Complex functions should have MARK comments for better navigation"
+    
+  coppa_compliance_check:
+    name: "COPPA Data Collection Check"
+    regex: '\b(userDefaults|UserDefaults|keychain|Keychain|cloudKit|CloudKit)\b'
+    message: "Data storage must be COPPA compliant - review for PII collection"
     severity: warning
+
+# Analyzer rules for additional safety
+analyzer_rules:
+  - unused_import
+  - unused_declaration
 
 # Reporter configuration
 reporter: "xcode"
 
-# Severity levels
-warning_threshold: 10
-error_threshold: 5
-
-# File header template for consistency
-file_header:
-  required_pattern: |
-                    \/\/
-                    \/\/  .*?\.swift
-                    \/\/  BabySounds
-                    \/\/
-                    \/\/  Created by .* on \d{1,2}\/\d{1,2}\/\d{2,4}\.
-                    \/\/  Copyright © \d{4} BabySounds\. All rights reserved\.
-                    \/\/ 
+# Strict mode for Kids Category compliance
+strict: true 

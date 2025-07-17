@@ -1,0 +1,168 @@
+name: ✨ Feature Request
+description: Suggest a new feature for BabySounds
+title: "[FEATURE] "
+labels: ["enhancement", "needs-review"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🍼 BabySounds Feature Request
+        
+        Thank you for suggesting a new feature! Please fill out this form to help us understand your idea.
+        
+        **⚠️ PRIVACY NOTICE**: Never include personal information about children or families in feature requests.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please verify these items before submitting
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: This request contains no personal information about children
+          required: true
+        - label: This feature would comply with Kids Category guidelines
+          required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: Which area would this feature affect?
+      options:
+        - 🎵 Audio playback/mixing
+        - ⏰ Sleep schedules/timers
+        - 🎙️ Voice recording/custom sounds
+        - 🔒 Parental controls/safety
+        - ♿ Accessibility improvements
+        - 🎨 User interface/design
+        - 📱 App performance/usability
+        - 🛡️ Privacy/security enhancements
+        - 💳 Subscription/premium features
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to you?
+      options:
+        - 🔴 Critical - Essential for app usage
+        - 🟠 High - Would significantly improve experience
+        - 🟡 Medium - Nice to have improvement
+        - 🟢 Low - Minor enhancement
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user_type
+    attributes:
+      label: Target User
+      description: Who would benefit from this feature?
+      options:
+        - 👶 Parents with newborns (0-6 months)
+        - 🧒 Parents with toddlers (6 months - 2 years)
+        - 👨‍👩‍👧‍👦 Parents with multiple children
+        - ♿ Users with accessibility needs
+        - 👩‍⚕️ Healthcare professionals (pediatricians, sleep consultants)
+        - 📱 All users (general improvement)
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: Describe the problem or pain point this feature would address...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this feature to work?
+      placeholder: Describe your proposed solution in detail...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative approaches?
+      placeholder: Describe any alternative solutions you've thought of...
+
+  - type: textarea
+    id: use_cases
+    attributes:
+      label: Use Cases
+      description: Provide specific examples of how this feature would be used
+      placeholder: |
+        Example scenarios:
+        1. When a parent is...
+        2. During bedtime routine...
+        3. For children who...
+
+  - type: textarea
+    id: accessibility
+    attributes:
+      label: Accessibility Considerations
+      description: How would this feature work with accessibility technologies?
+      placeholder: |
+        - VoiceOver compatibility
+        - Switch Control support
+        - Large text support
+        - Color contrast considerations
+
+  - type: textarea
+    id: kids_compliance
+    attributes:
+      label: Kids Category Compliance
+      description: How does this feature comply with Kids Category requirements?
+      placeholder: |
+        - Child safety considerations
+        - COPPA compliance aspects
+        - Parental control integration
+        - Age-appropriate design elements
+
+  - type: checkboxes
+    id: technical_considerations
+    attributes:
+      label: Technical Considerations (optional)
+      description: Check any technical aspects that might be relevant
+      options:
+        - label: This feature would require iOS permissions (microphone, notifications, etc.)
+        - label: This feature might affect battery life
+        - label: This feature might require background processing
+        - label: This feature might affect audio mixing capabilities
+        - label: This feature might require additional privacy considerations
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other information that would help us understand this feature request
+      placeholder: |
+        - Mockups or sketches (if you have them)
+        - Similar features in other apps
+        - Research or articles supporting this feature
+        - Any other relevant details
+
+  - type: checkboxes
+    id: compliance_check
+    attributes:
+      label: Compliance Confirmation
+      description: Confirm this request follows our guidelines
+      options:
+        - label: This feature request contains no personal information about children or families
+          required: true
+        - label: This feature would be appropriate for a Kids Category app
+          required: true
+        - label: This feature respects COPPA and child privacy guidelines
+          required: true 

@@ -1,0 +1,77 @@
+version: 2
+updates:
+  # Swift Package Manager
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    assignees:
+      - "vpavlov-me"
+      - "ios-team-lead"
+    reviewers:
+      - "senior-dev"
+      - "security-team"
+    commit-message:
+      prefix: "🔒"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "security"
+      - "kids-category-review"
+    open-pull-requests-limit: 5
+    target-branch: "develop"
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    ignore:
+      # Ignore major version updates for critical dependencies
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "America/Los_Angeles"
+    assignees:
+      - "devops-lead"
+    reviewers:
+      - "vpavlov-me"
+      - "ci-cd-specialist"
+    commit-message:
+      prefix: "🔧"
+      include: "scope"
+    labels:
+      - "ci-cd"
+      - "github-actions"
+      - "automation"
+    open-pull-requests-limit: 3
+
+  # Fastlane (Ruby dependencies)
+  - package-ecosystem: "bundler"
+    directory: "/fastlane"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    assignees:
+      - "devops-lead"
+      - "release-manager"
+    reviewers:
+      - "vpavlov-me"
+      - "ios-automation-specialist"
+    commit-message:
+      prefix: "🚀"
+      include: "scope"
+    labels:
+      - "fastlane"
+      - "automation"
+      - "deployment"
+    open-pull-requests-limit: 3 

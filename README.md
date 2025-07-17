@@ -17,6 +17,7 @@
 - **macOS Ventura 13.0+** (for development)
 - **Homebrew** for dependency management
 - Apple Developer Account (for StoreKit testing)
+- **GitHub account** with proper permissions
 
 ### One-Command Setup
 
@@ -32,6 +33,7 @@ The bootstrap script will:
 - Setup Git hooks and branch protection
 - Configure code quality tools
 - Install pre-commit validation
+- Setup GitHub repository configuration
 
 ### Manual Setup
 
@@ -52,6 +54,17 @@ chmod +x .git/hooks/pre-commit
 make open
 ```
 
+### 🔧 GitHub Repository Setup
+
+For complete GitHub repository configuration, see [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md):
+
+- **Branch Protection**: Main/develop branches with required reviews
+- **Security Scanning**: CodeQL analysis + Kids Category compliance
+- **CI/CD Workflows**: Automated testing, building, and deployment
+- **Issue Templates**: Bug reports, feature requests, accessibility issues
+- **Code Owners**: Automatic reviewer assignment
+- **Dependabot**: Automated security updates
+
 ## 📋 Project Status: PRODUCTION READY + DevOps Infrastructure ✅
 
 ### ✅ Core Features (v1.0.0)
@@ -65,13 +78,15 @@ make open
 - **🌍 Localization**: Complete English + Russian support
 - **👶 Kids Category Compliance**: COPPA-safe design and implementation
 
-### 🚀 DevOps Infrastructure (NEW!)
+### 🚀 DevOps Infrastructure (COMPLETE!)
 - **CI/CD Pipeline**: Comprehensive GitHub Actions workflows
-- **Code Quality**: Automated SwiftLint + SwiftFormat enforcement
+- **Code Quality**: Automated SwiftLint + SwiftFormat enforcement  
 - **Testing**: Multi-device testing with accessibility validation
 - **Release Automation**: Fastlane-powered TestFlight deployment
 - **Branch Protection**: Git Flow with mandatory reviews and compliance checks
-- **Security Scanning**: Vulnerability detection and Kids Category compliance
+- **Security Scanning**: CodeQL analysis + Kids Category compliance validation
+- **GitHub Templates**: Issue templates, PR templates, and code owners
+- **Dependabot**: Automated dependency security updates
 - **Documentation**: Complete development guides and contribution workflows
 
 ## 🏗️ Technical Architecture
@@ -235,7 +250,7 @@ Annual Premium (baby.annual):
 
 ### Required Compliance
 - ✅ Parental gate before purchases/settings
-- ✅ No external links without parent verification  
+- ✅ No external links without parent verification
 - ✅ Age-appropriate UI (minimum 64pt touch targets)
 - ✅ No data collection from children
 - ✅ COPPA compliance validated

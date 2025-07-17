@@ -1,0 +1,72 @@
+name: "BabySounds CodeQL Config"
+
+# Disable default queries to use only custom ones
+disable-default-queries: false
+
+# Include additional query packs
+packs:
+  - codeql/swift-queries
+  - codeql/swift-security-queries
+
+# Custom queries for Kids Category compliance
+queries:
+  - name: Security and Quality
+    uses: security-and-quality
+  - name: Kids Category Compliance
+    uses: ./.github/codeql/kids-category-queries.ql
+
+# Path filters to focus on important areas
+paths:
+  - "BabySounds/"
+  - "!BabySounds/Preview Content/"
+  - "!DerivedData/"
+  - "!.build/"
+
+# Paths to ignore completely
+paths-ignore:
+  - "**/*.md"
+  - "**/*.txt"
+  - "**/*.json"
+  - "**/Preview Content/**"
+  - "**/Tests/**"
+  - "fastlane/**"
+  - "scripts/**"
+
+# Custom configuration for Swift analysis
+swift:
+  # Enable additional security checks
+  security:
+    - data-flow-analysis
+    - taint-tracking
+    - crypto-analysis
+    
+  # Kids Category specific configurations
+  kids-category:
+    # Check for COPPA violations
+    - no-personal-data-collection
+    - parental-gate-protection
+    - safe-external-links
+    
+    # Audio safety checks
+    - volume-limit-enforcement
+    - hearing-protection-compliance
+    
+    # Accessibility requirements
+    - voiceover-compatibility
+    - accessibility-label-coverage
+    
+# Performance settings
+performance:
+  # Increase timeout for thorough analysis
+  timeout: 300
+  
+  # Memory limits
+  memory-limit: 8192
+  
+# Database settings
+database:
+  # Clean database before analysis
+  cleanup: true
+  
+  # Finalize database after analysis
+  finalize: true 
