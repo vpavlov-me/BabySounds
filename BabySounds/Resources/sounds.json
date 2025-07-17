@@ -1,0 +1,319 @@
+{
+  "sounds": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "titleKey": "White Noise",
+      "category": "white",
+      "fileName": "white_noise",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": false,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.9,
+        "green": 0.9,
+        "blue": 0.9,
+        "alpha": 1.0
+      },
+      "emoji": "🌬️"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "titleKey": "Pink Noise",
+      "category": "pink",
+      "fileName": "pink_noise",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": false,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 1.0,
+        "green": 0.75,
+        "blue": 0.8,
+        "alpha": 1.0
+      },
+      "emoji": "🌸"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "titleKey": "Brown Noise",
+      "category": "brown",
+      "fileName": "brown_noise",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": false,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.65,
+        "green": 0.4,
+        "blue": 0.2,
+        "alpha": 1.0
+      },
+      "emoji": "🤎"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "titleKey": "Rain",
+      "category": "nature",
+      "fileName": "rain",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": false,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.0,
+        "green": 0.5,
+        "blue": 1.0,
+        "alpha": 1.0
+      },
+      "emoji": "🌧️"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "titleKey": "Ocean Waves",
+      "category": "nature",
+      "fileName": "ocean_waves",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.0,
+        "green": 0.6,
+        "blue": 0.8,
+        "alpha": 1.0
+      },
+      "emoji": "🌊"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "titleKey": "Forest",
+      "category": "nature",
+      "fileName": "forest",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.0,
+        "green": 0.7,
+        "blue": 0.0,
+        "alpha": 1.0
+      },
+      "emoji": "🌲"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "titleKey": "Heartbeat",
+      "category": "womb",
+      "fileName": "heartbeat",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 1.0,
+        "green": 0.0,
+        "blue": 0.0,
+        "alpha": 1.0
+      },
+      "emoji": "❤️"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "titleKey": "Womb Sounds",
+      "category": "womb",
+      "fileName": "womb_sounds",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.8,
+        "green": 0.4,
+        "blue": 0.4,
+        "alpha": 1.0
+      },
+      "emoji": "🤱"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "titleKey": "Fan",
+      "category": "fan",
+      "fileName": "fan",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": false,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.7,
+        "green": 0.7,
+        "blue": 0.7,
+        "alpha": 1.0
+      },
+      "emoji": "💨"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000010",
+      "titleKey": "Air Conditioner",
+      "category": "fan",
+      "fileName": "air_conditioner",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.6,
+        "green": 0.8,
+        "blue": 1.0,
+        "alpha": 1.0
+      },
+      "emoji": "❄️"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000011",
+      "titleKey": "Cat Purr",
+      "category": "animal",
+      "fileName": "cat_purr",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.9,
+        "green": 0.6,
+        "blue": 0.4,
+        "alpha": 1.0
+      },
+      "emoji": "🐱"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000012",
+      "titleKey": "Car Ride",
+      "category": "transport",
+      "fileName": "car_ride",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.3,
+        "green": 0.3,
+        "blue": 0.6,
+        "alpha": 1.0
+      },
+      "emoji": "🚗"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000013",
+      "titleKey": "Train",
+      "category": "transport",
+      "fileName": "train",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.5,
+        "green": 0.5,
+        "blue": 0.5,
+        "alpha": 1.0
+      },
+      "emoji": "🚂"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000014",
+      "titleKey": "Lullaby",
+      "category": "music",
+      "fileName": "lullaby",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.9,
+        "green": 0.7,
+        "blue": 0.9,
+        "alpha": 1.0
+      },
+      "emoji": "🎵"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000015",
+      "titleKey": "Piano Music",
+      "category": "music",
+      "fileName": "piano_music",
+      "fileExt": "mp3",
+      "loop": true,
+      "premium": true,
+      "defaultGainDb": 0,
+      "color": {
+        "red": 0.2,
+        "green": 0.2,
+        "blue": 0.2,
+        "alpha": 1.0
+      },
+      "emoji": "🎹"
+    }
+  ],
+  "soundPacks": [
+    {
+      "id": "00000000-0000-0000-0000-000000001001",
+      "titleKey": "Essential Sleep Sounds",
+      "sounds": [
+        "00000000-0000-0000-0000-000000000001",
+        "00000000-0000-0000-0000-000000000002",
+        "00000000-0000-0000-0000-000000000003",
+        "00000000-0000-0000-0000-000000000004",
+        "00000000-0000-0000-0000-000000000009"
+      ],
+      "premium": false,
+      "ageMin": 0,
+      "ageMax": 60
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000001002",
+      "titleKey": "Nature Premium Pack",
+      "sounds": [
+        "00000000-0000-0000-0000-000000000005",
+        "00000000-0000-0000-0000-000000000006"
+      ],
+      "premium": true,
+      "ageMin": 0,
+      "ageMax": 36
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000001003",
+      "titleKey": "Womb & Comfort",
+      "sounds": [
+        "00000000-0000-0000-0000-000000000007",
+        "00000000-0000-0000-0000-000000000008"
+      ],
+      "premium": true,
+      "ageMin": 0,
+      "ageMax": 12
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000001004",
+      "titleKey": "Transport Adventures",
+      "sounds": [
+        "00000000-0000-0000-0000-000000000012",
+        "00000000-0000-0000-0000-000000000013"
+      ],
+      "premium": true,
+      "ageMin": 6,
+      "ageMax": 36
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000001005",
+      "titleKey": "Musical Dreams",
+      "sounds": [
+        "00000000-0000-0000-0000-000000000014",
+        "00000000-0000-0000-0000-000000000015"
+      ],
+      "premium": true,
+      "ageMin": 0,
+      "ageMax": 60
+    }
+  ]
+} 

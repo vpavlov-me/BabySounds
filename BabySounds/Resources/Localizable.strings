@@ -1,0 +1,131 @@
+/* 
+  Localizable.strings (English)
+  BabySounds
+*/
+
+// MARK: - App General
+"App.Name" = "Baby Sounds";
+"App.Tagline" = "Soothing sounds for sweet dreams";
+
+// MARK: - Tabs
+"Tab.Sleep" = "Sleep";
+"Tab.Playroom" = "Playroom";
+"Tab.Favorites" = "Favorites";
+"Tab.Settings" = "Settings";
+
+// MARK: - Categories
+"Category.White" = "White Noise";
+"Category.Pink" = "Pink Noise";
+"Category.Brown" = "Brown Noise";
+"Category.Nature" = "Nature";
+"Category.Womb" = "Womb Sounds";
+"Category.Fan" = "Fan & Air";
+"Category.Animal" = "Animals";
+"Category.Transport" = "Transport";
+"Category.Music" = "Music";
+"Category.Custom" = "Custom";
+
+// MARK: - Sounds
+"Sound.WhiteNoise" = "White Noise";
+"Sound.PinkNoise" = "Pink Noise";
+"Sound.BrownNoise" = "Brown Noise";
+"Sound.Rain" = "Rain";
+"Sound.Ocean" = "Ocean Waves";
+"Sound.Forest" = "Forest";
+"Sound.Heartbeat" = "Heartbeat";
+"Sound.WombSounds" = "Womb Sounds";
+"Sound.Fan" = "Fan";
+"Sound.AirConditioner" = "Air Conditioner";
+"Sound.Car" = "Car Ride";
+"Sound.Train" = "Train";
+"Sound.Lullaby" = "Lullaby";
+
+// MARK: - UI Elements
+"Button.Play" = "Play";
+"Button.Pause" = "Pause";
+"Button.Stop" = "Stop";
+"Button.Premium" = "Premium";
+"Button.Unlock" = "Unlock Premium to Play";
+"Label.Volume" = "Volume";
+"Label.Timer" = "Sleep Timer";
+"Label.FadeOut" = "Fade out when timer ends";
+
+// MARK: - Parent Gate
+"ParentGate.Title" = "Parent Verification";
+"ParentGate.Instructions" = "To continue, please solve this simple math problem:";
+"ParentGate.Submit" = "Submit Answer";
+"ParentGate.Cancel" = "Cancel";
+"ParentGate.Incorrect" = "Incorrect answer. Please try again.";
+"ParentGate.Attempts" = "Attempts: %d/%d";
+
+// MARK: - Paywall
+"Paywall.Title" = "Sweet Dreams Premium";
+"Paywall.Subtitle" = "Unlock all premium sounds and features for better sleep";
+"Paywall.Feature.Sounds" = "50+ Premium Sounds";
+"Paywall.Feature.SoundsDesc" = "Exclusive nature sounds, womb sounds, and music tracks";
+"Paywall.Feature.Mixing" = "Multi-Sound Mixing";
+"Paywall.Feature.MixingDesc" = "Create custom blends with up to 4 sounds playing together";
+"Paywall.Feature.Timer" = "Extended Sleep Timer";
+"Paywall.Feature.TimerDesc" = "Sleep timer up to 12 hours for all-night comfort";
+"Paywall.Feature.Schedules" = "Sleep Schedules";
+"Paywall.Feature.SchedulesDesc" = "Automated bedtime routines with your favorite sounds";
+"Paywall.Feature.DarkMode" = "Dark Night Controls";
+"Paywall.Feature.DarkModeDesc" = "Special dark mode with red-tinted controls for nighttime use";
+"Paywall.Feature.Offline" = "Offline Sound Packs";
+"Paywall.Feature.OfflineDesc" = "Download sounds for airplane mode and data-free listening";
+"Paywall.ChoosePlan" = "Choose Your Plan";
+"Paywall.Annual" = "Annual Plan";
+"Paywall.Monthly" = "Monthly Plan";
+"Paywall.SavePercent" = "Save 50%";
+"Paywall.FreeTrial" = "7-day free trial";
+"Paywall.StartTrial" = "Start 7-Day Free Trial";
+"Paywall.MaybeLater" = "Maybe Later";
+"Paywall.Terms" = "Terms of Service";
+"Paywall.Privacy" = "Privacy Policy";
+"Paywall.Restore" = "Restore";
+"Paywall.Legal" = "7-day free trial, then %@";
+"Paywall.AutoRenew" = "Subscription automatically renews. Cancel anytime in Settings.";
+
+// MARK: - Settings
+"Settings.Subscription" = "Subscription";
+"Settings.PremiumActive" = "Premium Active";
+"Settings.UpgradePremium" = "Upgrade to Premium";
+"Settings.RestorePurchases" = "Restore Purchases";
+"Settings.App" = "App";
+"Settings.Theme" = "Theme";
+"Settings.Notifications" = "Notifications";
+"Settings.Schedules" = "Schedules";
+"Settings.OfflinePacks" = "Offline Packs";
+"Settings.Support" = "Support";
+"Settings.Help" = "Help & FAQ";
+"Settings.PrivacyPolicy" = "Privacy Policy";
+"Settings.TermsOfService" = "Terms of Service";
+
+// MARK: - Favorites
+"Favorites.Empty.Title" = "No Favorite Sounds";
+"Favorites.Empty.Description" = "Add sounds to favorites by tapping the heart icon";
+
+// MARK: - Playroom
+"Playroom.Exit" = "👨‍👩‍👧‍👦 Exit";
+
+// MARK: - Timer Options
+"Timer.Infinite" = "∞";
+"Timer.15min" = "15m";
+"Timer.30min" = "30m";
+"Timer.45min" = "45m";
+"Timer.60min" = "1h";
+"Timer.90min" = "1.5h";
+"Timer.120min" = "2h";
+
+// MARK: - Errors
+"Error.PurchaseFailed" = "Purchase failed. Please try again.";
+"Error.RestoreFailed" = "Restore failed. Please try again.";
+"Error.AudioFailed" = "Audio playback failed. Please check your device settings.";
+
+// MARK: - Accessibility
+"Accessibility.PlayButton" = "Play sound";
+"Accessibility.PauseButton" = "Pause sound";
+"Accessibility.VolumeSlider" = "Volume control";
+"Accessibility.TimerButton" = "Set sleep timer";
+"Accessibility.FavoriteButton" = "Add to favorites";
+"Accessibility.UnfavoriteButton" = "Remove from favorites"; 
