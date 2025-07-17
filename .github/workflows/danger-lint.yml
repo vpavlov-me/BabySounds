@@ -1,0 +1,400 @@
+name: 🛡️ Danger & Code Quality
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  danger:
+    name: 🛡️ Danger Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Danger
+        run: |
+          gem install danger
+          gem install danger-swiftlint
+          gem install danger-xcode_summary
+
+      - name: Run Danger
+        run: danger
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  code-quality-check:
+    name: 🔍 Code Quality Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v42
+        with:
+          files: |
+            **/*.swift
+            **/*.plist
+            **/*.md
+            **/*.yml
+            **/*.yaml
+
+      - name: Analyze TODO/FIXME comments
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "🔍 Scanning for TODO/FIXME comments in changed files..."
+          
+          TODO_COUNT=0
+          FIXME_COUNT=0
+          CRITICAL_TODOS=""
+          
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if [[ "$file" == *.swift ]]; then
+              # Count TODOs and FIXMEs
+              TODOS=$(grep -n "TODO" "$file" || true)
+              FIXMES=$(grep -n "FIXME" "$file" || true)
+              
+              if [ ! -z "$TODOS" ]; then
+                TODO_COUNT=$((TODO_COUNT + $(echo "$TODOS" | wc -l)))
+                echo "📝 TODOs in $file:"
+                echo "$TODOS"
+              fi
+              
+              if [ ! -z "$FIXMES" ]; then
+                FIXME_COUNT=$((FIXME_COUNT + $(echo "$FIXMES" | wc -l)))
+                CRITICAL_TODOS="$CRITICAL_TODOS\n$file: $FIXMES"
+                echo "🚨 FIXMEs in $file:"
+                echo "$FIXMES"
+              fi
+            fi
+          done
+          
+          echo "📊 Summary:"
+          echo "- TODO comments: $TODO_COUNT"
+          echo "- FIXME comments: $FIXME_COUNT"
+          
+          # Set outputs for later use
+          echo "todo_count=$TODO_COUNT" >> $GITHUB_OUTPUT
+          echo "fixme_count=$FIXME_COUNT" >> $GITHUB_OUTPUT
+          
+          # Fail if too many FIXMEs
+          if [ $FIXME_COUNT -gt 5 ]; then
+            echo "❌ Too many FIXME comments ($FIXME_COUNT). Please address critical issues before merging."
+            exit 1
+          fi
+
+      - name: Check for print statements
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "🔍 Checking for print statements in production code..."
+          
+          PRINT_COUNT=0
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if [[ "$file" == *.swift ]] && [[ "$file" != *Test* ]] && [[ "$file" != *Debug* ]]; then
+              PRINTS=$(grep -n "print(" "$file" || true)
+              if [ ! -z "$PRINTS" ]; then
+                PRINT_COUNT=$((PRINT_COUNT + $(echo "$PRINTS" | wc -l)))
+                echo "⚠️  Print statements in $file:"
+                echo "$PRINTS"
+              fi
+            fi
+          done
+          
+          if [ $PRINT_COUNT -gt 0 ]; then
+            echo "⚠️  Found $PRINT_COUNT print statements. Consider using Logger or os_log for production code."
+          else
+            echo "✅ No print statements found in production code"
+          fi
+
+      - name: Check Kids Category compliance
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "👶 Checking Kids Category compliance..."
+          
+          COMPLIANCE_ISSUES=0
+          
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if [[ "$file" == *.swift ]]; then
+              # Check for potential data collection
+              DATA_COLLECTION=$(grep -n -E "(Analytics|Tracking|UserDefaults.*email|UserDefaults.*name|UserDefaults.*location)" "$file" || true)
+              if [ ! -z "$DATA_COLLECTION" ]; then
+                echo "⚠️  Potential data collection in $file:"
+                echo "$DATA_COLLECTION"
+                COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
+              fi
+              
+              # Check for external URLs without safety wrapper
+              UNSAFE_URLS=$(grep -n -E "https?://" "$file" | grep -v "SafeLinkWrapper" || true)
+              if [ ! -z "$UNSAFE_URLS" ]; then
+                echo "⚠️  Potential unsafe URLs in $file (should use SafeLinkWrapper):"
+                echo "$UNSAFE_URLS"
+                COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
+              fi
+              
+              # Check for age-inappropriate content
+              INAPPROPRIATE=$(grep -n -E "(violence|adult|mature|gambling)" "$file" || true)
+              if [ ! -z "$INAPPROPRIATE" ]; then
+                echo "🚨 Potentially inappropriate content in $file:"
+                echo "$INAPPROPRIATE"
+                COMPLIANCE_ISSUES=$((COMPLIANCE_ISSUES + 1))
+              fi
+            fi
+          done
+          
+          if [ $COMPLIANCE_ISSUES -gt 0 ]; then
+            echo "⚠️  Found $COMPLIANCE_ISSUES potential Kids Category compliance issues. Please review."
+          else
+            echo "✅ No obvious Kids Category compliance issues found"
+          fi
+
+      - name: Check accessibility compliance
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "♿ Checking accessibility compliance..."
+          
+          ACCESSIBILITY_SCORE=0
+          TOTAL_UI_ELEMENTS=0
+          
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if [[ "$file" == *.swift ]] && [[ "$file" == *View* ]]; then
+              # Count interactive UI elements
+              BUTTONS=$(grep -c "Button\|Toggle\|Picker\|TextField" "$file" || echo "0")
+              IMAGES=$(grep -c "Image\|AsyncImage" "$file" || echo "0")
+              TOTAL_UI_ELEMENTS=$((TOTAL_UI_ELEMENTS + BUTTONS + IMAGES))
+              
+              # Check for accessibility implementations
+              ACCESSIBILITY_LABELS=$(grep -c "accessibilityLabel\|accessibilityHint\|accessibilityIdentifier" "$file" || echo "0")
+              ACCESSIBILITY_SCORE=$((ACCESSIBILITY_SCORE + ACCESSIBILITY_LABELS))
+              
+              if [ $BUTTONS -gt 0 ] || [ $IMAGES -gt 0 ]; then
+                if [ $ACCESSIBILITY_LABELS -eq 0 ]; then
+                  echo "⚠️  $file has UI elements but no accessibility labels"
+                else
+                  echo "✅ $file has accessibility implementations"
+                fi
+              fi
+            fi
+          done
+          
+          if [ $TOTAL_UI_ELEMENTS -gt 0 ]; then
+            ACCESSIBILITY_PERCENTAGE=$((ACCESSIBILITY_SCORE * 100 / TOTAL_UI_ELEMENTS))
+            echo "♿ Accessibility Score: $ACCESSIBILITY_PERCENTAGE% ($ACCESSIBILITY_SCORE/$TOTAL_UI_ELEMENTS)"
+            
+            if [ $ACCESSIBILITY_PERCENTAGE -lt 50 ]; then
+              echo "⚠️  Low accessibility compliance. Consider adding more accessibility labels and hints."
+            else
+              echo "✅ Good accessibility compliance"
+            fi
+          else
+            echo "ℹ️  No UI elements found in changed files"
+          fi
+
+      - name: Check localization coverage
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "🌍 Checking localization coverage..."
+          
+          HARDCODED_STRINGS=0
+          
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if [[ "$file" == *.swift ]]; then
+              # Look for hardcoded English strings (basic check)
+              STRINGS=$(grep -n -E 'Text\("[A-Za-z\s]+"?\)' "$file" | grep -v "LocalizedStringKey\|NSLocalizedString" || true)
+              if [ ! -z "$STRINGS" ]; then
+                HARDCODED_STRINGS=$((HARDCODED_STRINGS + $(echo "$STRINGS" | wc -l)))
+                echo "⚠️  Potential hardcoded strings in $file:"
+                echo "$STRINGS"
+              fi
+            fi
+          done
+          
+          if [ $HARDCODED_STRINGS -gt 0 ]; then
+            echo "⚠️  Found $HARDCODED_STRINGS potential hardcoded strings. Consider using LocalizedStringKey."
+          else
+            echo "✅ No obvious hardcoded strings found"
+          fi
+
+      - name: Performance check
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          echo "⚡ Checking for potential performance issues..."
+          
+          PERFORMANCE_ISSUES=0
+          
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if [[ "$file" == *.swift ]]; then
+              # Check for potential performance issues
+              SYNC_CALLS=$(grep -n -E "\.sync\s*\{|DispatchQueue\.main\.sync" "$file" || true)
+              if [ ! -z "$SYNC_CALLS" ]; then
+                echo "⚠️  Synchronous dispatch calls in $file (potential UI blocking):"
+                echo "$SYNC_CALLS"
+                PERFORMANCE_ISSUES=$((PERFORMANCE_ISSUES + 1))
+              fi
+              
+              FORCE_UNWRAPS=$(grep -n "!" "$file" | grep -v "//" || true)
+              FORCE_UNWRAP_COUNT=$(echo "$FORCE_UNWRAPS" | wc -l)
+              if [ $FORCE_UNWRAP_COUNT -gt 5 ]; then
+                echo "⚠️  Many force unwraps in $file ($FORCE_UNWRAP_COUNT). Consider safe unwrapping."
+                PERFORMANCE_ISSUES=$((PERFORMANCE_ISSUES + 1))
+              fi
+              
+              NESTED_LOOPS=$(grep -n -E "for.*in.*\{[\s\S]*for.*in" "$file" || true)
+              if [ ! -z "$NESTED_LOOPS" ]; then
+                echo "⚠️  Nested loops in $file (potential O(n²) complexity):"
+                echo "$NESTED_LOOPS"
+                PERFORMANCE_ISSUES=$((PERFORMANCE_ISSUES + 1))
+              fi
+            fi
+          done
+          
+          if [ $PERFORMANCE_ISSUES -gt 0 ]; then
+            echo "⚠️  Found $PERFORMANCE_ISSUES potential performance issues"
+          else
+            echo "✅ No obvious performance issues found"
+          fi
+
+  pr-size-check:
+    name: 📏 PR Size Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze PR size
+        run: |
+          # Get PR statistics
+          ADDED_LINES=$(git diff --numstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | awk '{sum += $1} END {print sum}')
+          DELETED_LINES=$(git diff --numstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | awk '{sum += $2} END {print sum}')
+          CHANGED_FILES=$(git diff --numstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | wc -l)
+          
+          echo "📊 PR Statistics:"
+          echo "- Files changed: $CHANGED_FILES"
+          echo "- Lines added: $ADDED_LINES"
+          echo "- Lines deleted: $DELETED_LINES"
+          echo "- Net change: $((ADDED_LINES - DELETED_LINES))"
+          
+          # Determine PR size
+          TOTAL_CHANGES=$((ADDED_LINES + DELETED_LINES))
+          
+          if [ $TOTAL_CHANGES -gt 1000 ]; then
+            echo "🚨 Large PR: Consider breaking into smaller changes for easier review"
+            SIZE="large"
+          elif [ $TOTAL_CHANGES -gt 500 ]; then
+            echo "⚠️  Medium PR: Ensure good documentation and testing"
+            SIZE="medium"
+          else
+            echo "✅ Small PR: Good size for review"
+            SIZE="small"
+          fi
+          
+          # Add label suggestion
+          echo "💡 Suggested label: size/$SIZE"
+
+  changelog-check:
+    name: 📝 Changelog Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changelog updates
+        run: |
+          # Check if CHANGELOG.md or similar files exist and were updated
+          if [ -f "CHANGELOG.md" ] || [ -f "CHANGES.md" ] || [ -f "HISTORY.md" ]; then
+            CHANGELOG_FILES=$(find . -name "CHANGELOG.md" -o -name "CHANGES.md" -o -name "HISTORY.md")
+            
+            CHANGELOG_UPDATED=false
+            for file in $CHANGELOG_FILES; do
+              if git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -q "$file"; then
+                CHANGELOG_UPDATED=true
+                echo "✅ Changelog updated: $file"
+                break
+              fi
+            done
+            
+            if [ "$CHANGELOG_UPDATED" = false ]; then
+              echo "⚠️  No changelog update detected. Consider updating CHANGELOG.md for user-facing changes."
+            fi
+          else
+            echo "ℹ️  No changelog file found. Consider adding CHANGELOG.md to track changes."
+          fi
+
+      - name: Validate commit messages
+        run: |
+          echo "📝 Validating commit messages for conventional commits..."
+          
+          COMMITS=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          INVALID_COMMITS=0
+          
+          for commit in $COMMITS; do
+            MESSAGE=$(git log --format=%s -n 1 $commit)
+            
+            # Check for conventional commit format
+            if [[ ! "$MESSAGE" =~ ^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\(.+\))?: .+ ]]; then
+              echo "⚠️  Non-conventional commit: $commit - $MESSAGE"
+              INVALID_COMMITS=$((INVALID_COMMITS + 1))
+            fi
+          done
+          
+          if [ $INVALID_COMMITS -gt 0 ]; then
+            echo "💡 Consider using conventional commit format: type(scope): description"
+            echo "   Examples: feat: add new sound category, fix: resolve crash on iOS 17"
+          else
+            echo "✅ All commit messages follow conventional format"
+          fi
+
+  summary:
+    name: 📋 Quality Summary
+    runs-on: ubuntu-latest
+    needs: [danger, code-quality-check, pr-size-check, changelog-check]
+    if: always()
+
+    steps:
+      - name: Generate quality summary
+        run: |
+          echo "# 🛡️ Code Quality Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Quality Checks" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Danger Analysis | ${{ needs.danger.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| PR Size Check | ${{ needs.pr-size-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Changelog Check | ${{ needs.changelog-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 💡 Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Ensure all TODO/FIXME comments are addressed before merging" >> $GITHUB_STEP_SUMMARY
+          echo "- Verify Kids Category compliance for any new features" >> $GITHUB_STEP_SUMMARY
+          echo "- Add accessibility labels for new UI elements" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider performance impact of changes" >> $GITHUB_STEP_SUMMARY
+          echo "- Update documentation and changelog as needed" >> $GITHUB_STEP_SUMMARY 

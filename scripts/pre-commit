@@ -1,0 +1,256 @@
+#!/bin/bash
+# BabySounds Pre-commit Hook
+# Validates code quality, build numbers, and Kids App compliance before commits
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🔍 Running pre-commit validation for BabySounds...${NC}"
+
+# Function to print colored output
+print_success() { echo -e "${GREEN}✅ $1${NC}"; }
+print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
+print_error() { echo -e "${RED}❌ $1${NC}"; }
+print_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
+
+# Check if we're in the right directory
+if [ ! -f "BabySounds/Info.plist" ]; then
+    print_error "BabySounds/Info.plist not found. Are you in the project root?"
+    exit 1
+fi
+
+# Check if required tools are installed
+check_dependencies() {
+    print_info "Checking dependencies..."
+    
+    if ! command -v swiftlint &> /dev/null; then
+        print_error "SwiftLint not found. Install with: brew install swiftlint"
+        exit 1
+    fi
+    
+    if ! command -v swiftformat &> /dev/null; then
+        print_error "SwiftFormat not found. Install with: brew install swiftformat"
+        exit 1
+    fi
+    
+    print_success "All dependencies found"
+}
+
+# Validate build number uniqueness
+validate_build_number() {
+    print_info "Validating build number..."
+    
+    # Get current build number
+    BUILD_NUMBER=$(plutil -extract CFBundleVersion raw BabySounds/Info.plist 2>/dev/null || echo "1")
+    VERSION=$(plutil -extract CFBundleShortVersionString raw BabySounds/Info.plist 2>/dev/null || echo "1.0.0")
+    
+    print_info "Current version: $VERSION ($BUILD_NUMBER)"
+    
+    # Check if build number is unique in git history
+    if git rev-list --all | xargs git show --format="" --name-only | grep -q "Info.plist"; then
+        # Get all previous build numbers from git history
+        PREVIOUS_BUILDS=$(git log --all --pretty=format: --name-only | grep "Info.plist" | head -10 | while read file; do
+            if [ -f "$file" ]; then
+                plutil -extract CFBundleVersion raw "$file" 2>/dev/null || echo ""
+            fi
+        done | sort -n | uniq)
+        
+        if echo "$PREVIOUS_BUILDS" | grep -q "^$BUILD_NUMBER$"; then
+            print_error "Build number $BUILD_NUMBER already exists in git history"
+            print_info "Please increment the build number before committing"
+            exit 1
+        fi
+    fi
+    
+    print_success "Build number validation passed"
+}
+
+# Run SwiftFormat
+run_swiftformat() {
+    print_info "Running SwiftFormat..."
+    
+    if [ -f ".swiftformat" ]; then
+        swiftformat . --config .swiftformat
+        print_success "SwiftFormat completed"
+    else
+        print_warning "No .swiftformat config found, using defaults"
+        swiftformat .
+    fi
+}
+
+# Run SwiftLint
+run_swiftlint() {
+    print_info "Running SwiftLint..."
+    
+    if [ -f ".swiftlint.yml" ]; then
+        swiftlint lint --config .swiftlint.yml --strict
+    else
+        swiftlint lint --strict
+    fi
+    
+    print_success "SwiftLint passed"
+}
+
+# Check for Kids App compliance issues
+check_kids_compliance() {
+    print_info "Checking Kids Category compliance..."
+    
+    local issues=0
+    
+    # Check staged Swift files for compliance issues
+    STAGED_SWIFT_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "\.swift$" || true)
+    
+    if [ -n "$STAGED_SWIFT_FILES" ]; then
+        for file in $STAGED_SWIFT_FILES; do
+            if [ -f "$file" ]; then
+                # Check for potential data collection
+                if grep -qE "(Analytics|Tracking|UserDefaults.*email|UserDefaults.*name|UserDefaults.*location)" "$file"; then
+                    print_warning "Potential data collection found in $file"
+                    print_info "Ensure compliance with COPPA and Kids Category guidelines"
+                    issues=$((issues + 1))
+                fi
+                
+                # Check for external URLs without safety wrapper
+                if grep -qE "https?://" "$file" && ! grep -q "SafeLinkWrapper" "$file"; then
+                    print_warning "External URLs found in $file without SafeLinkWrapper"
+                    print_info "All external URLs must be wrapped with SafeLinkWrapper"
+                    issues=$((issues + 1))
+                fi
+                
+                # Check for inappropriate content
+                if grep -qE "(violence|adult|mature|gambling)" "$file"; then
+                    print_error "Potentially inappropriate content found in $file"
+                    print_info "Kids apps must not contain age-inappropriate content"
+                    issues=$((issues + 1))
+                fi
+                
+                # Check for print statements in production code
+                if [[ "$file" != *"Test"* ]] && [[ "$file" != *"Debug"* ]] && grep -q "print(" "$file"; then
+                    print_warning "Print statements found in $file"
+                    print_info "Consider using Logger or os_log for production code"
+                fi
+            fi
+        done
+    fi
+    
+    if [ $issues -eq 0 ]; then
+        print_success "Kids Category compliance check passed"
+    else
+        print_warning "Found $issues potential compliance issues"
+        print_info "Please review and address before committing"
+    fi
+}
+
+# Check for accessibility compliance
+check_accessibility() {
+    print_info "Checking accessibility compliance..."
+    
+    local ui_files=0
+    local accessible_files=0
+    
+    # Check staged Swift UI files
+    STAGED_UI_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "View\.swift$\|UI.*\.swift$" || true)
+    
+    if [ -n "$STAGED_UI_FILES" ]; then
+        for file in $STAGED_UI_FILES; do
+            if [ -f "$file" ]; then
+                ui_files=$((ui_files + 1))
+                
+                # Check for accessibility implementations
+                if grep -qE "accessibilityLabel|accessibilityHint|accessibilityIdentifier" "$file"; then
+                    accessible_files=$((accessible_files + 1))
+                else
+                    print_warning "No accessibility attributes found in $file"
+                    print_info "Consider adding accessibility labels for UI elements"
+                fi
+            fi
+        done
+        
+        if [ $ui_files -gt 0 ]; then
+            local percentage=$((accessible_files * 100 / ui_files))
+            print_info "Accessibility coverage: $percentage% ($accessible_files/$ui_files files)"
+            
+            if [ $percentage -lt 50 ]; then
+                print_warning "Low accessibility coverage"
+                print_info "Kids apps should have good accessibility support"
+            else
+                print_success "Good accessibility coverage"
+            fi
+        fi
+    else
+        print_info "No UI files to check for accessibility"
+    fi
+}
+
+# Check for common issues
+check_common_issues() {
+    print_info "Checking for common issues..."
+    
+    # Check staged Swift files
+    STAGED_SWIFT_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "\.swift$" || true)
+    
+    if [ -n "$STAGED_SWIFT_FILES" ]; then
+        local issues=0
+        
+        for file in $STAGED_SWIFT_FILES; do
+            if [ -f "$file" ]; then
+                # Check for TODO/FIXME comments
+                local todos=$(grep -c "TODO\|FIXME" "$file" || echo "0")
+                if [ "$todos" -gt 5 ]; then
+                    print_warning "Many TODO/FIXME comments in $file ($todos)"
+                    print_info "Consider addressing some before committing"
+                    issues=$((issues + 1))
+                fi
+                
+                # Check for force unwraps
+                local force_unwraps=$(grep -c "!" "$file" | grep -v "//" || echo "0")
+                if [ "$force_unwraps" -gt 10 ]; then
+                    print_warning "Many force unwraps in $file ($force_unwraps)"
+                    print_info "Consider using safe unwrapping"
+                    issues=$((issues + 1))
+                fi
+                
+                # Check for hardcoded strings
+                if grep -qE 'Text\("[A-Za-z\s]+"?\)' "$file" && ! grep -qE "LocalizedStringKey|NSLocalizedString" "$file"; then
+                    print_warning "Potential hardcoded strings in $file"
+                    print_info "Consider using localized strings"
+                fi
+            fi
+        done
+        
+        if [ $issues -eq 0 ]; then
+            print_success "Common issues check passed"
+        fi
+    fi
+}
+
+# Main execution
+main() {
+    check_dependencies
+    
+    # Only validate build number if Info.plist is staged
+    if git diff --cached --name-only | grep -q "Info.plist"; then
+        validate_build_number
+    fi
+    
+    # Run code formatting and linting
+    run_swiftformat
+    run_swiftlint
+    
+    # Run compliance checks
+    check_kids_compliance
+    check_accessibility
+    check_common_issues
+    
+    print_success "All pre-commit checks passed!"
+    print_info "Ready to commit to BabySounds 🍼"
+}
+
+# Run main function
+main 

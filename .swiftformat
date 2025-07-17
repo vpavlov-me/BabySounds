@@ -1,0 +1,164 @@
+# SwiftFormat Configuration for BabySounds
+# Compatible with SwiftLint rules
+
+# Format options
+--allman false
+--assetliterals visual-width
+--beforemarks 
+--binarygrouping 4,8
+--categorymark "MARK: - %c"
+--classthreshold 0
+--closingparen balanced
+--commas always
+--decimalgrouping 3,6
+--elseposition same-line
+--enumthreshold 0
+--exponentcase lowercase
+--exponentgrouping disabled
+--extensionacl on-extension
+--extensionlength 0
+--extensionmark "MARK: - %t + %c"
+--fractiongrouping disabled
+--fragment false
+--funcattributes prev-line
+--groupedextension "MARK: %c"
+--guardelse auto
+--header strip
+--hexgrouping 4,8
+--hexliteralcase uppercase
+--ifdef indent
+--importgrouping testable-bottom
+--indent 4
+--indentcase false
+--lifecycle 
+--linebreaks lf
+--markcategories true
+--markextensions always
+--marktypes always
+--maxwidth 120
+--modifierorder 
+--nevertrailing 
+--nospaceoperators 
+--nowrapoperators 
+--octalgrouping 4,8
+--operatorfunc spaced
+--patternlet hoist
+--ranges spaced
+--redundanttype inferred
+--self remove
+--selfrequired 
+--semicolons inline
+--shortoptionals always
+--smarttabs enabled
+--stripunusedargs always
+--structthreshold 0
+--tabwidth unspecified
+--trailingclosures 
+--trimwhitespace always
+--typeattributes prev-line
+--typemark "MARK: - %t"
+--varattributes same-line
+--voidtype void
+--wraparguments preserve
+--wrapcollections preserve
+--wrapconditions preserve
+--wrapparameters preserve
+--wrapreturntype preserve
+--wraptypealiases preserve
+--xcodeindentation disabled
+--yodaswap always
+
+# Enabled rules
+--enable andOperator
+--enable anyObjectProtocol
+--enable assertionFailures
+--enable blankLinesBetweenImports
+--enable blankLinesBetweenScopes
+--enable blankLinesAroundMark
+--enable blankLinesAtEndOfScope
+--enable blankLinesAtStartOfScope
+--enable blockComments
+--enable braces
+--enable conditionalAssignment
+--enable consecutiveBlankLines
+--enable consecutiveSpaces
+--enable duplicateImports
+--enable elseOnSameLine
+--enable emptyBraces
+--enable enumNamespaces
+--enable extensionAccessControl
+--enable fileHeader
+--enable hoistPatternLet
+--enable indent
+--enable initCoderUnavailable
+--enable leadingDelimiters
+--enable linebreakAtEndOfFile
+--enable linebreaks
+--enable markTypes
+--enable modifierOrder
+--enable numberFormatting
+--enable opaqueGenericParameters
+--enable operatorFunctions
+--enable preferKeyPath
+--enable redundantBackticks
+--enable redundantBreak
+--enable redundantClosure
+--enable redundantExtensionACL
+--enable redundantFileprivate
+--enable redundantGet
+--enable redundantInit
+--enable redundantLet
+--enable redundantLetError
+--enable redundantNilInit
+--enable redundantObjc
+--enable redundantParens
+--enable redundantPattern
+--enable redundantRawValues
+--enable redundantReturn
+--enable redundantSelf
+--enable redundantType
+--enable redundantVoidReturnType
+--enable semicolons
+--enable sortedImports
+--enable sortedSwitchCases
+--enable spaceAroundBraces
+--enable spaceAroundBrackets
+--enable spaceAroundComments
+--enable spaceAroundGenerics
+--enable spaceAroundOperators
+--enable spaceAroundParens
+--enable spaceInsideBraces
+--enable spaceInsideBrackets
+--enable spaceInsideComments
+--enable spaceInsideGenerics
+--enable spaceInsideParens
+--enable strongOutlets
+--enable strongifiedSelf
+--enable todos
+--enable trailingClosures
+--enable trailingCommas
+--enable trailingSpace
+--enable typeSugar
+--enable unusedArguments
+--enable void
+--enable wrap
+--enable wrapArguments
+--enable wrapMultilineStatementBraces
+--enable yodaConditions
+
+# Disabled rules (conflicts with SwiftLint or project style)
+--disable organizeDeclarations
+--disable docComments
+--disable headerFileName
+--disable preferForLoop
+--disable sortedImports
+--disable wrapConditionalBodies
+
+# File options
+--exclude BabySounds/Preview\ Content
+--exclude build
+--exclude DerivedData
+--exclude .swiftpm
+--exclude Packages
+--exclude fastlane
+--exclude docs 

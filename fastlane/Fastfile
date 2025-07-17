@@ -1,0 +1,349 @@
+# Fastfile for BabySounds iOS App
+# Production-ready CI/CD automation with TestFlight deployment
+
+default_platform(:ios)
+
+platform :ios do
+  # Environment setup
+  before_all do
+    setup_circle_ci if ENV['CI']
+  end
+
+  # MARK: - Version Management
+
+  desc "Bump version number and build number"
+  lane :bump_version do |options|
+    type = options[:type] || "patch" # major, minor, patch
+    
+    # Bump marketing version
+    increment_version_number(
+      version_number: increment_version_number_in_plist(
+        plist_path: "BabySounds/Info.plist",
+        bump_type: type
+      )
+    )
+    
+    # Bump build number
+    increment_build_number(
+      build_number: latest_testflight_build_number(
+        app_identifier: "com.babysounds.app"
+      ) + 1
+    )
+    
+    # Get new versions
+    version = get_version_number(target: "BabySounds")
+    build = get_build_number
+    
+    UI.success("✅ Version bumped to #{version} (#{build})")
+    
+    # Commit version bump
+    commit_version_bump(
+      message: "🔖 Version bump to #{version} (#{build})",
+      xcodeproj: "BabySoundsDemo.xcodeproj",
+      force: true
+    )
+    
+    # Create git tag
+    add_git_tag(
+      tag: "v#{version}",
+      message: "Release version #{version}"
+    )
+    
+    { version: version, build: build }
+  end
+
+  desc "Sync version numbers across targets"
+  lane :sync_versions do
+    version = get_version_number(target: "BabySounds")
+    build = get_build_number
+    
+    # Ensure all targets have same version
+    increment_version_number(version_number: version)
+    increment_build_number(build_number: build)
+    
+    UI.success("✅ Versions synchronized: #{version} (#{build})")
+  end
+
+  # MARK: - Code Quality
+
+  desc "Run SwiftLint and SwiftFormat"
+  lane :lint do
+    # Run SwiftFormat first
+    sh("swiftformat . --config ../.swiftformat")
+    UI.success("✅ SwiftFormat completed")
+    
+    # Run SwiftLint
+    swiftlint(
+      mode: :lint,
+      config_file: ".swiftlint.yml",
+      strict: true,
+      quiet: false
+    )
+    UI.success("✅ SwiftLint passed")
+  end
+
+  desc "Fix code formatting and style issues"
+  lane :fix_lint do
+    # Run SwiftFormat to fix formatting
+    sh("swiftformat . --config ../.swiftformat")
+    
+    # Run SwiftLint with autocorrect
+    swiftlint(
+      mode: :autocorrect,
+      config_file: ".swiftlint.yml"
+    )
+    
+    UI.success("✅ Code formatting fixed")
+  end
+
+  # MARK: - Testing
+
+  desc "Run unit tests"
+  lane :test do
+    run_tests(
+      workspace: "BabySoundsDemo.xcworkspace",
+      scheme: "BabySounds",
+      device: "iPhone 15 Pro",
+      clean: true,
+      code_coverage: true,
+      derived_data_path: "./DerivedData"
+    )
+    
+    UI.success("✅ All tests passed")
+  end
+
+  desc "Run tests on multiple devices"
+  lane :test_all_devices do
+    devices = [
+      "iPhone SE (3rd generation)",
+      "iPhone 15",
+      "iPhone 15 Pro",
+      "iPhone 15 Pro Max",
+      "iPad (10th generation)",
+      "iPad Pro (12.9-inch) (6th generation)"
+    ]
+    
+    devices.each do |device|
+      UI.header("Testing on #{device}")
+      run_tests(
+        workspace: "BabySoundsDemo.xcworkspace",
+        scheme: "BabySounds",
+        device: device,
+        clean: false,
+        derived_data_path: "./DerivedData"
+      )
+    end
+    
+    UI.success("✅ Tests passed on all devices")
+  end
+
+  # MARK: - Building
+
+  desc "Build app for release"
+  lane :build_release do
+    # Ensure clean state
+    clean_build_artifacts
+    clear_derived_data
+    
+    # Sync code signing
+    sync_code_signing(type: "appstore")
+    
+    # Build archive
+    gym(
+      workspace: "BabySoundsDemo.xcworkspace",
+      scheme: "BabySounds",
+      configuration: "Release",
+      clean: true,
+      output_directory: "./build",
+      output_name: "BabySounds.ipa",
+      export_method: "app-store",
+      export_options: {
+        method: "app-store",
+        uploadBitcode: false,
+        uploadSymbols: true,
+        compileBitcode: false,
+        manageAppVersionAndBuildNumber: false
+      }
+    )
+    
+    UI.success("✅ Release build completed")
+  end
+
+  desc "Build app for development"
+  lane :build_dev do
+    gym(
+      workspace: "BabySoundsDemo.xcworkspace",
+      scheme: "BabySounds",
+      configuration: "Debug",
+      clean: true,
+      output_directory: "./build",
+      output_name: "BabySounds-Dev.ipa",
+      export_method: "development"
+    )
+    
+    UI.success("✅ Development build completed")
+  end
+
+  # MARK: - App Store & TestFlight
+
+  desc "Upload to TestFlight"
+  lane :upload_testflight do |options|
+    # Build if not already built
+    build_release unless File.exist?("./build/BabySounds.ipa")
+    
+    # Upload to TestFlight
+    pilot(
+      ipa: "./build/BabySounds.ipa",
+      skip_waiting_for_build_processing: false,
+      skip_submission: true,
+      distribute_external: false,
+      notify_external_testers: false,
+      changelog: options[:changelog] || generate_changelog
+    )
+    
+    UI.success("✅ Uploaded to TestFlight successfully")
+  end
+
+  desc "Submit to App Store for review"
+  lane :submit_review do |options|
+    deliver(
+      ipa: "./build/BabySounds.ipa",
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots"
+    )
+    
+    UI.success("✅ Submitted for App Store review")
+  end
+
+  # MARK: - Release Process
+
+  desc "Complete release process"
+  lane :release do |options|
+    # Ensure we're on main branch
+    ensure_git_branch(branch: "main")
+    ensure_git_status_clean
+    
+    # Run quality checks
+    lint
+    test
+    
+    # Bump version
+    version_info = bump_version(type: options[:type])
+    
+    # Build and upload
+    build_release
+    upload_testflight(changelog: options[:changelog])
+    
+    # Push changes
+    push_to_git_remote(
+      remote: "origin",
+      local_branch: "main",
+      remote_branch: "main",
+      force: false,
+      tags: true
+    )
+    
+    # Create GitHub release
+    create_github_release(
+      tag: "v#{version_info[:version]}",
+      name: "Release #{version_info[:version]}",
+      description: options[:changelog] || generate_changelog,
+      is_prerelease: false
+    )
+    
+    UI.success("🚀 Release #{version_info[:version]} completed successfully!")
+  end
+
+  desc "Emergency hotfix release"
+  lane :hotfix do |options|
+    UI.header("🚨 Emergency Hotfix Release")
+    
+    # Create hotfix branch
+    sh("git checkout -b hotfix/#{options[:version]} main")
+    
+    # Apply fixes (manual step)
+    UI.important("Apply your hotfix changes now, then continue...")
+    UI.input("Press Enter when hotfix is ready...")
+    
+    # Test the fix
+    test
+    
+    # Bump patch version
+    version_info = bump_version(type: "patch")
+    
+    # Build and upload
+    build_release
+    upload_testflight(changelog: "🚨 Hotfix: #{options[:description]}")
+    
+    # Merge back to main
+    sh("git checkout main")
+    sh("git merge hotfix/#{version_info[:version]}")
+    sh("git push origin main")
+    sh("git push origin --tags")
+    
+    # Clean up hotfix branch
+    sh("git branch -d hotfix/#{version_info[:version]}")
+    
+    UI.success("🚨 Hotfix #{version_info[:version]} deployed!")
+  end
+
+  # MARK: - Helper Methods
+
+  private_lane :generate_changelog do
+    # Get commits since last tag
+    changelog = changelog_from_git_commits(
+      between: [last_git_tag, "HEAD"],
+      pretty: "- %s",
+      date_format: "short",
+      match_lightweight_tag: false,
+      merge_commit_filtering: "exclude_merges"
+    )
+    
+    changelog || "Bug fixes and improvements"
+  end
+
+  private_lane :create_github_release do |options|
+    set_github_release(
+      repository_name: "vpavlov-me/BabySounds",
+      api_token: ENV["GITHUB_TOKEN"],
+      name: options[:name],
+      tag_name: options[:tag],
+      description: options[:description],
+      is_prerelease: options[:is_prerelease]
+    )
+  end
+
+  # Error handling
+  error do |lane, exception|
+    UI.error("❌ Lane #{lane} failed with exception: #{exception.message}")
+    
+    # Clean up on error
+    clean_build_artifacts
+    clear_derived_data
+    
+    # Notify team if in CI
+    if ENV['CI']
+      slack(
+        message: "❌ BabySounds build failed in lane #{lane}",
+        channel: "#ios-builds",
+        success: false
+      ) if ENV['SLACK_URL']
+    end
+  end
+
+  # Success notification
+  after_all do |lane|
+    UI.success("✅ Lane #{lane} completed successfully")
+    
+    if ENV['CI']
+      slack(
+        message: "✅ BabySounds #{lane} completed successfully",
+        channel: "#ios-builds",
+        success: true
+      ) if ENV['SLACK_URL']
+    end
+  end
+end 
