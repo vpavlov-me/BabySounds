@@ -111,8 +111,8 @@ Family Sharing: No (consistent with monthly)
 - Description: "Unlock all premium content and features"
 
 **Russian**:
-- Display Name: "Премиум функции"
-- Description: "Разблокируйте весь премиум контент и функции"
+- Display Name: "Premium Features" (in Russian: "Премиум функции")
+- Description: "Unlock all premium content and features" (in Russian: "Разблокируйте весь премиум контент и функции")
 
 ### 🖼️ App Store Assets
 

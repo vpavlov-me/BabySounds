@@ -1,145 +1,129 @@
+//
+//  main.swift
+//  BabySoundsApp
+//
+/// Entry point for BabySounds iOS application
+///
+/// Modern app for child sleep with safe audio accompaniment
+/// Features COPPA compliance, premium subscriptions, and comprehensive audio engine
+/// 
+/// Key Features:
+/// - AVAudioEngine with multi-track mixing
+/// - StoreKit 2 premium subscriptions  
+/// - Kids Category compliance (COPPA safe)
+/// - WHO hearing safety guidelines
+
 import SwiftUI
 import BabySoundsCore
-import BabySoundsUI
 
-/// Entry point для BabySounds iOS приложения
-/// 
-/// Современное приложение для детского сна с безопасным звуковым сопровождением
-@main
-struct BabySoundsAppMain {
-    static func main() {
-        BabySoundsApp.main()
-    }
-}
-
-/// Основное приложение BabySounds
-struct BabySoundsApp: App {
-    /// Состояние приложения
+/// Main BabySounds application
+@main struct BabySoundsApp: App {
+    /// Application state
     @StateObject private var appState = AppState()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
-                .onAppear {
-                    setupApplication()
+                .task {
+                    // Initialize audio session on startup
+                    await appState.initializeAudio()
                 }
-        }
-    }
-    
-    /// Инициализация приложения
-    private func setupApplication() {
-        print("🍼 BabySounds v\(BabySoundsCore.version) starting...")
-        print("🎨 UI Framework v\(BabySoundsUI.version) loaded")
-        
-        // Настройка аудио сессии при запуске
-        Task {
-            await appState.initializeAudioSystem()
         }
     }
 }
 
-/// Основное содержимое приложения
+/// Main application content
 struct ContentView: View {
-    @EnvironmentObject private var appState: AppState
+    @EnvironmentObject var appState: AppState
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                // Заголовок
-                headerView
-                
-                // Основной контент
-                mainContent
-                
-                Spacer()
-                
-                // Footer с версией
-                footerView
-            }
-            .padding()
-            .navigationTitle("Baby Sounds")
-            .navigationBarTitleDisplayMode(.large)
-        }
-    }
-    
-    private var headerView: some View {
-        VStack(spacing: 8) {
-            Text("🍼")
-                .font(.system(size: 60))
-            
-            Text("Baby Sounds")
+        VStack(spacing: 20) {
+            // Header
+            Text("🍼 BabySounds")
                 .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
             
-            Text("Peaceful sleep for your little one")
-                .font(.subheadline)
+            // Main content
+            if appState.isAudioReady {
+                MainAppView()
+            } else {
+                LoadingView()
+            }
+            
+            // Footer with version
+            Text("v1.0.0 - Kids Category")
+                .font(.caption)
                 .foregroundColor(.secondary)
         }
+        .padding()
     }
-    
-    private var mainContent: some View {
+}
+
+struct MainAppView: View {
+    var body: some View {
         VStack(spacing: 16) {
-            // Демонстрация UI компонента из BabySoundsUI
-            BabyButton(title: "Play Sample Sound") {
-                playDemoSound()
-            }
+            Text("Welcome to BabySounds")
+                .font(.title2)
             
-            // Статус аудио системы
-            VStack(spacing: 8) {
-                Text("Audio System Status")
+            Text("Safe sleep sounds for children")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            // Demo of UI component from BabySoundsUI
+            VStack {
+                Text("Audio System")
                     .font(.headline)
                 
+                // Audio system status
                 HStack {
                     Circle()
-                        .fill(appState.isAudioReady ? .green : .red)
-                        .frame(width: 8, height: 8)
-                    
-                    Text(appState.isAudioReady ? "Ready" : "Initializing...")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .fill(.green)
+                        .frame(width: 12, height: 12)
+                    Text("Audio Ready")
+                        .font(.subheadline)
                 }
             }
             .padding()
-            .background(Color.softGray)
-            .cornerRadius(BabyDesign.cornerRadius)
-        }
-    }
-    
-    private var footerView: some View {
-        VStack(spacing: 4) {
-            Text("BabySounds v\(BabySoundsCore.version)")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(12)
             
-            Text("Designed for children's safety")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+            Button("Play Demo Sound") {
+                // Here will be sound playback implementation
+                // via BabySoundsCore
+                playDemoSound()
+            }
+            .buttonStyle(.borderedProminent)
         }
     }
     
     private func playDemoSound() {
-        print("🔊 Playing demo sound...")
-        // Здесь будет реализация воспроизведения звука
-        // через BabySoundsCore
+        // Here will be sound playback implementation
+        // via BabySoundsCore
     }
 }
 
-/// Состояние приложения
+/// Application state
 @MainActor
 class AppState: ObservableObject {
     @Published var isAudioReady = false
-    @Published var currentlyPlaying: [String] = []
     
-    /// Инициализация аудио системы
-    func initializeAudioSystem() async {
-        print("🎵 Initializing audio system...")
-        
-        // Симуляция инициализации аудио
-        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 секунда
-        
-        isAudioReady = true
-        print("✅ Audio system ready")
+    /// Audio system initialization
+    func initializeAudio() async {
+        do {
+            // Simulate audio initialization
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            isAudioReady = true
+        }
+    }
+}
+
+struct LoadingView: View {
+    var body: some View {
+        VStack {
+            ProgressView()
+                .scaleEffect(1.5)
+            Text("Initializing Audio...")
+                .padding(.top)
+        }
     }
 } 

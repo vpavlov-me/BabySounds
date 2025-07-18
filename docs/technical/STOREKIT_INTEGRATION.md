@@ -120,9 +120,9 @@ Added StoreKit configuration reference:
 
 **Russian** (`ru.lproj/Localizable.strings`):
 ```
-"subscription_monthly_name" = "Ежемесячная премиум-подписка";
-"subscription_annual_name" = "Годовая премиум-подписка";
-"subscription_trial_info" = "%d дней бесплатно";
+"subscription_monthly_name" = "Monthly Premium"; // Russian: "Ежемесячная премиум-подписка"
+"subscription_annual_name" = "Annual Premium"; // Russian: "Годовая премиум-подписка"
+"subscription_trial_info" = "%d-day free trial"; // Russian: "%d дней бесплатно"
 ```
 
 ## Usage Flow

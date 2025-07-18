@@ -1,57 +1,42 @@
 import SwiftUI
-import BabySoundsCore
 
-/// BabySoundsUI - Переиспользуемые SwiftUI компоненты для BabySounds
-/// 
-/// Этот модуль содержит UI компоненты, которые могут быть использованы
-/// в разных частях приложения или даже в других проектах.
-public struct BabySoundsUI {
-    public static let version = "1.0.0"
+/// BabySoundsUI - Reusable SwiftUI components for BabySounds
+///
+/// This module contains UI components that can be used
+/// in different parts of the application or even in other projects.
+///
+/// All components follow Kids Category design guidelines and accessibility standards.
+
+// MARK: - Design System
+
+/// Basic design system colors
+public extension Color {
+    static let babyBlue = Color(red: 0.85, green: 0.95, blue: 1.0)
+    static let softPink = Color(red: 1.0, green: 0.9, blue: 0.95)
+    static let gentleYellow = Color(red: 1.0, green: 0.98, blue: 0.8)
+    static let softGray = Color(red: 0.95, green: 0.95, blue: 0.97)
+}
+
+/// Basic sizes for child interface
+public struct BabyDesign {
+    public static let minimumTouchTarget: CGFloat = 64 // WCAG AA requirement
+    public static let cornerRadius: CGFloat = 16
+    public static let padding: CGFloat = 16
+    public static let smallPadding: CGFloat = 8
+    public static let largePadding: CGFloat = 24
 }
 
 // MARK: - Public API
 
-/// Базовые цвета дизайн-системы
-public extension Color {
-    static let babyBlue = Color(red: 0.7, green: 0.9, blue: 1.0)
-    static let babyPink = Color(red: 1.0, green: 0.8, blue: 0.9)
-    static let softGray = Color(red: 0.95, green: 0.95, blue: 0.97)
-}
+/// Re-export main components
+public typealias BabyButton = Components.BabyButton
+public typealias SoundCard = Components.SoundCard
 
-/// Базовые размеры для детского интерфейса
-public enum BabyDesign {
-    public static let minimumTouchTarget: CGFloat = 64
-    public static let cornerRadius: CGFloat = 16
-    public static let padding: CGFloat = 16
-}
+/// Placeholder for future UI components
+public enum Components {}
 
-// MARK: - Public Exports
+// MARK: - Module Info
 
-/// Re-export основных компонентов
-@_exported import struct SoundCard
-
-/// Placeholder для будущих UI компонентов
-public struct BabyButton: View {
-    let title: String
-    let action: () -> Void
-    
-    public init(title: String, action: @escaping () -> Void) {
-        self.title = title
-        self.action = action
-    }
-    
-    public var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.title2)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
-                .frame(minHeight: BabyDesign.minimumTouchTarget)
-                .frame(maxWidth: .infinity)
-                .background(Color.babyBlue)
-                .cornerRadius(BabyDesign.cornerRadius)
-        }
-        .accessibilityLabel(title)
-        .accessibilityRole(.button)
-    }
+public struct BabySoundsUI {
+    public static let version = "1.0.0"
 } 

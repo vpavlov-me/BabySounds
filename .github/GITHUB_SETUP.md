@@ -2,7 +2,7 @@
 
 ## 🍼 BabySounds GitHub Configuration
 
-Эта инструкция описывает полную настройку GitHub репозитория для BabySounds - Kids Category iOS приложения с учетом всех требований безопасности и соответствия.
+This guide describes the complete GitHub repository setup for BabySounds - Kids Category iOS app considering all security requirements and compliance.
 
 ## 📋 Repository Settings
 
@@ -60,84 +60,145 @@
   - Required reviewers: 1
   - Require review from code owners
 - ✅ Require status checks to pass before merging
-  - Same status checks as main
+  - Status checks:
+    - `SwiftLint`
+    - `Build & Test (iPhone 15 Pro)`
 - ✅ Require conversation resolution before merging
-- ✅ Require signed commits
+- ✅ Allow force pushes: ❌ Never
+- ✅ Allow deletions: ❌ Never
 
 #### Security & Analysis
 
-- ✅ **Private vulnerability reporting**: Enabled
-- ✅ **Dependency graph**: Enabled
-- ✅ **Dependabot alerts**: Enabled
-- ✅ **Dependabot security updates**: Enabled
-- ✅ **Code scanning**: Enabled (CodeQL analysis)
-- ✅ **Secret scanning**: Enabled
-- ✅ **Push protection**: Enabled
+**Dependabot Alerts**: ✅ Enabled
+- Security vulnerabilities
+- Outdated dependencies  
+- Swift package updates
 
-### 🔑 Repository Secrets
+**CodeQL Analysis**: ✅ Enabled  
+- Automatic code scanning
+- Swift language support
+- Security vulnerability detection
 
-Настройте следующие секреты в `Settings > Secrets and variables > Actions`:
+**Secret Scanning**: ✅ Enabled
+- Push protection
+- Automatic secret detection
+- Custom patterns for iOS secrets
 
-#### iOS Development & Distribution
-```bash
-# Apple Developer Account
-APPLE_ID="your-apple-id@email.com"
-APPLE_ID_PASSWORD="app-specific-password"
-TEAM_ID="XXXXXXXXXX"
+## 📝 Repository Files
 
-# App Store Connect
-ASC_KEY_ID="XXXXXXXXXX"
-ASC_ISSUER_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-ASC_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+### 🔐 Security Files
 
-# Code Signing
-MATCH_PASSWORD="your-match-password"
-MATCH_GIT_URL="https://github.com/your-org/certificates"
-MATCH_GIT_BASIC_AUTHORIZATION="base64-encoded-token"
+**`.github/SECURITY.md`**:
+```markdown
+# Security Policy for BabySounds
 
-# Distribution Certificates
-DISTRIBUTION_CERTIFICATE="base64-encoded-p12"
-DISTRIBUTION_CERTIFICATE_PASSWORD="certificate-password"
-PROVISIONING_PROFILE="base64-encoded-mobileprovision"
+## Supported Versions
 
-# Keychain
-KEYCHAIN_PASSWORD="secure-keychain-password"
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.x.x   | :white_check_mark: |
+| < 1.0   | :x:                |
+
+## Reporting a Vulnerability
+
+For security vulnerabilities in BabySounds (especially Kids Category compliance issues):
+
+1. **DO NOT** create a public issue
+2. Email: security@babysounds.app
+3. Include: Detailed description, steps to reproduce, potential impact
+4. Response time: 48 hours for acknowledgment, 7 days for resolution
+
+## Kids Category Security
+
+Special attention to:
+- Data collection practices
+- External URL handling  
+- Volume safety compliance
+- Parental gate bypassing
+- Third-party SDK usage
+
+## Bug Bounty
+
+Contact us for responsible disclosure rewards for:
+- COPPA compliance issues
+- Hearing safety bypass
+- Parental control bypass
+- Data leakage
 ```
 
-#### CI/CD & Automation
-```bash
-# GitHub
-GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx" # Fine-grained token
-DANGER_GITHUB_API_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx"
+### 📋 Issue Templates
 
-# Fastlane
-FASTLANE_PASSWORD="your-apple-id-password"
-FASTLANE_SESSION="base64-encoded-session"
-FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="app-specific-password"
-
-# TestFlight
-PILOT_GROUPS="Internal,Beta Testers,Accessibility Team"
-
-# Slack (for notifications)
-SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
+Create file `.github/ISSUE_TEMPLATE/bug_report.yml`:
+```yaml
+name: 🐛 Bug Report
+description: Report a bug in BabySounds
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the sections below.
+        
+  - type: input
+    id: ios-version
+    attributes:
+      label: iOS Version
+      placeholder: e.g., iOS 17.1
+    validations:
+      required: true
+      
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: e.g., iPhone 15 Pro, iPad Air 5th gen
+    validations:
+      required: true
+      
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clear description of what went wrong
+    validations:
+      required: true
+      
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions
+      placeholder: |
+        1. Open app
+        2. Tap on...
+        3. See error
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: kids-safety
+    attributes:
+      label: Kids Safety Impact
+      description: Does this bug affect child safety?
+      options:
+        - label: This bug could impact child safety
+        - label: This bug involves volume/hearing safety
+        - label: This bug involves parental controls
+        - label: This bug involves data collection
 ```
 
-#### Kids Category Compliance
-```bash
-# Compliance Monitoring
-COPPA_COMPLIANCE_CHECK_TOKEN="compliance-api-token"
-KIDS_CATEGORY_AUDIT_KEY="audit-service-key"
-WHO_HEARING_SAFETY_API_KEY="hearing-safety-api-key"
+### 🚀 GitHub Actions Workflows
 
-# Security
-SECURITY_SCAN_TOKEN="security-scanner-token"
-ACCESSIBILITY_TEST_TOKEN="accessibility-testing-token"
-```
-
-### 🚨 Dependabot Configuration
-
-Создайте файл `.github/dependabot.yml`:
-
+Create file `.github/dependabot.yml`:
 ```yaml
 version: 2
 updates:
@@ -148,240 +209,108 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    assignees:
-      - "vpavlov-me"
-      - "ios-team-lead"
     reviewers:
-      - "senior-dev"
-      - "security-team"
-    commit-message:
-      prefix: "🔒"
-      include: "scope"
+      - "vpavlov-me"
     labels:
       - "dependencies"
-      - "security"
-    open-pull-requests-limit: 5
-
+      - "swift-package"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    
   # GitHub Actions
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: "github-actions" 
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "10:00"
-    assignees:
-      - "devops-lead"
+      day: "monday" 
+      time: "09:00"
     reviewers:
       - "vpavlov-me"
-      - "ci-cd-specialist"
-    commit-message:
-      prefix: "🔧"
-      include: "scope"
     labels:
-      - "ci-cd"
+      - "dependencies"
       - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
 ```
 
 ## 🏷️ Labels Configuration
 
+Recommended labels for issue management:
+
 ### 🐛 Bug Labels
-- `bug` (🔴 #d73a4a) - Something isn't working
-- `critical-bug` (🔴 #b60205) - Critical bug affecting Kids safety
-- `accessibility-bug` (🟡 #fbca04) - Accessibility issue
-- `audio-bug` (🟠 #ff9500) - Audio playback issue
+- `bug` - Something isn't working
+- `critical` - Critical bug affecting core functionality
+- `kids-safety` - Bug affecting child safety
+- `accessibility` - Accessibility-related bug
+- `audio` - Audio engine issues
+- `subscription` - StoreKit/payment issues
 
-### ✨ Enhancement Labels
-- `enhancement` (🟢 #0e8a16) - New feature or request
-- `accessibility` (♿ #1d76db) - Accessibility improvement
-- `performance` (⚡ #fef2c0) - Performance improvement
-- `ui-ux` (🎨 #e99695) - User interface/experience
+### ✨ Feature Labels  
+- `enhancement` - New feature or improvement
+- `premium-feature` - Premium subscription feature
+- `audio-feature` - Audio engine enhancement
+- `ui-improvement` - User interface improvement
+- `accessibility-feature` - Accessibility enhancement
 
-### 🔧 Technical Labels
-- `dependencies` (📦 #0366d6) - Dependency updates
-- `ci-cd` (🔧 #fbca04) - CI/CD related
-- `github-actions` (⚙️ #0e8a16) - GitHub Actions
-- `fastlane` (🚀 #1d76db) - Fastlane automation
-
-### 📱 Platform Labels
-- `ios` (📱 #0e8a16) - iOS specific
-- `iphone` (📱 #1d76db) - iPhone specific
-- `ipad` (📱 #5319e7) - iPad specific
-- `watchos` (⌚ #fbca04) - Apple Watch (future)
-
-### 🍼 Kids Category Labels
-- `kids-category` (👶 #ff69b4) - Kids Category compliance
-- `coppa-compliance` (🛡️ #b60205) - COPPA related
-- `safety` (🔒 #d93f0b) - Child safety
-- `hearing-protection` (🔊 #fbca04) - Hearing safety
+### 📋 Process Labels
+- `needs-triage` - Needs initial review
+- `needs-reproduction` - Cannot reproduce the issue
+- `ready-for-dev` - Ready for development
+- `in-progress` - Currently being worked on
+- `needs-testing` - Needs QA testing
+- `needs-review` - Needs code review
 
 ### 🎯 Priority Labels
-- `priority-critical` (🚨 #b60205) - Critical priority
-- `priority-high` (🔴 #d73a4a) - High priority
-- `priority-medium` (🟡 #fbca04) - Medium priority
-- `priority-low` (🟢 #0e8a16) - Low priority
+- `priority-critical` - Must fix immediately
+- `priority-high` - Fix in next release
+- `priority-medium` - Fix when possible
+- `priority-low` - Nice to have
 
-### 📋 Status Labels
-- `needs-triage` (🔍 #fbca04) - Needs initial review
-- `needs-review` (👀 #0e8a16) - Needs code review
-- `ready-for-testing` (🧪 #1d76db) - Ready for QA
-- `blocked` (🚫 #d73a4a) - Blocked by dependency
+### 📱 Platform Labels
+- `ios-17` - iOS 17 specific
+- `iphone` - iPhone specific
+- `ipad` - iPad specific
+- `accessibility` - VoiceOver/Switch Control
 
-### 🏆 Special Labels
-- `good-first-issue` (🌟 #7057ff) - Good for newcomers
-- `hacktoberfest` (🎃 #ff6600) - Hacktoberfest eligible
-- `question` (❓ #d876e3) - Further information requested
-- `wontfix` (❌ #ffffff) - This will not be worked on
+## 🤖 Automation Setup
 
-## 🚀 GitHub Actions Permissions
+### GitHub Projects Integration
 
-### Repository Permissions
-```yaml
-# .github/workflows permissions
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
-  checks: write
-  security-events: write
-  id-token: write
-```
+**Project: 🔨 BabySounds Development**
+- Automated issue triage
+- PR status tracking
+- Release planning
 
-### Fine-grained Token Permissions
-- **Contents**: Read/Write (for releases)
-- **Issues**: Write (for automation)
-- **Pull Requests**: Write (for automation)
-- **Checks**: Write (for status checks)
-- **Actions**: Read (for workflow runs)
-- **Security Events**: Write (for security scanning)
+**Project: 👶 Kids Category Compliance**  
+- Safety issue tracking
+- Compliance verification
+- Security review process
 
-## 📊 GitHub Projects Setup
+## 📊 Repository Insights
 
-### 📋 Development Board
+Enable the following insights:
+- **Code frequency** - Track development velocity
+- **Commit activity** - Monitor contribution patterns  
+- **Contributors** - Team activity overview
+- **Traffic** - Repository access metrics
+- **Dependency graph** - Swift package dependencies
 
-**Columns**:
-1. **📥 Backlog** - New issues and feature requests
-2. **🔍 Triage** - Issues being evaluated
-3. **🏗️ In Progress** - Currently being worked on
-4. **👀 Review** - Pull requests awaiting review
-5. **🧪 Testing** - Features in QA testing
-6. **✅ Done** - Completed items
+## 🔄 Maintenance
 
-**Automation Rules**:
-- Move to "In Progress" when PR is opened
-- Move to "Review" when PR is ready for review
-- Move to "Testing" when PR is merged to develop
-- Move to "Done" when released to App Store
+### Weekly Tasks
+- [ ] Review Dependabot PRs
+- [ ] Check security alerts
+- [ ] Update project status
+- [ ] Review open issues
 
-### 🎯 Release Planning Board
-
-**Columns**:
-1. **🎯 Planned** - Features planned for next release
-2. **🏗️ Development** - Features in development
-3. **🧪 Testing** - Features in testing
-4. **📦 Release Candidate** - Ready for release
-5. **🚀 Released** - Live in App Store
-
-## 🔔 Notifications & Integrations
-
-### 📱 Slack Integration
-
-```yaml
-# Slack webhook for important events
-on:
-  pull_request:
-    types: [opened, closed, review_requested]
-  issues:
-    types: [opened, closed, labeled]
-  release:
-    types: [published]
-  workflow_run:
-    workflows: ["iOS Build & Test"]
-    types: [completed]
-```
-
-### 📧 Email Notifications
-
-**Security Alerts**: All maintainers
-**Critical Issues**: @vpavlov-me, @security-team
-**Release Updates**: All team members
-**Dependency Updates**: @devops-lead, @senior-dev
-
-## 🔍 Code Scanning Setup
-
-### CodeQL Analysis
-
-```yaml
-# .github/workflows/codeql-analysis.yml
-strategy:
-  matrix:
-    language: ['swift']
-```
-
-### Custom Security Rules
-
-- COPPA compliance checks
-- Kids Category requirements validation
-- Audio safety validation
-- Accessibility compliance checks
-
-## 📚 Wiki Configuration
-
-### 📖 Documentation Structure
-
-1. **Home** - Project overview and quick start
-2. **Kids Category Compliance** - COPPA and safety guidelines
-3. **Audio Safety Guidelines** - WHO hearing protection
-4. **Accessibility Guide** - WCAG compliance and VoiceOver
-5. **Development Setup** - Detailed setup instructions
-6. **Testing Guidelines** - Manual and automated testing
-7. **Release Process** - Step-by-step release guide
-8. **Security Policy** - Security reporting and guidelines
-
-### 🔗 Important Links
-
-- [Apple Kids Category Guidelines](https://developer.apple.com/app-store/kids-apps/)
-- [COPPA Compliance Guide](https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa)
-- [WHO Hearing Safety](https://www.who.int/news-room/fact-sheets/detail/deafness-and-hearing-loss)
-- [iOS Accessibility](https://developer.apple.com/accessibility/)
-
-## ✅ Setup Verification Checklist
-
-### Repository Configuration
-- [ ] Branch protection rules configured
-- [ ] Required status checks enabled
-- [ ] Code owners file configured
-- [ ] Security scanning enabled
-- [ ] Dependabot configured
-
-### CI/CD Setup
-- [ ] All GitHub Actions workflows passing
-- [ ] Fastlane configuration tested
-- [ ] TestFlight deployment working
-- [ ] Code signing certificates configured
-
-### Kids Category Compliance
-- [ ] COPPA compliance checks enabled
-- [ ] Accessibility testing automated
-- [ ] Audio safety validation configured
-- [ ] Security scanning for Kids apps enabled
-
-### Team Access
-- [ ] Team members added with appropriate permissions
-- [ ] Code owners properly configured
-- [ ] Review requirements set up
-- [ ] Notification preferences configured
+### Monthly Tasks  
+- [ ] Branch protection review
+- [ ] Security policy update
+- [ ] Label cleanup
+- [ ] Workflow optimization
 
 ---
 
-## 🆘 Support
-
-For setup assistance:
-- **GitHub Issues**: Technical configuration questions
-- **Slack**: `#babysounds-dev` channel
-- **Email**: `devops@babysounds.com`
-- **Emergency**: `security@babysounds.com`
-
----
-
-**Last Updated**: March 2024  
-**Next Review**: June 2024 
+**✅ Complete GitHub setup for professional Kids Category iOS development!** 

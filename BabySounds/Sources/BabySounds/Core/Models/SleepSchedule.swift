@@ -2,18 +2,18 @@ import Foundation
 
 // MARK: - SleepSchedule Model
 
-struct SleepSchedule: Identifiable, Codable, Hashable {
-    let id: UUID
+struct SleepSchedule: Identifiable, Codable, Equatable {
+    let id = UUID()
     var name: String
+    var bedtimeHour: Int
+    var bedtimeMinute: Int
+    var weekdays: [Bool] // [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+    var reminderMinutes: Int // Minutes before bedtime for reminder
+    var selectedSounds: [String] // Sound IDs for playback
+    var autoFadeMinutes: Int // Auto fade after X minutes
     var isEnabled: Bool
-    var bedTime: Date
-    var wakeTime: Date
-    var selectedDays: Set<Weekday>
-    var reminderMinutes: Int // Минуты до сна для напоминания
-    var selectedSounds: [String] // Sound IDs для воспроизведения
-    var autoFadeMinutes: Int // Автоматическое затухание через X минут
-    let dateCreated: Date
-    var lastModified: Date
+    var createdAt: Date
+    var updatedAt: Date
     
     init(
         id: UUID = UUID(),

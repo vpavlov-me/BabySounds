@@ -214,8 +214,8 @@ struct SleepSchedulesView: View {
                 action: {
                     parentGateManager.requestAccess(.paywall) { granted in
                         if granted {
-                            // Показать Paywall
-                            // TODO: Интеграция с PaywallView
+                            // Show Paywall
+                            // TODO: Integration with PaywallView
                         }
                     }
                 }
@@ -266,10 +266,10 @@ struct SleepSchedulesView: View {
     
     private func addScheduleAction() {
         guard scheduleManager.canAddMoreSchedules else {
-            // Показать premium gate
+            // Show premium gate
             parentGateManager.requestAccess(.paywall) { granted in
                 if granted {
-                    // TODO: Показать Paywall
+                    // TODO: Show Paywall
                 }
             }
             return

@@ -1,185 +1,145 @@
 import SwiftUI
-import BabySoundsCore
 
-/// Карточка звука для BabySounds
-/// 
-/// Отображает звук с кнопкой воспроизведения, регулятором громкости
-/// и индикатором состояния воспроизведения
+/// Sound card for BabySounds
+///
+/// Displays a sound with play button, volume control
+/// and playback status indicator
 public struct SoundCard: View {
-    let soundType: SoundType
+    // MARK: - Properties
+    
+    let title: String
     let isPlaying: Bool
-    let volume: Float
+    let volume: Double
     let onPlayToggle: () -> Void
-    let onVolumeChange: (Float) -> Void
+    let onVolumeChange: (Double) -> Void
+    
+    // MARK: - Initialization
     
     public init(
-        soundType: SoundType,
-        isPlaying: Bool,
-        volume: Float,
+        title: String,
+        isPlaying: Bool = false,
+        volume: Double = 0.5,
         onPlayToggle: @escaping () -> Void,
-        onVolumeChange: @escaping (Float) -> Void
+        onVolumeChange: @escaping (Double) -> Void
     ) {
-        self.soundType = soundType
+        self.title = title
         self.isPlaying = isPlaying
         self.volume = volume
         self.onPlayToggle = onPlayToggle
         self.onVolumeChange = onVolumeChange
     }
     
+    // MARK: - Body
+    
     public var body: some View {
         VStack(spacing: 12) {
-            // Header с иконкой и названием
+            // Header with icon and title
             HStack {
-                // Иконка звука
-                ZStack {
-                    Circle()
-                        .fill(soundType.accentColor.opacity(0.2))
-                        .frame(width: 50, height: 50)
-                    
-                    Text(soundType.emoji)
-                        .font(.title2)
-                }
+                // Sound icon
+                Image(systemName: soundIcon)
+                    .font(.title2)
+                    .foregroundColor(.primary)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(Color.babyBlue.opacity(0.3))
+                    )
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(soundType.displayName)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    Text(soundType.description)
+                    Text(statusText)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                        .lineLimit(2)
                 }
                 
                 Spacer()
                 
-                // Индикатор воспроизведения
-                if isPlaying {
-                    HStack(spacing: 2) {
-                        ForEach(0..<3) { index in
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(soundType.accentColor)
-                                .frame(width: 3, height: 12)
-                                .animation(
-                                    .easeInOut(duration: 0.5)
-                                        .repeatForever()
-                                        .delay(Double(index) * 0.1),
-                                    value: isPlaying
-                                )
-                        }
-                    }
-                }
+                // Playback indicator
+                Circle()
+                    .fill(isPlaying ? Color.green : Color.gray.opacity(0.3))
+                    .frame(width: 12, height: 12)
+                    .scaleEffect(isPlaying ? 1.2 : 1.0)
+                    .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: isPlaying)
             }
             
-            // Элементы управления
-            HStack(spacing: 16) {
-                // Кнопка воспроизведения
+            // Controls
+            VStack(spacing: 8) {
+                // Play button
                 Button(action: onPlayToggle) {
-                    ZStack {
-                        Circle()
-                            .fill(isPlaying ? Color.red.opacity(0.1) : soundType.accentColor.opacity(0.1))
-                            .frame(width: BabyDesign.minimumTouchTarget, height: BabyDesign.minimumTouchTarget)
-                        
-                        Image(systemName: isPlaying ? "stop.fill" : "play.fill")
-                            .font(.title2)
-                            .foregroundColor(isPlaying ? .red : soundType.accentColor)
-                    }
-                }
-                .accessibilityLabel(isPlaying ? "Stop \(soundType.displayName)" : "Play \(soundType.displayName)")
-                
-                // Регулятор громкости
-                VStack(spacing: 4) {
                     HStack {
-                        Image(systemName: "speaker.1")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                        
-                        Spacer()
-                        
-                        Text("\(Int(volume * 100))%")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                            .font(.title3)
+                        Text(isPlaying ? "Pause" : "Play")
+                            .font(.headline)
                     }
-                    
-                    Slider(
-                        value: Binding(
+                    .foregroundColor(.white)
+                    .frame(height: 44)
+                    .frame(maxWidth: .infinity)
+                    .background(isPlaying ? Color.orange : Color.blue)
+                    .cornerRadius(12)
+                }
+                .accessibilityLabel(isPlaying ? "Pause \(title)" : "Play \(title)")
+                
+                // Volume control
+                if isPlaying {
+                    VStack(spacing: 4) {
+                        HStack {
+                            Text("Volume")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(volume * 100))%")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Slider(value: Binding(
                             get: { volume },
-                            set: onVolumeChange
-                        ),
-                        in: 0...1
-                    )
-                    .tint(soundType.accentColor)
-                    .disabled(!isPlaying)
+                            set: { onVolumeChange($0) }
+                        ), in: 0...1)
+                        .tint(.blue)
+                    }
+                    .transition(.opacity.combined(with: .scale))
                 }
             }
         }
-        .padding(BabyDesign.padding)
+        .padding()
         .background(Color.softGray)
-        .cornerRadius(BabyDesign.cornerRadius)
-        .overlay(
-            RoundedRectangle(cornerRadius: BabyDesign.cornerRadius)
-                .strokeBorder(
-                    isPlaying ? soundType.accentColor.opacity(0.3) : Color.clear,
-                    lineWidth: 2
-                )
-        )
-        .animation(.easeInOut(duration: 0.2), value: isPlaying)
+        .cornerRadius(16)
+        .accessibilityElement(children: .contain)
     }
-}
-
-// MARK: - SoundType Extensions
-
-extension SoundType {
-    /// Эмодзи иконка для звука
-    var emoji: String {
-        switch self {
-        case .whiteNoise: return "🌫️"
-        case .pinkNoise: return "🌸"
-        case .brownNoise: return "🤎"
-        case .rainForest: return "🌳"
-        case .oceanWaves: return "🌊"
-        case .heartbeat: return "❤️"
-        case .wombSounds: return "🤱"
-        case .airConditioner: return "❄️"
-        case .fan: return "💨"
-        case .rain: return "🌧️"
+    
+    // MARK: - Private Computed Properties
+    
+    private var soundIcon: String {
+        // Different icons for different sound types
+        if title.lowercased().contains("white") {
+            return "waveform"
+        } else if title.lowercased().contains("rain") {
+            return "cloud.rain"
+        } else if title.lowercased().contains("ocean") {
+            return "water.waves"
+        } else if title.lowercased().contains("forest") {
+            return "tree"
+        } else {
+            return "music.note"
         }
     }
     
-    /// Описание звука
-    var description: String {
-        switch self {
-        case .whiteNoise: return "Consistent background noise"
-        case .pinkNoise: return "Gentle balanced frequencies"
-        case .brownNoise: return "Deep, soothing rumble"
-        case .rainForest: return "Nature's peaceful sounds"
-        case .oceanWaves: return "Rhythmic water sounds"
-        case .heartbeat: return "Familiar maternal rhythm"
-        case .wombSounds: return "Comforting womb environment"
-        case .airConditioner: return "Steady mechanical hum"
-        case .fan: return "Gentle air circulation"
-        case .rain: return "Relaxing rainfall"
-        }
-    }
-    
-    /// Акцентный цвет для звука
-    var accentColor: Color {
-        switch self {
-        case .whiteNoise, .pinkNoise, .brownNoise: return .purple
-        case .rainForest, .rain: return .green
-        case .oceanWaves: return .blue
-        case .heartbeat, .wombSounds: return .pink
-        case .airConditioner, .fan: return .cyan
-        }
+    private var statusText: String {
+        isPlaying ? "Playing" : "Stopped"
     }
 }
 
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack {
         SoundCard(
-            soundType: .whiteNoise,
+            title: "White Noise",
             isPlaying: false,
             volume: 0.5,
             onPlayToggle: {},
@@ -187,7 +147,7 @@ extension SoundType {
         )
         
         SoundCard(
-            soundType: .oceanWaves,
+            title: "Rain Sounds",
             isPlaying: true,
             volume: 0.7,
             onPlayToggle: {},

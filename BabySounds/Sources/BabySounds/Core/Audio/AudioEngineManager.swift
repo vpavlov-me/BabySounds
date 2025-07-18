@@ -759,12 +759,12 @@ extension AudioEngineManager {
         print("🌙 [AudioEngineManager] Запуск расписания сна с \(sounds.count) звуками")
         
         // Останавливаем текущее воспроизведение
-        stopAllTracks()
+        stopAll(fade: 0.5)
         
         // Запускаем выбранные звуки
         for soundId in sounds {
             do {
-                let handle = try await playSound(
+                let handle = try await play(
                     soundId: soundId,
                     loop: true,
                     fadeInDuration: 2.0,
@@ -787,13 +787,14 @@ extension AudioEngineManager {
             try? await Task.sleep(nanoseconds: UInt64(fadeMinutes * 60 * 1_000_000_000))
             
             // Проверяем, что трек еще воспроизводится
-            guard activeTracks[handle.trackId] != nil else { return }
+            guard tracks[handle.id] != nil else { return }
             
-            print("🌙 [AudioEngineManager] Автозатухание через \(fadeMinutes) мин для трека \(handle.trackId)")
+            print("🌙 [AudioEngineManager] Автозатухание через \(fadeMinutes) мин для трека \(handle.id)")
             
             // Плавно затухаем
-            await fadeOut(handle: handle, duration: 30.0) // 30 секунд затухания
-            await stopTrack(handle: handle)
+            fadeOutTrack(tracks[handle.id]!, duration: 30.0) { [weak self] in
+                self?.removeTrack(handle.id)
+            }
         }
     }
 } 

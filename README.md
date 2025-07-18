@@ -8,154 +8,154 @@
 
 > **Production-Ready Kids Category iOS App** - Professional sleep aid app for children with modular Swift Package Manager architecture.
 
-## 🏗 Архитектура проекта
+## 🏗 Project Architecture
 
-Проект организован с **Feature-First** подходом и модульной архитектурой через SPM:
+The project is organized with a **Feature-First** approach and modular architecture via SPM:
 
 ```
 BabySounds/
-├── 📱 BabySounds/        # Основное приложение (SwiftUI + Swift 6)
-├── 📦 Packages/          # SPM модули (Core + UI)
-├── 🛠 Tools/            # DevOps инструменты
-├── 📚 Examples/         # Примеры использования
-└── 📖 docs/            # Полная документация
+├── 📱 BabySounds/        # Main application (SwiftUI + Swift 6)
+├── 📦 Packages/          # SPM modules (Core + UI)
+├── 🛠 Tools/            # DevOps tools
+├── 📚 Examples/         # Usage examples
+└── 📖 docs/            # Complete documentation
 ```
 
-**Детальная документация:** [📁 Структура проекта](docs/PROJECT_STRUCTURE.md)
+**Detailed documentation:** [📁 Project Structure](docs/PROJECT_STRUCTURE.md)
 
-## 🚀 Быстрый старт
+## 🚀 Quick Start
 
-### Требования
+### Requirements
 - **Xcode 15.4+** (iOS 17 SDK)
 - **Swift 6.0+** 
 - **macOS Ventura 13.0+**
-- Apple Developer Account (для StoreKit)
+- Apple Developer Account (for StoreKit)
 
-### Установка
+### Installation
 
 ```bash
-# Клонирование проекта
+# Clone the project
 git clone https://github.com/vpavlov-me/BabySounds.git
 cd BabySounds
 
-# Автоматическая настройка
+# Automatic setup
 make bootstrap
 
-# Альтернативно: ручная настройка
+# Alternative: manual setup
 swift package resolve
 ```
 
-### Сборка и тестирование
+### Building and Testing
 
 ```bash
-# Сборка всех модулей
+# Build all modules
 swift build
 
-# Запуск тестов
+# Run tests
 swift test
 
-# Проверка кода
+# Code checking
 make lint
 
-# Форматирование
+# Formatting
 make format
 ```
 
-## 📦 Модули SPM
+## 📦 SPM Modules
 
 ### BabySoundsCore
-Основная логика без UI dependencies:
-- 🔊 AudioEngine управление
-- 📊 Data services и модели  
-- ⚡ Utilities и extensions
+Core business logic without UI dependencies:
+- 🔊 AudioEngine management
+- 📊 Data services and models  
+- ⚡ Utilities and extensions
 
 ### BabySoundsUI  
-Переиспользуемые SwiftUI компоненты:
+Reusable SwiftUI components:
 - 🧩 UI Components
 - 🎨 Design System
 - ♿ Accessibility support
 
-## 🎯 Ключевые фичи
+## 🎯 Key Features
 
-- **🎵 Audio Engine** - AVAudioEngine с поддержкой 4+ звуков
-- **⏰ Sleep Schedules** - Smart расписание сна
-- **💳 StoreKit 2** - Подписки без сторонних SDK
-- **👨‍👩‍👧‍👦 Parental Gate** - Безопасность для детей
-- **🌍 Локализация** - EN/RU с поддержкой новых языков
-- **♿ Accessibility** - VoiceOver и Switch Control
+- **🎵 Audio Engine** - AVAudioEngine with 4+ sound support
+- **⏰ Sleep Schedules** - Smart sleep scheduling
+- **💳 StoreKit 2** - Subscriptions without third-party SDKs
+- **👨‍👩‍👧‍👦 Parental Gate** - Child safety
+- **🌍 Localization** - EN/RU with support for new languages
+- **♿ Accessibility** - VoiceOver and Switch Control
 
-## 📋 Команды разработки
+## 📋 Development Commands
 
 ```bash
-# Разработка
-make dev          # Запуск development сервера
-make test         # Все тесты
-make test-ui      # UI тесты
-make clean        # Очистка
+# Development
+make dev          # Start development server
+make test         # All tests
+make test-ui      # UI tests
+make clean        # Clean build
 
-# Качество кода  
-make lint         # SwiftLint проверка
-make format       # SwiftFormat автоформат
-make danger       # Danger PR проверки
+# Code quality  
+make lint         # SwiftLint check
+make format       # SwiftFormat auto-format
+make danger       # Danger PR checks
 
-# Деплой
-make build        # Release сборка
-make archive      # Archive для App Store
+# Deployment
+make build        # Release build
+make archive      # Archive for App Store
 fastlane beta     # TestFlight upload
 ```
 
-## 📖 Документация
+## 📖 Documentation
 
-- **[📁 Структура проекта](docs/PROJECT_STRUCTURE.md)** - Архитектура и организация
-- **[🔧 Техническая документация](docs/technical/)** - Глубокое погружение  
-- **[👨‍💻 Contributing Guide](docs/development/CONTRIBUTING.md)** - Workflow разработки
-- **[🏪 App Store материалы](docs/app-store/)** - Релиз процедуры
-- **[🚀 Отчет о реорганизации](docs/REFACTORING_SUMMARY.md)** - Проделанная работа
+- **[📁 Project Structure](docs/PROJECT_STRUCTURE.md)** - Architecture and organization
+- **[🔧 Technical Documentation](docs/technical/)** - Deep dive  
+- **[👨‍💻 Contributing Guide](docs/development/CONTRIBUTING.md)** - Development workflow
+- **[🏪 App Store Materials](docs/app-store/)** - Release procedures
+- **[🚀 Refactoring Report](docs/REFACTORING_SUMMARY.md)** - Work completed
 
-## ✅ Принципы проекта
+## ✅ Project Principles
 
 ### 1. **Swift 6 + SwiftUI-only**
-- Никаких UIKit/Storyboard
-- Никаких force unwrap
-- Async/await для асинхронности
+- No UIKit/Storyboard
+- No force unwrap
+- Async/await for asynchronous operations
 
 ### 2. **Feature-First Architecture**  
-- Каждая фича — отдельная папка
-- Структура: `Feature > Data > UI > Tests`
-- Четкие boundaries
+- Each feature is a separate folder
+- Structure: `Feature > Data > UI > Tests`
+- Clear boundaries
 
 ### 3. **Kids Category Compliance**
-- COPPA совместимость
+- COPPA compliance
 - Parental controls
-- Безопасная громкость (WHO guidelines)
-- Никаких сторонних трекеров
+- Safe volume (WHO guidelines)
+- No third-party trackers
 
 ### 4. **Production Quality**
 - Comprehensive testing (Unit/UI/Integration)
-- CI/CD через GitHub Actions + Fastlane
-- Автоматический code quality контроль
-- StoreKit тестирование
+- CI/CD via GitHub Actions + Fastlane
+- Automatic code quality control
+- StoreKit testing
 
 ## 🤝 Contributing
 
-Мы приветствуем вклад в развитие проекта! 
+We welcome contributions to the project! 
 
-1. **Прочитайте** [Contributing Guide](docs/development/CONTRIBUTING.md)
-2. **Создайте** feature branch
-3. **Следуйте** code style (SwiftLint + SwiftFormat)
-4. **Добавьте** тесты для новой функциональности
-5. **Создайте** Pull Request
+1. **Read** [Contributing Guide](docs/development/CONTRIBUTING.md)
+2. **Create** feature branch
+3. **Follow** code style (SwiftLint + SwiftFormat)
+4. **Add** tests for new functionality
+5. **Create** Pull Request
 
-## 📄 Лицензия
+## 📄 License
 
-MIT License. Подробности в [LICENSE](LICENSE) файле.
+MIT License. Details in [LICENSE](LICENSE) file.
 
-## 📞 Поддержка
+## 📞 Support
 
 - **Issues:** [GitHub Issues](https://github.com/vpavlov-me/BabySounds/issues)
-- **Документация:** [docs/](docs/)
+- **Documentation:** [docs/](docs/)
 - **Email:** support@babysounds.app
 
 ---
 
-**Сделано с ❤️ для детей и их родителей** 
+**Made with ❤️ for children and their parents** 

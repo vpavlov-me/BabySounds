@@ -1,381 +1,294 @@
-# 📊 GitHub Projects Setup Guide
+# 📋 GitHub Projects Setup Guide
 
-## 🍼 BabySounds Project Management
+## 🍼 BabySounds Project Management Configuration
 
-Эта инструкция описывает настройку GitHub Projects для эффективного управления разработкой BabySounds - Kids Category iOS приложения.
+This guide describes GitHub Projects setup for effective development management of BabySounds - Kids Category iOS application.
 
-## 📋 Project 1: Development Board
+## 🔨 Development Project
 
-### 🎯 Назначение
-Основная доска для отслеживания ежедневной разработки, багфиксов и небольших улучшений.
+Strategic board for day-to-day development workflow. Tracks features, bugs, and technical tasks.
 
-### 📝 Создание проекта
+### 📝 Project Creation
 
-1. Перейдите в `Projects` tab в репозитории
-2. Нажмите `New project`
-3. Выберите `Table` template
-4. Назовите проект: `🔨 BabySounds Development`
-5. Добавьте описание: `Daily development tracking for BabySounds iOS app`
+1. Go to GitHub Projects: `https://github.com/orgs/your-org/projects`
+2. Click "New project"
+3. Choose "Team planning" template
+4. Name the project: `🔨 BabySounds Development`
+5. Set visibility: `Private` (for internal team use)
 
-### 🏗️ Структура колонок
+### 🏗️ Column Structure
 
-#### 📥 Backlog
-- **Назначение**: Новые задачи, ожидающие тriage
-- **Автоматизация**: Новые issues автоматически попадают сюда
-- **Критерии**: Любые новые задачи без назначенного исполнителя
+**📥 Backlog**
+- **Purpose**: New issues and feature requests
+- **Automation**: Auto-add new issues with no assignee
+- **Criteria**: All unassigned issues and feature requests
 
-#### 🔍 Triage  
-- **Назначение**: Задачи в процессе оценки и планирования
-- **Автоматизация**: Перемещается при добавлении меток priority
-- **Критерии**: Issues с метками `needs-triage` или `needs-review`
+**🔍 Ready**  
+- **Purpose**: Prioritized items ready for development
+- **Automation**: Manual move from Backlog after triage
+- **Criteria**: Issues with priority label and clear acceptance criteria
 
-#### 🏗️ In Progress
-- **Назначение**: Активно разрабатываемые задачи
-- **Автоматизация**: Перемещается при создании linked PR
-- **Критерии**: Issues с назначенным исполнителем + активный PR
+**🏗️ In Progress**
+- **Purpose**: Currently being developed
+- **Automation**: Auto-move when PR opened or issue assigned
+- **Criteria**: Issues with assignee or linked PR
 
-#### 👀 Review
-- **Назначение**: Pull requests ожидающие код-ревью
-- **Автоматизация**: PR автоматически появляются здесь
-- **Критерии**: Открытые PR с запросом на ревью
+**👀 Review**
+- **Purpose**: Pull requests awaiting code review
+- **Automation**: Auto-move when PR marked as ready for review
+- **Criteria**: PRs with review request
 
-#### 🧪 Testing  
-- **Назначение**: Функции в процессе QA тестирования
-- **Автоматизация**: Перемещается при merge в develop
-- **Критерии**: Merged PR, готовые к тестированию
+**🧪 Testing**
+- **Purpose**: Features in QA testing phase
+- **Automation**: Auto-move when PR merged to develop
+- **Criteria**: Merged PRs ready for testing
 
-#### ✅ Done
-- **Назначение**: Завершенные задачи
-- **Автоматизация**: Перемещается при закрытии issue/PR
-- **Критерии**: Closed issues/PR за последние 30 дней
+**✅ Done**
+- **Purpose**: Completed items
+- **Automation**: Auto-move when issue closed or PR merged to main
+- **Criteria**: Closed issues, released features
 
-### 🏷️ Custom Fields
-
-#### Priority
-- **Type**: Single select
-- **Options**: 
-  - 🚨 Critical (красный)
-  - 🔴 High (оранжевый) 
-  - 🟡 Medium (желтый)
-  - 🟢 Low (зеленый)
-
-#### Category  
-- **Type**: Single select
-- **Options**:
-  - 🎵 Audio Engine
-  - 🔒 Safety & Compliance
-  - 💎 Premium Features
-  - ♿ Accessibility
-  - 🎨 UI/UX
-  - 🔧 DevOps
-  - 🐛 Bug Fix
-
-#### Estimate
-- **Type**: Number
-- **Description**: Story points (1-13 fibonacci)
-
-#### Kids Category Impact
-- **Type**: Single select  
-- **Options**:
-  - 🛡️ COPPA Compliance
-  - 🔊 Hearing Safety
-  - 👶 Child Safety
-  - ♿ Accessibility
-  - 🚫 No Impact
-
-### ⚙️ Automation Rules
+### 🔄 Automation Rules
 
 ```yaml
-# .github/workflows/project-automation.yml
-name: 📊 Project Board Automation
+# Example GitHub Actions automation
+- when: issue.opened
+  then: move_to_column("Backlog")
 
-on:
-  issues:
-    types: [opened, closed, labeled, assigned]
-  pull_request:
-    types: [opened, closed, ready_for_review, review_requested]
-  
-jobs:
-  update_project:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Move new issues to Backlog
-        if: github.event.action == 'opened' && github.event.issue
-        uses: alex-page/github-project-automation-plus@v0.9.0
-        with:
-          project: BabySounds Development
-          column: Backlog
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Move labeled issues to Triage  
-        if: github.event.action == 'labeled' && contains(github.event.label.name, 'needs-')
-        uses: alex-page/github-project-automation-plus@v0.9.0
-        with:
-          project: BabySounds Development
-          column: Triage
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Move assigned issues to In Progress
-        if: github.event.action == 'assigned'
-        uses: alex-page/github-project-automation-plus@v0.9.0
-        with:
-          project: BabySounds Development
-          column: In Progress
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+- when: pull_request.opened  
+  then: move_to_column("Review")
+
+- when: pull_request.merged AND target_branch == "main"
+  then: move_to_column("Done")
 ```
 
-## 🎯 Project 2: Release Planning Board
+### 🏷️ Labels Integration
 
-### 🎯 Назначение
-Стратегическое планирование релизов и крупных функций. Отслеживание прогресса по версиям.
+**Priority Labels**:
+- `priority-critical` → Auto-assign to top of Ready column
+- `priority-high` → Move to Ready column
+- `priority-medium` → Keep in Backlog for triage
+- `priority-low` → Keep in Backlog
 
-### 📝 Создание проекта
+**Type Labels**:
+- `bug` → Auto-tag with red label
+- `enhancement` → Auto-tag with blue label  
+- `kids-safety` → Auto-assign to security team review
 
-1. Создайте новый проект: `🚀 BabySounds Releases`
-2. Выберите `Board` template
-3. Добавьте описание: `Release planning and milestone tracking`
+### 📊 Project Views
 
-### 🏗️ Структура колонок
+**Board View**: Default kanban board for daily standups
+**Table View**: Detailed list with all metadata for planning
+**Roadmap View**: Timeline view for release planning
 
-#### 💡 Ideas
-- **Назначение**: Идеи для будущих релизов
-- **Критерии**: Issues с меткой `enhancement` без milestone
+## 🚀 Release Project
 
-#### 🎯 Planned
-- **Назначение**: Функции запланированные для следующего релиза
-- **Критерии**: Issues с назначенным milestone
+Strategic planning for releases and major features. Tracks progress across versions.
 
-#### 🏗️ Development
-- **Назначение**: Функции в активной разработке
-- **Критерии**: Issues с активными PR + milestone
+### 📝 Project Creation
 
-#### 🧪 Testing
-- **Назначение**: Функции в процессе тестирования
-- **Критерии**: Merged features awaiting release
+1. Create new project: `🚀 BabySounds Releases`
+2. Choose "Feature planning" template
+3. Set visibility: `Internal` (stakeholders can view)
 
-#### 📦 Release Candidate  
-- **Назначение**: Готовые к релизу функции
-- **Критерии**: Tested features ready for App Store
+### 🏗️ Column Structure
 
-#### 🚀 Released
-- **Назначение**: Функции выпущенные в App Store
-- **Критерии**: Features in production
+**🎯 Planned**
+- **Purpose**: Features planned for next release
+- **Criteria**: Issues with milestone assigned
 
-### 🏷️ Custom Fields для Release Board
+**🏗️ Development** 
+- **Purpose**: Features in active development
+- **Criteria**: In Progress items from Development board
 
-#### Release Version
-- **Type**: Single select
-- **Options**:
-  - v1.2.0 (Current)
-  - v1.3.0 (Next)
-  - v1.4.0 (Future)
-  - v2.0.0 (Major)
+**🧪 Testing**
+- **Purpose**: Features in testing phase
+- **Criteria**: Merged features awaiting QA approval
 
-#### Feature Size
-- **Type**: Single select
-- **Options**:
-  - 🐭 Small (1-3 days)
-  - 📦 Medium (1-2 weeks)  
-  - 🐘 Large (3+ weeks)
-  - 🦣 Epic (multiple sprints)
+**📦 Release Candidate**
+- **Purpose**: Features ready for release
+- **Criteria**: Tested and approved features
 
-#### Business Impact
-- **Type**: Single select
-- **Options**:
-  - 💰 Revenue Impact
-  - 👶 User Experience
-  - 🛡️ Compliance Required
-  - 🔧 Technical Debt
-  - 🚀 Performance
+**🚀 Released**
+- **Purpose**: Live features in App Store
+- **Criteria**: Features included in released version
 
-#### App Store Category
-- **Type**: Multi-select
-- **Options**:
-  - 🆕 New Feature
-  - 🔧 Improvement
-  - 🐛 Bug Fix
-  - 🛡️ Security Update
+### 📅 Milestone Integration
 
-## 🎯 Project 3: Kids Category Compliance Board
+**v1.0.0 - MVP Release**:
+- Core audio playback
+- Basic premium features  
+- Kids Category compliance
+- Target: Q1 2024
 
-### 🎯 Назначение  
-Специальная доска для отслеживания задач связанных с Kids Category соответствием.
+**v1.1.0 - Enhanced Features**:
+- Sleep schedules
+- Advanced parental controls
+- Accessibility improvements
+- Target: Q2 2024
 
-### 📝 Создание проекта
+**v1.2.0 - Premium Expansion**:
+- Additional premium sounds
+- Advanced timer features
+- Background notifications
+- Target: Q3 2024
 
-1. Создайте проект: `👶 Kids Category Compliance`
-2. Описание: `COPPA compliance and Kids Category requirements tracking`
+## 👶 Kids Category Compliance Project
 
-### 🏗️ Структура колонок
+Specialized board for tracking safety, privacy, and compliance requirements.
 
-#### 🔍 Compliance Review
-- **Назначение**: Задачи требующие проверки соответствия
-- **Критерии**: Issues с метками `kids-category`, `coppa-compliance`
+### 📝 Project Creation
 
-#### 🛡️ Security Audit
-- **Назначение**: Безопасность и приватность
-- **Критерии**: Issues с меткой `security`, `privacy`
+1. Create project: `👶 Kids Category Compliance`
+2. Custom template (no preset)
+3. Visibility: `Private` (sensitive compliance info)
 
-#### ♿ Accessibility Check
-- **Назначение**: Проверка доступности
-- **Критерии**: Issues с меткой `accessibility`, `a11y`
+### 🏗️ Column Structure
 
-#### 🔊 Audio Safety
-- **Назначение**: Проверка слуховой безопасности  
-- **Критерии**: Issues с меткой `hearing-protection`, `audio-bug`
+**🔍 Audit Queue**
+- **Purpose**: Compliance items needing review
+- **Criteria**: New compliance requirements
 
-#### ✅ Approved
-- **Назначение**: Одобренные для Kids Category
-- **Критерии**: Issues прошедшие все проверки
+**📋 In Review**
+- **Purpose**: Safety and privacy auditing  
+- **Criteria**: Items being reviewed by compliance team
 
-#### 🚫 Needs Rework
-- **Назначение**: Требует доработки для соответствия
-- **Критерии**: Issues с проблемами соответствия
+**🛡️ Security Review**
+- **Purpose**: Security and privacy validation
+- **Criteria**: Features affecting child data/safety
 
-### 🏷️ Compliance-Specific Fields
+**✅ Approved**
+- **Purpose**: Compliance-approved features
+- **Criteria**: Items passed all compliance checks
 
-#### COPPA Compliance Status
-- **Type**: Single select
-- **Options**:
-  - ✅ Compliant
-  - ⚠️ Needs Review
-  - ❌ Non-Compliant
-  - 🔍 Under Review
+**🚫 Blocked**
+- **Purpose**: Items failing compliance
+- **Criteria**: Features requiring changes for compliance
 
-#### WHO Hearing Safety
-- **Type**: Single select
-- **Options**:
-  - ✅ Safe Levels
-  - ⚠️ Needs Limits
-  - 🔊 Check Required
-  - 📊 Measurements Needed
+### 🔒 Compliance Automation
 
-#### Accessibility Level
-- **Type**: Single select  
-- **Options**:
-  - ♿ Full WCAG 2.1 AA
-  - 🎯 Partial Support
-  - 🚧 In Progress
-  - ❌ Not Accessible
+**COPPA Checks**:
+- Auto-tag data collection features
+- Require privacy team review
+- Block merge until approval
 
-## 📊 Project Views и Filters
+**Kids Safety Validation**:
+- Audio volume compliance checks
+- Parental control testing
+- Age-appropriate content review
 
-### 🔍 Полезные фильтры
+**Accessibility Audit**:
+- VoiceOver compatibility testing
+- Touch target size validation
+- Color contrast verification
 
-#### Current Sprint View
-```
-assignee:@me 
-label:"in-progress"
-milestone:"v1.2.0"
+## 🔄 Cross-Project Integration
+
+### 📊 Unified Dashboard
+
+Create a unified view combining all projects:
+
+```markdown
+## 🎯 Current Sprint Overview
+
+### Development Board: 5 items in progress
+### Release Pipeline: v1.0.0 - 80% complete  
+### Compliance Status: 2 items in review
+
+### ⚠️ Blockers
+- [ ] StoreKit review pending (Release)
+- [ ] Accessibility audit needed (Compliance)
+
+### 🎉 This Week's Wins
+- ✅ Audio engine performance improved
+- ✅ Premium subscription flow tested
+- ✅ COPPA compliance documentation complete
 ```
 
-#### Kids Category Issues
-```
-label:"kids-category" OR label:"coppa-compliance" OR label:"safety"
-```
+### 🔄 Status Sync
 
-#### High Priority Bugs
-```
-label:"bug" 
-label:"priority-high" OR label:"priority-critical"
-is:open
-```
+**Weekly Sync Meeting Agenda**:
+1. Review Development board progress
+2. Update Release timeline 
+3. Address Compliance blockers
+4. Plan next sprint priorities
 
-#### Accessibility Tasks
-```
-label:"accessibility" OR label:"a11y"
-sort:updated-desc
-```
+**Automated Reports**:
+- Daily: Development progress summary
+- Weekly: Release milestone status
+- Monthly: Compliance audit report
 
-### 📈 Useful Reports
+## 📈 Metrics & KPIs
 
-#### Sprint Burndown
-- Track completion rate for current milestone
-- Monitor velocity across sprints
-- Identify bottlenecks
+### Development Metrics
+- **Velocity**: Story points completed per sprint
+- **Cycle Time**: Average time from Ready → Done  
+- **Bug Rate**: Bugs found vs features delivered
+- **Review Time**: Average PR review duration
 
-#### Kids Category Compliance Rate
-- Percentage of features compliant
-- Time to compliance for new features
-- Security audit coverage
+### Release Metrics  
+- **Milestone Progress**: % complete towards release
+- **Feature Scope**: Planned vs delivered features
+- **Quality Gates**: Passed compliance checks
+- **Timeline Accuracy**: Estimated vs actual delivery
 
-#### Release Readiness
-- Features ready vs planned
-- Compliance status per feature
-- Testing completion rate
+### Compliance Metrics
+- **Audit Coverage**: % of features reviewed
+- **Issue Resolution**: Time to fix compliance issues  
+- **Approval Rate**: % of features passing first review
+- **Risk Assessment**: Outstanding compliance risks
 
-## 🤖 Automation Scripts
+## 🛠️ Advanced Configuration
 
-### 📱 Slack Integration
+### 📋 Custom Fields
 
-```javascript
-// Webhook для уведомлений о релизах
-const releaseNotification = {
-  channel: "#babysounds-releases",
-  message: "🚀 BabySounds v1.2.0 moved to Release Candidate!",
-  attachments: [
-    {
-      color: "good",
-      fields: [
-        { title: "Features", value: "5 new features ready" },
-        { title: "Bug Fixes", value: "12 issues resolved" },
-        { title: "Compliance", value: "✅ All checks passed" }
-      ]
-    }
-  ]
-};
-```
-
-### 🔄 Auto-Milestone Assignment
-
+**Development Project**:
 ```yaml
-# Автоматическое назначение milestone на основе меток
-- name: Auto-assign milestone
-  uses: actions/github-script@v6
+Story Points: Number (1, 2, 3, 5, 8, 13)
+Priority: Select (Critical, High, Medium, Low)
+Component: Select (Audio, UI, Premium, Safety)
+Assignee: Person
+Due Date: Date
+```
+
+**Release Project**:
+```yaml
+Milestone: Select (v1.0.0, v1.1.0, v1.2.0)
+Release Notes: Text
+QA Status: Select (Not Started, In Progress, Passed, Failed)
+App Store Status: Select (Development, Review, Released)
+```
+
+**Compliance Project**:
+```yaml
+Compliance Type: Select (COPPA, Accessibility, Security, Privacy)
+Risk Level: Select (Low, Medium, High, Critical)
+Reviewer: Person (compliance team member)
+Approval Date: Date
+Certificate: File (compliance certificates)
+```
+
+### 🔄 Integration Workflows
+
+**Slack Notifications**:
+```yaml
+# .github/workflows/project-updates.yml
+- name: Project Updates
+  uses: slack-notify
   with:
-    script: |
-      if (context.payload.label.name.includes('v1.2.0')) {
-        await github.rest.issues.update({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          issue_number: context.issue.number,
-          milestone: 5  // v1.2.0 milestone number
-        });
-      }
+    channel: '#babysounds-dev'
+    message: |
+      📋 Project Update:
+      - Development: ${{ development.progress }}
+      - Release: ${{ release.milestone }}
+      - Compliance: ${{ compliance.status }}
 ```
 
-## 🎯 Best Practices
-
-### 📋 Daily Workflow
-
-1. **Morning Standup**: Review Development Board
-2. **Sprint Planning**: Use Release Planning Board  
-3. **Compliance Review**: Weekly Kids Category Board review
-4. **Release Prep**: Move items through Release pipeline
-
-### 🏷️ Labeling Strategy
-
-- **Priority first**: Always add priority label
-- **Category second**: Add technical category
-- **Compliance last**: Add Kids Category compliance status
-
-### 📊 Metrics to Track
-
-- **Velocity**: Story points completed per week
-- **Lead Time**: Time from idea to release
-- **Compliance Rate**: % of features passing Kids Category review
-- **Bug Escape Rate**: Bugs found in production vs testing
+**Email Digests**:
+- Daily: Team progress summary
+- Weekly: Stakeholder milestone report
+- Monthly: Executive compliance summary
 
 ---
 
-## 🆘 Support
-
-**Questions about Projects setup?**
-- 📚 Check GitHub Projects documentation
-- 💬 Ask in `#babysounds-dev` Slack channel  
-- 📧 Email: `devops@babysounds.com`
-
----
-
-**Last Updated**: March 2024  
-**Next Review**: June 2024 
+**✅ Professional project management for Kids Category app development!** 🍼 

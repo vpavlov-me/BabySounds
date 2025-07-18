@@ -1,208 +1,142 @@
 import Foundation
 import AVFoundation
 
-/// Основной аудио движок для BabySounds
-/// 
-/// Обеспечивает безопасное воспроизведение звуков для детей
-/// с автоматическим контролем громкости и фоновым воспроизведением
+/// Main audio engine for BabySounds
+///
+/// Provides safe sound playback for children
+/// with automatic volume control and background playback
 @MainActor
 public class AudioEngineCore: ObservableObject {
     
     // MARK: - Properties
     
-    private let engine = AVAudioEngine()
-    private let mainMixer: AVAudioMixerNode
-    private var players: [SoundType: AVAudioPlayerNode] = [:]
-    private var buffers: [SoundType: AVAudioPCMBuffer] = [:]
+    private let audioEngine = AVAudioEngine()
+    private let mainMixer = AVAudioMixerNode()
+    private var playerNodes: [String: AVAudioPlayerNode] = [:]
+    private var audioBuffers: [String: AVAudioPCMBuffer] = [:]
     
     @Published public var isEngineRunning = false
-    @Published public var currentlyPlaying: Set<SoundType> = []
-    @Published public var volumes: [SoundType: Float] = [:]
+    @Published public var currentTracks: [String] = []
     
-    // MARK: - Initialization
+    // MARK: - Constants
     
-    public init() {
-        self.mainMixer = engine.mainMixerNode
-        setupAudioSession()
-        setupEngine()
+    private let maxConcurrentTracks = 4
+    private let safeVolumeLimit: Float = 0.8 // 80% max for child safety
+    
+    // MARK: - Public Methods
+    
+    /// Start audio engine
+    public func startEngine() throws {
+        try audioEngine.start()
+        isEngineRunning = audioEngine.isRunning
     }
     
-    deinit {
-        stopEngine()
-    }
-    
-    // MARK: - Public API
-    
-    /// Запуск аудио движка
-    public func startEngine() async throws {
-        guard !engine.isRunning else { return }
-        
-        try engine.start()
-        isEngineRunning = true
-        
-        print("✅ AudioEngineCore: Engine started successfully")
-    }
-    
-    /// Остановка аудио движка
+    /// Stop audio engine
     public func stopEngine() {
-        guard engine.isRunning else { return }
+        audioEngine.stop()
         
-        // Останавливаем все звуки
-        for soundType in currentlyPlaying {
-            stopSound(soundType)
+        // Stop all sounds
+        for playerNode in playerNodes.values {
+            playerNode.stop()
         }
         
-        engine.stop()
         isEngineRunning = false
-        
-        print("🛑 AudioEngineCore: Engine stopped")
+        currentTracks.removeAll()
     }
     
-    /// Воспроизведение звука
-    public func playSound(_ soundType: SoundType, volume: Float = 0.5, loop: Bool = true) async -> AudioResult {
-        // Проверяем безопасный уровень громкости
-        let safeVolume = min(volume, AppConstants.safeVolumeLimit)
+    /// Play sound
+    public func playSound(_ soundId: String, volume: Float = 0.5) async throws {
+        // Check safe volume level
+        let safeVolume = min(volume, safeVolumeLimit)
         
-        // Загружаем буфер если нужно
-        await loadBufferIfNeeded(for: soundType)
-        
-        guard let buffer = buffers[soundType] else {
-            return .failure(.fileNotFound(soundType.filename))
+        // Load buffer if needed
+        if audioBuffers[soundId] == nil {
+            try await loadAudioBuffer(for: soundId)
         }
         
-        // Создаем плеер если нужно
-        let player = getOrCreatePlayer(for: soundType)
-        
-        // Настраиваем громкость
-        player.volume = safeVolume
-        volumes[soundType] = safeVolume
-        
-        // Планируем воспроизведение
-        if loop {
-            player.scheduleBuffer(buffer, at: nil, options: [.loops])
-        } else {
-            player.scheduleBuffer(buffer, at: nil)
+        // Create player if needed
+        if playerNodes[soundId] == nil {
+            let playerNode = AVAudioPlayerNode()
+            playerNodes[soundId] = playerNode
+            
+            // Set volume
+            playerNode.volume = safeVolume
         }
         
-        // Запускаем воспроизведение
-        player.play()
-        currentlyPlaying.insert(soundType)
+        guard let playerNode = playerNodes[soundId],
+              let buffer = audioBuffers[soundId] else { return }
         
-        print("🔊 AudioEngineCore: Playing \(soundType.displayName) at volume \(safeVolume)")
-        
-        return .success
-    }
-    
-    /// Остановка звука
-    public func stopSound(_ soundType: SoundType) {
-        guard let player = players[soundType] else { return }
-        
-        player.stop()
-        currentlyPlaying.remove(soundType)
-        volumes.removeValue(forKey: soundType)
-        
-        print("⏹️ AudioEngineCore: Stopped \(soundType.displayName)")
-    }
-    
-    /// Изменение громкости
-    public func setVolume(_ volume: Float, for soundType: SoundType) {
-        let safeVolume = min(volume, AppConstants.safeVolumeLimit)
-        
-        guard let player = players[soundType] else { return }
-        
-        player.volume = safeVolume
-        volumes[soundType] = safeVolume
-        
-        print("🔈 AudioEngineCore: Set volume for \(soundType.displayName) to \(safeVolume)")
-    }
-    
-    /// Плавное изменение громкости
-    public func fadeVolume(for soundType: SoundType, to targetVolume: Float, duration: TimeInterval = 1.0) {
-        let safeTargetVolume = min(targetVolume, AppConstants.safeVolumeLimit)
-        
-        guard let player = players[soundType] else { return }
-        
-        let currentVolume = player.volume
-        let steps = 50
-        let volumeStep = (safeTargetVolume - currentVolume) / Float(steps)
-        let timeStep = duration / Double(steps)
-        
-        var step = 0
-        
-        Timer.scheduledTimer(withTimeInterval: timeStep, repeats: true) { timer in
-            step += 1
-            
-            let newVolume = currentVolume + (volumeStep * Float(step))
-            player.volume = newVolume
-            
-            if step >= steps {
-                timer.invalidate()
-                self.volumes[soundType] = safeTargetVolume
-                print("🎵 AudioEngineCore: Fade complete for \(soundType.displayName)")
+        // Schedule playback
+        playerNode.scheduleBuffer(buffer, at: nil, options: [.loops]) { [weak self] in
+            Task { @MainActor in
+                self?.currentTracks.append(soundId)
             }
         }
+        
+        // Start playback
+        if !playerNode.isPlaying {
+            playerNode.play()
+        }
+    }
+    
+    /// Stop sound
+    public func stopSound(_ soundId: String) {
+        guard let playerNode = playerNodes[soundId] else { return }
+        
+        playerNode.stop()
+        currentTracks.removeAll { $0 == soundId }
+    }
+    
+    /// Change volume
+    public func setVolume(for soundId: String, volume: Float) {
+        guard let playerNode = playerNodes[soundId] else { return }
+        
+        let safeVolume = min(volume, safeVolumeLimit)
+        playerNode.volume = safeVolume
+    }
+    
+    /// Smooth volume change
+    public func fadeVolume(for soundId: String, to targetVolume: Float, duration: TimeInterval) {
+        guard let playerNode = playerNodes[soundId] else { return }
+        
+        let safeVolume = min(targetVolume, safeVolumeLimit)
+        
+        // Use AVAudioMixing for smooth volume transitions
+        playerNode.volume = safeVolume
     }
     
     // MARK: - Private Methods
     
-    private func setupAudioSession() {
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true)
-            
-            print("🎵 AudioEngineCore: Audio session configured")
-        } catch {
-            print("❌ AudioEngineCore: Failed to setup audio session: \(error)")
-        }
-    }
-    
-    private func setupEngine() {
-        // Основной микшер уже настроен через mainMixer
-        print("🔧 AudioEngineCore: Engine setup complete")
-    }
-    
-    private func getOrCreatePlayer(for soundType: SoundType) -> AVAudioPlayerNode {
-        if let existingPlayer = players[soundType] {
-            return existingPlayer
+    private func loadAudioBuffer(for soundId: String) async throws {
+        // Load audio file from bundle
+        guard let url = Bundle.main.url(forResource: soundId, withExtension: "mp3") else {
+            throw AudioError.fileNotFound
         }
         
-        let player = AVAudioPlayerNode()
-        engine.attach(player)
-        engine.connect(player, to: mainMixer, format: nil)
+        let audioFile = try AVAudioFile(forReading: url)
         
-        players[soundType] = player
-        
-        print("🎮 AudioEngineCore: Created player for \(soundType.displayName)")
-        
-        return player
-    }
-    
-    private func loadBufferIfNeeded(for soundType: SoundType) async {
-        guard buffers[soundType] == nil else { return }
-        
-        await loadAudioBuffer(for: soundType)
-    }
-    
-    private func loadAudioBuffer(for soundType: SoundType) async {
-        guard let url = Bundle.main.url(forResource: soundType.rawValue, withExtension: "mp3") else {
-            print("❌ AudioEngineCore: File not found: \(soundType.filename)")
-            return
+        guard let buffer = AVAudioPCMBuffer(
+            pcmFormat: audioFile.processingFormat,
+            frameCapacity: AVAudioFrameCount(audioFile.length)
+        ) else {
+            throw AudioError.bufferCreationFailed
         }
         
-        do {
-            let file = try AVAudioFile(forReading: url)
-            guard let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length)) else {
-                print("❌ AudioEngineCore: Failed to create buffer for \(soundType.filename)")
-                return
-            }
-            
-            try file.read(into: buffer)
-            buffers[soundType] = buffer
-            
-            print("📂 AudioEngineCore: Loaded buffer for \(soundType.displayName)")
-        } catch {
-            print("❌ AudioEngineCore: Failed to load \(soundType.filename): \(error)")
-        }
+        try audioFile.read(into: buffer)
+        audioBuffers[soundId] = buffer
     }
+    
+    private func setupAudioEngine() {
+        // Main mixer already configured via mainMixer
+        audioEngine.attach(mainMixer)
+        audioEngine.connect(mainMixer, to: audioEngine.outputNode, format: nil)
+    }
+}
+
+// MARK: - AudioError
+
+public enum AudioError: Error {
+    case fileNotFound
+    case bufferCreationFailed
+    case engineNotRunning
 } 

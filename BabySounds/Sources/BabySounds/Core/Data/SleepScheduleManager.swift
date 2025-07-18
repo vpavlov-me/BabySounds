@@ -17,7 +17,7 @@ class SleepScheduleManager: ObservableObject {
     
     // MARK: - Constants
     
-    private let maxFreeSchedules = 1 // Бесплатно только 1 расписание
+    private let maxFreeSchedules = 1 // Free tier allows only 1 schedule
     private let userDefaultsKey = "SavedSleepSchedules"
     
     // MARK: - Dependencies
