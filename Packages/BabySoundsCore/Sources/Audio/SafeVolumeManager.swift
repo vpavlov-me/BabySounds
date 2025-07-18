@@ -1,6 +1,5 @@
 import Foundation
 import AVFoundation
-import UIKit
 
 // MARK: - Safe Volume Manager
 

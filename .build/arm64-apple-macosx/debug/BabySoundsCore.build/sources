@@ -1,0 +1,11 @@
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Audio/AudioEngineManager.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Audio/BackgroundAudioManager.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Audio/SafeVolumeManager.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/BabySoundsCore/BabySoundsCore.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Data/NotificationPermissionManager.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Data/ParentGateManager.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Data/PremiumManager.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Data/SleepScheduleManager.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Data/SoundCatalog.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Models/SleepSchedule.swift
+/Users/pavlov/Documents/Vibecoding/BabySounds/Packages/BabySoundsCore/Sources/Models/Sound.swift

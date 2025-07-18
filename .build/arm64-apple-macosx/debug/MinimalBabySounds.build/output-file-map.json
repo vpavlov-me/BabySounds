@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/pavlov/Documents/Vibecoding/BabySounds/.build/arm64-apple-macosx/debug/MinimalBabySounds.build/master.swiftdeps"
+  },
+  "/Users/pavlov/Documents/Vibecoding/BabySounds/Sources/MinimalBabySounds/main.swift": {
+    "dependencies": "/Users/pavlov/Documents/Vibecoding/BabySounds/.build/arm64-apple-macosx/debug/MinimalBabySounds.build/main.d",
+    "object": "/Users/pavlov/Documents/Vibecoding/BabySounds/.build/arm64-apple-macosx/debug/MinimalBabySounds.build/main.swift.o",
+    "swiftmodule": "/Users/pavlov/Documents/Vibecoding/BabySounds/.build/arm64-apple-macosx/debug/MinimalBabySounds.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/pavlov/Documents/Vibecoding/BabySounds/.build/arm64-apple-macosx/debug/MinimalBabySounds.build/main.swiftdeps"
+  }
+}

@@ -4,8 +4,7 @@ import PackageDescription
 let package = Package(
     name: "BabySounds",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14)
+        .iOS(.v17)
     ],
     products: [
         .library(
@@ -31,7 +30,10 @@ let package = Package(
                 "BabySoundsCore",
                 "BabySoundsUI"
             ],
-            path: "BabySounds/Sources/BabySounds"
+            path: "BabySounds/Sources/BabySounds",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .target(
             name: "BabySoundsCore",

@@ -1,0 +1,4 @@
+module BabySoundsPackageTests {
+    header "/Users/pavlov/Documents/Vibecoding/BabySounds/.build/arm64-apple-macosx/debug/BabySoundsPackageTests.build/BabySoundsPackageTests-Swift.h"
+    requires objc
+}

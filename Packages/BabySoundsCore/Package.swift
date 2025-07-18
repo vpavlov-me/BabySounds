@@ -4,8 +4,7 @@ import PackageDescription
 let package = Package(
     name: "BabySoundsCore",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14)
+        .iOS(.v17)
     ],
     products: [
         .library(
@@ -19,13 +18,11 @@ let package = Package(
     targets: [
         .target(
             name: "BabySoundsCore",
-            dependencies: [],
-            path: "Sources"
+            dependencies: []
         ),
         .testTarget(
             name: "BabySoundsCoreTests",
-            dependencies: ["BabySoundsCore"],
-            path: "Tests"
+            dependencies: ["BabySoundsCore"]
         )
     ]
 ) 
