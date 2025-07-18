@@ -1,0 +1,598 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CE0A0A0A2C495F2E00000001 /* BabySoundsAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */; };
+		CE0A0A0C2C495F2E00000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A0B2C495F2E00000001 /* ContentView.swift */; };
+		CE0A0A0E2C495F2F00000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A0D2C495F2F00000001 /* Assets.xcassets */; };
+		CE0A0A112C495F2F00000001 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A102C495F2F00000001 /* Preview Assets.xcassets */; };
+		CE0A0A1B2C495F2F00000001 /* BabySoundsAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A1A2C495F2F00000001 /* BabySoundsAppTests.swift */; };
+		CE0A0A252C495F2F00000001 /* BabySoundsAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A242C495F2F00000001 /* BabySoundsAppUITests.swift */; };
+		CE0A0A272C495F2F00000001 /* BabySoundsAppUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A262C495F2F00000001 /* BabySoundsAppUITestsLaunchTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CE0A0A172C495F2F00000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE0A09FE2C495F2E00000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE0A0A052C495F2E00000001;
+			remoteInfo = BabySoundsApp;
+		};
+		CE0A0A212C495F2F00000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE0A09FE2C495F2E00000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE0A0A052C495F2E00000001;
+			remoteInfo = BabySoundsApp;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		CE0A0A062C495F2E00000001 /* BabySoundsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BabySoundsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabySoundsAppApp.swift; sourceTree = "<group>"; };
+		CE0A0A0B2C495F2E00000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		CE0A0A0D2C495F2F00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CE0A0A102C495F2F00000001 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		CE0A0A162C495F2F00000001 /* BabySoundsAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BabySoundsAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE0A0A1A2C495F2F00000001 /* BabySoundsAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabySoundsAppTests.swift; sourceTree = "<group>"; };
+		CE0A0A202C495F2F00000001 /* BabySoundsAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BabySoundsAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE0A0A242C495F2F00000001 /* BabySoundsAppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabySoundsAppUITests.swift; sourceTree = "<group>"; };
+		CE0A0A262C495F2F00000001 /* BabySoundsAppUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabySoundsAppUITestsLaunchTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CE0A0A032C495F2E00000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE0A0A132C495F2F00000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE0A0A1D2C495F2F00000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CE0A09FD2C495F2E00000001 = {
+			isa = PBXGroup;
+			children = (
+				CE0A0A082C495F2E00000001 /* BabySoundsApp */,
+				CE0A0A192C495F2F00000001 /* BabySoundsAppTests */,
+				CE0A0A232C495F2F00000001 /* BabySoundsAppUITests */,
+				CE0A0A072C495F2E00000001 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CE0A0A072C495F2E00000001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CE0A0A062C495F2E00000001 /* BabySoundsApp.app */,
+				CE0A0A162C495F2F00000001 /* BabySoundsAppTests.xctest */,
+				CE0A0A202C495F2F00000001 /* BabySoundsAppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CE0A0A082C495F2E00000001 /* BabySoundsApp */ = {
+			isa = PBXGroup;
+			children = (
+				CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */,
+				CE0A0A0B2C495F2E00000001 /* ContentView.swift */,
+				CE0A0A0D2C495F2F00000001 /* Assets.xcassets */,
+				CE0A0A0F2C495F2F00000001 /* Preview Content */,
+			);
+			path = BabySoundsApp;
+			sourceTree = "<group>";
+		};
+		CE0A0A0F2C495F2F00000001 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				CE0A0A102C495F2F00000001 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		CE0A0A192C495F2F00000001 /* BabySoundsAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				CE0A0A1A2C495F2F00000001 /* BabySoundsAppTests.swift */,
+			);
+			path = BabySoundsAppTests;
+			sourceTree = "<group>";
+		};
+		CE0A0A232C495F2F00000001 /* BabySoundsAppUITests */ = {
+			isa = PBXGroup;
+			children = (
+				CE0A0A242C495F2F00000001 /* BabySoundsAppUITests.swift */,
+				CE0A0A262C495F2F00000001 /* BabySoundsAppUITestsLaunchTests.swift */,
+			);
+			path = BabySoundsAppUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CE0A0A052C495F2E00000001 /* BabySoundsApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE0A0A2A2C495F2F00000001 /* Build configuration list for PBXNativeTarget "BabySoundsApp" */;
+			buildPhases = (
+				CE0A0A022C495F2E00000001 /* Sources */,
+				CE0A0A032C495F2E00000001 /* Frameworks */,
+				CE0A0A042C495F2E00000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BabySoundsApp;
+			packageProductDependencies = (
+			);
+			productName = BabySoundsApp;
+			productReference = CE0A0A062C495F2E00000001 /* BabySoundsApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CE0A0A152C495F2F00000001 /* BabySoundsAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE0A0A2D2C495F2F00000001 /* Build configuration list for PBXNativeTarget "BabySoundsAppTests" */;
+			buildPhases = (
+				CE0A0A122C495F2F00000001 /* Sources */,
+				CE0A0A132C495F2F00000001 /* Frameworks */,
+				CE0A0A142C495F2F00000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CE0A0A182C495F2F00000001 /* PBXTargetDependency */,
+			);
+			name = BabySoundsAppTests;
+			productName = BabySoundsAppTests;
+			productReference = CE0A0A162C495F2F00000001 /* BabySoundsAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		CE0A0A1F2C495F2F00000001 /* BabySoundsAppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE0A0A302C495F2F00000001 /* Build configuration list for PBXNativeTarget "BabySoundsAppUITests" */;
+			buildPhases = (
+				CE0A0A1C2C495F2F00000001 /* Sources */,
+				CE0A0A1D2C495F2F00000001 /* Frameworks */,
+				CE0A0A1E2C495F2F00000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CE0A0A222C495F2F00000001 /* PBXTargetDependency */,
+			);
+			name = BabySoundsAppUITests;
+			productName = BabySoundsAppUITests;
+			productReference = CE0A0A202C495F2F00000001 /* BabySoundsAppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CE0A09FE2C495F2E00000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					CE0A0A052C495F2E00000001 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					CE0A0A152C495F2F00000001 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = CE0A0A052C495F2E00000001;
+					};
+					CE0A0A1F2C495F2F00000001 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = CE0A0A052C495F2E00000001;
+					};
+				};
+			};
+			buildConfigurationList = CE0A0A012C495F2E00000001 /* Build configuration list for PBXProject "BabySoundsApp" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				ru,
+			);
+			mainGroup = CE0A09FD2C495F2E00000001;
+			productRefGroup = CE0A0A072C495F2E00000001 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CE0A0A052C495F2E00000001 /* BabySoundsApp */,
+				CE0A0A152C495F2F00000001 /* BabySoundsAppTests */,
+				CE0A0A1F2C495F2F00000001 /* BabySoundsAppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CE0A0A042C495F2E00000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE0A0A112C495F2F00000001 /* Preview Assets.xcassets in Resources */,
+				CE0A0A0E2C495F2F00000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE0A0A142C495F2F00000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE0A0A1E2C495F2F00000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CE0A0A022C495F2E00000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE0A0A0C2C495F2E00000001 /* ContentView.swift in Sources */,
+				CE0A0A0A2C495F2E00000001 /* BabySoundsAppApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE0A0A122C495F2F00000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE0A0A1B2C495F2F00000001 /* BabySoundsAppTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE0A0A1C2C495F2F00000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE0A0A272C495F2F00000001 /* BabySoundsAppUITestsLaunchTests.swift in Sources */,
+				CE0A0A252C495F2F00000001 /* BabySoundsAppUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CE0A0A182C495F2F00000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE0A0A052C495F2E00000001 /* BabySoundsApp */;
+			targetProxy = CE0A0A172C495F2F00000001 /* PBXContainerItemProxy */;
+		};
+		CE0A0A222C495F2F00000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE0A0A052C495F2E00000001 /* BabySoundsApp */;
+			targetProxy = CE0A0A212C495F2F00000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		CE0A0A282C495F2F00000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CE0A0A292C495F2F00000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CE0A0A2B2C495F2F00000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BabySoundsApp/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "BabySounds needs microphone access for audio calibration (optional)";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CE0A0A2C2C495F2F00000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"BabySoundsApp/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "BabySounds needs microphone access for audio calibration (optional)";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CE0A0A2D2C495F2F00000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app.BabySoundsAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BabySoundsApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BabySoundsApp";
+			};
+			name = Debug;
+		};
+		CE0A0A2E2C495F2F00000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app.BabySoundsAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BabySoundsApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BabySoundsApp";
+			};
+			name = Release;
+		};
+		CE0A0A312C495F2F00000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app.BabySoundsAppUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BabySoundsApp;
+			};
+			name = Debug;
+		};
+		CE0A0A322C495F2F00000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app.BabySoundsAppUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = BabySoundsApp;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CE0A0A012C495F2E00000001 /* Build configuration list for PBXProject "BabySoundsApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE0A0A282C495F2F00000001 /* Debug */,
+				CE0A0A292C495F2F00000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE0A0A2A2C495F2F00000001 /* Build configuration list for PBXNativeTarget "BabySoundsApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE0A0A2B2C495F2F00000001 /* Debug */,
+				CE0A0A2C2C495F2F00000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE0A0A2D2C495F2F00000001 /* Build configuration list for PBXNativeTarget "BabySoundsAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE0A0A2D2C495F2F00000001 /* Debug */,
+				CE0A0A2E2C495F2F00000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE0A0A302C495F2F00000001 /* Build configuration list for PBXNativeTarget "BabySoundsAppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE0A0A312C495F2F00000001 /* Debug */,
+				CE0A0A322C495F2F00000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CE0A09FE2C495F2E00000001 /* Project object */;
+} 

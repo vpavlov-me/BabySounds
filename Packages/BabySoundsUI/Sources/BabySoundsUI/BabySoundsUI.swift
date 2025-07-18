@@ -25,6 +25,11 @@ public enum BabyDesign {
     public static let padding: CGFloat = 16
 }
 
+// MARK: - Public Exports
+
+/// Re-export основных компонентов
+@_exported import struct SoundCard
+
 /// Placeholder для будущих UI компонентов
 public struct BabyButton: View {
     let title: String
