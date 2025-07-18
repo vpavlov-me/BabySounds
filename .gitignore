@@ -93,4 +93,4 @@ metadata/
 .swiftlint.yml.tmp
 
 # Documentation build
-docs/ 
+docs/ /.build/

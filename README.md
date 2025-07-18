@@ -1,480 +1,161 @@
 # BabySounds 🍼🎵
 
 [![iOS Build](https://github.com/vpavlov-me/BabySounds/actions/workflows/ios-build.yml/badge.svg)](https://github.com/vpavlov-me/BabySounds/actions/workflows/ios-build.yml)
-[![TestFlight](https://img.shields.io/badge/TestFlight-Available-blue)](https://testflight.apple.com/join/baby-sounds)
-[![Swift 5.10](https://img.shields.io/badge/Swift-5.10-orange)](https://swift.org)
+[![Swift 6.0](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org)
 [![iOS 17.0+](https://img.shields.io/badge/iOS-17.0+-blue)](https://developer.apple.com/ios/)
 [![Kids Category](https://img.shields.io/badge/Category-Kids-green)](https://developer.apple.com/app-store/kids-apps/)
-[![COPPA Compliant](https://img.shields.io/badge/COPPA-Compliant-green)](https://www.ftc.gov/enforcement/rules/rulemaking-regulatory-reform-proceedings/childrens-online-privacy-protection-rule)
+[![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen)](https://swift.org/package-manager/)
 
-> **Production-Ready Kids Category iOS App** - Professional sleep aid app for children aged 0-5 years with comprehensive DevOps infrastructure.
+> **Production-Ready Kids Category iOS App** - Professional sleep aid app for children with modular Swift Package Manager architecture.
 
-## 🚀 Quick Start for Team Development
+## 🏗 Архитектура проекта
 
-### Prerequisites
+Проект организован с **Feature-First** подходом и модульной архитектурой через SPM:
 
-- **Xcode 15.4+** (iOS 17 SDK required)
-- **macOS Ventura 13.0+** (for development)
-- **Homebrew** for dependency management
-- Apple Developer Account (for StoreKit testing)
-- **GitHub account** with proper permissions
+```
+BabySounds/
+├── 📱 BabySounds/        # Основное приложение (SwiftUI + Swift 6)
+├── 📦 Packages/          # SPM модули (Core + UI)
+├── 🛠 Tools/            # DevOps инструменты
+├── 📚 Examples/         # Примеры использования
+└── 📖 docs/            # Полная документация
+```
 
-### One-Command Setup
+**Детальная документация:** [📁 Структура проекта](docs/PROJECT_STRUCTURE.md)
+
+## 🚀 Быстрый старт
+
+### Требования
+- **Xcode 15.4+** (iOS 17 SDK)
+- **Swift 6.0+** 
+- **macOS Ventura 13.0+**
+- Apple Developer Account (для StoreKit)
+
+### Установка
 
 ```bash
-# Clone and bootstrap project
+# Клонирование проекта
 git clone https://github.com/vpavlov-me/BabySounds.git
 cd BabySounds
+
+# Автоматическая настройка
 make bootstrap
+
+# Альтернативно: ручная настройка
+swift package resolve
 ```
 
-The bootstrap script will:
-- Install all development dependencies (SwiftLint, SwiftFormat, Fastlane, Git LFS)
-- Setup Git hooks and branch protection
-- Configure code quality tools
-- Install pre-commit validation
-- Setup GitHub repository configuration
-
-### Manual Setup
+### Сборка и тестирование
 
 ```bash
-# Install dependencies
-brew install swiftlint swiftformat fastlane git-lfs
-gem install xcpretty
+# Сборка всех модулей
+swift build
 
-# Setup Git LFS for audio files
-git lfs install
-git lfs track "*.mp3" "*.wav" "*.aac" "*.m4a"
+# Запуск тестов
+swift test
 
-# Install pre-commit hooks
-cp scripts/pre-commit .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
+# Проверка кода
+make lint
 
-# Open project
-make open
+# Форматирование
+make format
 ```
 
-### 🔧 GitHub Repository Setup
+## 📦 Модули SPM
 
-For complete GitHub repository configuration, see [`.github/GITHUB_SETUP.md`](.github/GITHUB_SETUP.md):
+### BabySoundsCore
+Основная логика без UI dependencies:
+- 🔊 AudioEngine управление
+- 📊 Data services и модели  
+- ⚡ Utilities и extensions
 
-- **Branch Protection**: Main/develop branches with required reviews
-- **Security Scanning**: CodeQL analysis + Kids Category compliance
-- **CI/CD Workflows**: Automated testing, building, and deployment
-- **Issue Templates**: Bug reports, feature requests, accessibility issues
-- **Code Owners**: Automatic reviewer assignment
-- **Dependabot**: Automated security updates
+### BabySoundsUI  
+Переиспользуемые SwiftUI компоненты:
+- 🧩 UI Components
+- 🎨 Design System
+- ♿ Accessibility support
 
-## 📋 Project Status: PRODUCTION READY + DevOps Infrastructure ✅
+## 🎯 Ключевые фичи
 
-### ✅ Core Features (v1.0.0)
-- **🎵 Professional Audio Engine**: Multi-track AVAudioEngine with professional mixing
-- **📻 Background Playback**: Complete Now Playing integration and session management
-- **📊 Data System**: JSON-driven sound catalog with real-time UI synchronization
-- **💎 Premium Subscriptions**: StoreKit 2 with Monthly/Annual plans and 7-day trials
-- **🔒 Parental Controls**: Advanced security with multiple challenge types
-- **🛡️ Child Safety**: WHO-compliant hearing protection and volume management
-- **⏰ Sleep Scheduling**: Local notifications with premium gating
-- **🌍 Localization**: Complete English + Russian support
-- **👶 Kids Category Compliance**: COPPA-safe design and implementation
+- **🎵 Audio Engine** - AVAudioEngine с поддержкой 4+ звуков
+- **⏰ Sleep Schedules** - Smart расписание сна
+- **💳 StoreKit 2** - Подписки без сторонних SDK
+- **👨‍👩‍👧‍👦 Parental Gate** - Безопасность для детей
+- **🌍 Локализация** - EN/RU с поддержкой новых языков
+- **♿ Accessibility** - VoiceOver и Switch Control
 
-### 🚀 DevOps Infrastructure (COMPLETE!)
-- **CI/CD Pipeline**: Comprehensive GitHub Actions workflows
-- **Code Quality**: Automated SwiftLint + SwiftFormat enforcement  
-- **Testing**: Multi-device testing with accessibility validation
-- **Release Automation**: Fastlane-powered TestFlight deployment
-- **Branch Protection**: Git Flow with mandatory reviews and compliance checks
-- **Security Scanning**: CodeQL analysis + Kids Category compliance validation
-- **GitHub Templates**: Issue templates, PR templates, and code owners
-- **Dependabot**: Automated dependency security updates
-- **Documentation**: Complete development guides and contribution workflows
-
-## 🏗️ Technical Architecture
-
-### Core System Overview
-
-```
-📱 BabySounds (Production-Ready)
-├── 🎵 CoreAudio/                    # Professional audio system
-│   ├── AudioEngineManager.swift     # Multi-track AVAudioEngine
-│   ├── BackgroundAudioManager.swift # Background playback + Now Playing
-│   └── SafeVolumeManager.swift      # WHO-compliant hearing protection
-├── 📊 Data/                         # Business logic layer  
-│   ├── SoundCatalog.swift           # JSON → UI data pipeline
-│   ├── PremiumManager.swift         # 8-feature premium system
-│   ├── ParentGateManager.swift      # 6-context security system
-│   ├── SleepScheduleManager.swift   # Notification scheduling
-│   └── NotificationPermissionManager.swift
-├── 💎 Subscriptions/                # StoreKit 2 integration
-│   └── SubscriptionServiceSK2.swift # Real App Store subscriptions
-├── 👶 Views/                        # SwiftUI interface (Kids Category compliant)
-│   ├── SoundPlayerView.swift        # Main audio interface
-│   ├── PaywallView.swift            # Subscription upselling
-│   ├── ParentGateView.swift         # Security challenges
-│   ├── SafetySettingsView.swift     # Child protection controls
-│   └── SleepSchedulesView.swift     # Schedule management
-└── 🔧 DevOps/                       # Development infrastructure
-    ├── .github/workflows/           # CI/CD automation
-    ├── fastlane/                    # Deployment automation
-    ├── scripts/                     # Development tools
-    └── quality tools               # SwiftLint, SwiftFormat, Danger
-```
-
-### Key Technical Features
-
-#### 🎵 Audio Engine
-- **Multi-track System**: Up to 4 concurrent sounds with professional mixing
-- **Advanced Controls**: Per-track gain, pan, fade-in/out with configurable durations
-- **Background Audio**: Complete AVAudioSession management with interruption handling
-- **Performance**: Audio file caching and validation for instant playback
-- **Safety**: Volume limiting and automatic pause on headphone disconnection
-
-#### 💎 Premium Subscription System
-- **StoreKit 2 Integration**: Modern async/await API with real-time updates
-- **Flexible Plans**: Monthly ($4.99) and Annual ($29.99) with 7-day trials
-- **8 Premium Features**: Smart gating system with graceful degradation
-- **Revenue Optimization**: Strategic feature limitations to drive conversions
-
-#### 👶 Kids Category Compliance
-- **Zero Data Collection**: No personal information stored or transmitted
-- **Parental Gate Protection**: All settings and purchases require adult verification
-- **Safe Content**: Age-appropriate sounds and UI designed for 5 & under
-- **External Link Protection**: SafeLinkWrapper for any outbound URLs
-- **Accessibility**: Full VoiceOver support and large touch targets
-
-## 🛠️ Development Workflow
-
-### Git Strategy (Git Flow)
-
-```
-main                # 🏷️  Production releases only (protected)
-├── develop         # 🔄 Integration branch (protected, default)
-├── feature/*       # ✨ Feature development
-├── release/*       # 🚀 Release preparation
-└── hotfix/*        # 🚨 Emergency fixes
-```
-
-### Branch Protection Rules
-- **main**: Requires 2 approvals, all CI checks, no direct pushes
-- **develop**: Requires 1 approval, all CI checks, no direct pushes
-- **Conventional Commits**: Enforced with semantic versioning
-
-### Quick Commands
+## 📋 Команды разработки
 
 ```bash
-# Development
-make build          # Build project
-make test           # Run unit tests
-make quality        # Format, lint, and test
-make clean          # Clean build artifacts
+# Разработка
+make dev          # Запуск development сервера
+make test         # Все тесты
+make test-ui      # UI тесты
+make clean        # Очистка
 
-# Code Quality
-make lint           # Run SwiftLint
-make format         # Apply SwiftFormat
-make fix-lint       # Auto-fix lint issues
+# Качество кода  
+make lint         # SwiftLint проверка
+make format       # SwiftFormat автоформат
+make danger       # Danger PR проверки
 
-# Git Workflow
-make create-feature BRANCH=new-feature
-make create-release VERSION=1.2.0
-make create-hotfix VERSION=1.1.1
-
-# Version Management
-make bump-patch     # 1.0.0 → 1.0.1
-make bump-minor     # 1.0.0 → 1.1.0
-make bump-major     # 1.0.0 → 2.0.0
-
-# Release
-make release-patch  # Full release pipeline
-make testflight     # Upload to TestFlight
-
-# Utilities
-make help           # Show all commands
-make project-info   # Project statistics
-make check-deps     # Verify dependencies
+# Деплой
+make build        # Release сборка
+make archive      # Archive для App Store
+fastlane beta     # TestFlight upload
 ```
 
-## 🔄 CI/CD Pipeline
+## 📖 Документация
 
-### Automated Workflows
+- **[📁 Структура проекта](docs/PROJECT_STRUCTURE.md)** - Архитектура и организация
+- **[🔧 Техническая документация](docs/technical/)** - Глубокое погружение  
+- **[👨‍💻 Contributing Guide](docs/development/CONTRIBUTING.md)** - Workflow разработки
+- **[🏪 App Store материалы](docs/app-store/)** - Релиз процедуры
+- **[🚀 Отчет о реорганизации](docs/REFACTORING_SUMMARY.md)** - Проделанная работа
 
-#### 🍎 iOS Build & Test
-- **Triggers**: Push/PR to main/develop
-- **Matrix Testing**: iPhone SE, iPhone 15 Pro, iPad
-- **Quality Gates**: SwiftLint, SwiftFormat, Unit Tests, Accessibility
-- **Security**: Vulnerability scanning and Kids Category compliance
-- **Artifacts**: Build logs, coverage reports, release archives
+## ✅ Принципы проекта
 
-#### 🚀 TestFlight Release
-- **Trigger**: Git tags matching `v*.*.*`
-- **Process**: Quality checks → Build → Upload → GitHub Release
-- **Features**: Automatic changelog generation, team notifications
-- **Security**: Encrypted certificates and App Store Connect API keys
+### 1. **Swift 6 + SwiftUI-only**
+- Никаких UIKit/Storyboard
+- Никаких force unwrap
+- Async/await для асинхронности
 
-#### 🛡️ Danger & Code Quality
-- **Trigger**: Pull requests
-- **Analysis**: TODO/FIXME tracking, PR size analysis, compliance checking
-- **Reports**: Accessibility coverage, localization checks, performance warnings
-- **Automation**: Changelog validation, commit message formatting
+### 2. **Feature-First Architecture**  
+- Каждая фича — отдельная папка
+- Структура: `Feature > Data > UI > Tests`
+- Четкие boundaries
 
-### Quality Standards
+### 3. **Kids Category Compliance**
+- COPPA совместимость
+- Parental controls
+- Безопасная громкость (WHO guidelines)
+- Никаких сторонних трекеров
 
-- **Code Quality**: SwiftLint score >90%, 120 char line limit
-- **Test Coverage**: >80% for business logic
-- **Performance**: <2s app launch time
-- **Accessibility**: 100% VoiceOver compatibility
-- **Kids Compliance**: Zero tolerance for violations
-
-## 🎯 App Store Connect Setup
-
-### App Information
-```yaml
-Name: BabySounds
-Subtitle: Soothing Sounds for Sweet Dreams
-Category: Education → Kids (Ages 5 & Under)
-Age Rating: 4+
-Made for Kids: Yes
-Privacy: No data collection from children
-```
-
-### Subscription Products
-```yaml
-Monthly Premium (baby.monthly):
-  Price: $4.99/month
-  Trial: 7 days
-  
-Annual Premium (baby.annual):
-  Price: $29.99/year  
-  Trial: 7 days
-  Savings: ~50%
-```
-
-### Required Compliance
-- ✅ Parental gate before purchases/settings
-- ✅ No external links without parent verification
-- ✅ Age-appropriate UI (minimum 64pt touch targets)
-- ✅ No data collection from children
-- ✅ COPPA compliance validated
-- ✅ No third-party advertising
-- ✅ Full accessibility support
-
-## 📱 Device Support & Testing
-
-### Supported Devices
-- **iPhone**: SE (3rd gen), 12, 13, 14, 15 series
-- **iPad**: 9th gen+, Air 4th gen+, Pro 11" 3rd gen+, Pro 12.9" 5th gen+
-- **iOS Version**: 17.0+ (optimized for iOS 17.5+)
-
-### Automated Testing Matrix
-```yaml
-Simulators:
-  - iPhone SE (3rd generation) - iOS 17.5
-  - iPhone 15 Pro - iOS 17.5  
-  - iPad (10th generation) - iOS 17.5
-
-Test Coverage:
-  - Unit tests with 80%+ coverage
-  - UI tests for critical flows
-  - Accessibility testing (VoiceOver)
-  - Kids Category compliance validation
-  - Performance benchmarks
-```
-
-## 🎵 Audio Content Setup
-
-### Required Audio Files
-Add MP3/AAC files to `BabySounds/Resources/Sounds/`:
-
-```
-Sounds/
-├── white/          # White noise variations
-├── pink/           # Pink noise for deeper sleep
-├── brown/          # Brown noise for focus
-├── nature/         # Rain, ocean, forest sounds
-├── lullabies/      # Classical lullabies
-├── womb/           # Heartbeat and womb sounds
-└── household/      # Vacuum, washing machine, etc.
-```
-
-### Audio Specifications
-- **Format**: MP3 (128kbps) or AAC
-- **Duration**: 10-15 minutes (seamless looping)
-- **Sample Rate**: 44.1 kHz
-- **Content**: Child-safe, soothing sounds only
-- **Size**: Large files (>10MB) tracked with Git LFS
-
-## 💰 Monetization Strategy
-
-### Revenue Model
-- **Freemium**: Core functionality free with premium upgrades
-- **Subscriptions**: Monthly ($4.99) and Annual ($29.99) plans
-- **Free Trial**: 7 days for both plans to maximize conversions
-
-### Premium Features
-1. **Premium Sounds** (30+ exclusive tracks)
-2. **Multi-Track Mixing** (up to 4 simultaneous)
-3. **Extended Timer** (unlimited vs 30min free)
-4. **Sleep Schedules** (unlimited vs 1 free)
-5. **Offline Packs** (downloadable content)
-6. **Advanced Controls** (fade, pan, gain)
-7. **Unlimited Favorites** (unlimited vs 5 free)
-8. **Dark Night Mode** (blue light reduction)
-
-### Conversion Strategy
-- Strategic limitations in free version drive premium adoption
-- 7-day trial allows full feature exploration
-- Parental gate ensures adult purchase decisions
-- Clear value proposition with immediate benefits
-
-## 📊 Performance & Analytics
-
-### Key Metrics
-- **App Launch**: <2 seconds to first interaction
-- **Audio Latency**: <100ms for sound playback
-- **Memory Usage**: <50MB baseline, <100MB with 4 tracks
-- **Battery Impact**: Minimal with background optimizations
-
-### Privacy-First Analytics
-- **No Personal Data**: Zero collection from children
-- **Anonymous Usage**: App version, device type, crash reports only
-- **COPPA Compliant**: All analytics aggregated and anonymized
-- **Parental Control**: Parents can opt-out of all analytics
-
-## 🔐 Security & Privacy
-
-### Kids Category Security
-- **Zero Data Collection**: No names, emails, locations, or behavioral data
-- **Local Storage Only**: All preferences stored on device
-- **No External Services**: No third-party analytics or advertising
-- **Safe Content**: All audio content manually curated for age-appropriateness
-
-### Technical Security
-- **API Key Protection**: All secrets encrypted in CI/CD
-- **Certificate Management**: Automated rotation and secure storage
-- **Dependency Scanning**: Regular vulnerability assessments
-- **Code Signing**: Validated builds with proper entitlements
-
-## 🚀 Deployment & Release
-
-### Release Process
-1. **Feature Development**: Create feature branch from develop
-2. **Quality Assurance**: Automated CI/CD validation
-3. **Release Preparation**: Create release branch, update changelog
-4. **Version Tagging**: Semantic versioning with git tags
-5. **TestFlight Upload**: Automated deployment with Fastlane
-6. **App Store Submission**: Manual review and release
-
-### Emergency Hotfixes
-```bash
-# Quick hotfix deployment
-make create-hotfix VERSION=1.1.1
-# Make critical fixes
-make quality && git commit -m "fix: critical issue"
-git push origin hotfix/1.1.1
-# Creates PR → merge → automatic TestFlight upload
-```
-
-### Release Schedule
-- **Major Releases**: Quarterly (new features)
-- **Minor Releases**: Monthly (improvements)
-- **Patch Releases**: As needed (bug fixes)
-- **Hotfixes**: Emergency deployment within 24 hours
-
-## 📚 Documentation & Resources
-
-### For Developers
-- **[Contributing Guide](CONTRIBUTING.md)**: Complete development workflow
-- **[Changelog](CHANGELOG.md)**: Release history and breaking changes
-- **[Technical Notes](TECHNICAL_NOTES.md)**: Architecture deep dive
-- **[App Store Checklist](APP_STORE_CHECKLIST.md)**: Submission requirements
-
-### External Resources
-- [Apple Kids Category Guidelines](https://developer.apple.com/app-store/kids-apps/)
-- [COPPA Compliance Guide](https://www.ftc.gov/tips-advice/business-center/guidance/complying-coppa-frequently-asked-questions)
-- [iOS Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/)
-- [StoreKit 2 Documentation](https://developer.apple.com/documentation/storekit)
-
-### Quality Tools
-- [SwiftLint Rules](https://realm.github.io/SwiftLint/rule-directory.html)
-- [SwiftFormat Documentation](https://github.com/nicklockwood/SwiftFormat)
-- [Fastlane Documentation](https://docs.fastlane.tools/)
+### 4. **Production Quality**
+- Comprehensive testing (Unit/UI/Integration)
+- CI/CD через GitHub Actions + Fastlane
+- Автоматический code quality контроль
+- StoreKit тестирование
 
 ## 🤝 Contributing
 
-We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for:
+Мы приветствуем вклад в развитие проекта! 
 
-- **Development Setup**: Complete environment configuration
-- **Code Standards**: SwiftLint rules and formatting guidelines  
-- **Git Workflow**: Branch strategy and PR requirements
-- **Kids Category Compliance**: Critical requirements and examples
-- **Testing Guidelines**: Unit tests, accessibility, and device testing
+1. **Прочитайте** [Contributing Guide](docs/development/CONTRIBUTING.md)
+2. **Создайте** feature branch
+3. **Следуйте** code style (SwiftLint + SwiftFormat)
+4. **Добавьте** тесты для новой функциональности
+5. **Создайте** Pull Request
 
-### Quick Contribution Checklist
-- [ ] Kids Category compliance verified
-- [ ] Accessibility attributes added
-- [ ] Unit tests written/updated
-- [ ] SwiftLint passes (make lint)
-- [ ] Manual testing on iPhone + iPad
-- [ ] CHANGELOG.md updated (if user-facing)
+## 📄 Лицензия
 
-## 🏆 Quality Standards
+MIT License. Подробности в [LICENSE](LICENSE) файле.
 
-BabySounds maintains production-grade quality:
+## 📞 Поддержка
 
-- **📊 Code Quality**: 90%+ SwiftLint score, comprehensive documentation
-- **🧪 Test Coverage**: 80%+ unit test coverage, automated UI testing
-- **♿ Accessibility**: 100% VoiceOver compatible, high contrast support
-- **🔒 Security**: Zero PII collection, encrypted secrets, secure CI/CD
-- **⚡ Performance**: <2s launch time, optimized memory usage
-- **👶 Kids Compliance**: COPPA certified, parental gate protected
-
-## 📈 Roadmap
-
-### Version 1.1 (Q2 2024)
-- **Enhanced Audio**: Sound mixing controls, custom fade curves
-- **Advanced Scheduling**: Wake-up schedules, naptime routines
-- **Voice Recording**: Parent's lullaby recording feature
-- **Apple Health**: Sleep tracking integration
-
-### Version 1.2 (Q3 2024)
-- **Social Features**: Sound sharing between parents (with parental gate)
-- **Smart Scheduling**: AI-powered schedule recommendations
-- **Offline Mode**: Downloadable sound packs
-- **Apple Watch**: Companion app for remote control
-
-### Long-term Vision
-- **Multi-platform**: iPad-optimized interface, Apple TV support
-- **Internationalization**: Additional language support
-- **Professional Features**: Sleep coaching, pediatric partnerships
-- **Accessibility**: Advanced VoiceOver, Switch Control support
-
-## 📞 Support & Contact
-
-### For Developers
-- **Issues**: [GitHub Issues](https://github.com/vpavlov-me/BabySounds/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/vpavlov-me/BabySounds/discussions)
-- **Documentation**: Complete guides in `/docs` directory
-
-### For Users
-- **Support**: Contact through App Store or TestFlight
-- **Privacy**: Complete privacy policy in app
-- **Feedback**: In-app feedback system (with parental gate)
+- **Issues:** [GitHub Issues](https://github.com/vpavlov-me/BabySounds/issues)
+- **Документация:** [docs/](docs/)
+- **Email:** support@babysounds.app
 
 ---
 
-## 🎯 Summary
-
-BabySounds is a **production-ready Kids Category iOS app** with:
-
-✅ **Complete Feature Set**: Professional audio engine, premium subscriptions, child safety  
-✅ **Kids Category Compliant**: COPPA safe, parental gates, age-appropriate design  
-✅ **DevOps Infrastructure**: CI/CD, quality automation, release management  
-✅ **Team Development Ready**: Git flow, code standards, comprehensive documentation  
-✅ **App Store Ready**: All compliance checks passed, TestFlight deployment automated  
-
-**Ready for:** Team development, feature expansion, App Store submission, production deployment.
-
-**Built with ❤️ for children and parents worldwide** 🍼✨
-
----
-
-*Copyright © 2024 BabySounds. All rights reserved. This project complies with all Kids Category requirements and COPPA guidelines.* 
+**Сделано с ❤️ для детей и их родителей** 

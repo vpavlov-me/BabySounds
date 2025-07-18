@@ -1,0 +1,257 @@
+/* 
+  Localizable.strings (English)
+  BabySounds
+*/
+
+// MARK: - App General
+"App.Name" = "Baby Sounds";
+"App.Tagline" = "Soothing sounds for sweet dreams";
+
+// MARK: - Tabs
+"Tab.Sleep" = "Sleep";
+"Tab.Playroom" = "Playroom";
+"Tab.Favorites" = "Favorites";
+"Tab.Settings" = "Settings";
+
+// MARK: - Categories
+"Category.White" = "White Noise";
+"Category.Pink" = "Pink Noise";
+"Category.Brown" = "Brown Noise";
+"Category.Nature" = "Nature";
+"Category.Womb" = "Womb Sounds";
+"Category.Fan" = "Fan & Air";
+"Category.Animal" = "Animals";
+"Category.Transport" = "Transport";
+"Category.Music" = "Music";
+"Category.Custom" = "Custom";
+
+// MARK: - Sounds
+"Sound.WhiteNoise" = "White Noise";
+"Sound.PinkNoise" = "Pink Noise";
+"Sound.BrownNoise" = "Brown Noise";
+"Sound.Rain" = "Rain";
+"Sound.Ocean" = "Ocean Waves";
+"Sound.Forest" = "Forest";
+"Sound.Heartbeat" = "Heartbeat";
+"Sound.WombSounds" = "Womb Sounds";
+"Sound.Fan" = "Fan";
+"Sound.AirConditioner" = "Air Conditioner";
+"Sound.Car" = "Car Ride";
+"Sound.Train" = "Train";
+"Sound.Lullaby" = "Lullaby";
+
+// MARK: - UI Elements
+"Button.Play" = "Play";
+"Button.Pause" = "Pause";
+"Button.Stop" = "Stop";
+"Button.Premium" = "Premium";
+"Button.Unlock" = "Unlock Premium to Play";
+"Label.Volume" = "Volume";
+"Label.Timer" = "Sleep Timer";
+"Label.FadeOut" = "Fade out when timer ends";
+
+// MARK: - Parent Gate
+"ParentGate.Title" = "Parent Verification";
+"ParentGate.Instructions" = "To continue, please solve this simple math problem:";
+"ParentGate.Submit" = "Submit Answer";
+"ParentGate.Cancel" = "Cancel";
+"ParentGate.Incorrect" = "Incorrect answer. Please try again.";
+"ParentGate.Attempts" = "Attempts: %d/%d";
+
+// MARK: - Parent Gate Contexts
+"ParentGate.Settings.Title" = "Parent Verification";
+"ParentGate.Settings.Description" = "To access settings, please complete this verification:";
+"ParentGate.Paywall.Title" = "Purchase Authorization";
+"ParentGate.Paywall.Description" = "To proceed with purchase, please solve this problem:";
+"ParentGate.Restore.Title" = "Restore Verification";
+"ParentGate.Restore.Description" = "To restore purchases, please verify:";
+"ParentGate.Notifications.Title" = "Notification Permissions";
+"ParentGate.Notifications.Description" = "To enable notifications, please complete:";
+"ParentGate.ExternalLink.Title" = "External Link Warning";
+"ParentGate.ExternalLink.Description" = "Before leaving the app, please verify:";
+"ParentGate.DeleteData.Title" = "Data Deletion Confirmation";
+"ParentGate.DeleteData.Description" = "To delete data permanently, please confirm:";
+
+// MARK: - Notifications
+"Notifications.Status.NotDetermined" = "Tap to enable sleep reminders";
+"Notifications.Status.Denied" = "Enable in Settings to receive reminders";
+"Notifications.Status.Authorized" = "Sleep reminders enabled";
+"Notifications.Status.Provisional" = "Quiet notifications enabled";
+"Notifications.Status.Ephemeral" = "Temporary notifications enabled";
+"Notifications.Status.Unknown" = "Unknown notification status";
+
+// MARK: - Paywall
+"Paywall.Title" = "Sweet Dreams Premium";
+"Paywall.Subtitle" = "Unlock all premium sounds and features for better sleep";
+"Paywall.Feature.Sounds" = "50+ Premium Sounds";
+"Paywall.Feature.SoundsDesc" = "Exclusive nature sounds, womb sounds, and music tracks";
+"Paywall.Feature.Mixing" = "Multi-Sound Mixing";
+"Paywall.Feature.MixingDesc" = "Create custom blends with up to 4 sounds playing together";
+"Paywall.Feature.Timer" = "Extended Sleep Timer";
+"Paywall.Feature.TimerDesc" = "Sleep timer up to 12 hours for all-night comfort";
+"Paywall.Feature.Schedules" = "Sleep Schedules";
+"Paywall.Feature.SchedulesDesc" = "Automated bedtime routines with your favorite sounds";
+"Paywall.Feature.DarkMode" = "Dark Night Controls";
+"Paywall.Feature.DarkModeDesc" = "Special dark mode with red-tinted controls for nighttime use";
+"Paywall.Feature.Offline" = "Offline Sound Packs";
+"Paywall.Feature.OfflineDesc" = "Download sounds for airplane mode and data-free listening";
+"Paywall.ChoosePlan" = "Choose Your Plan";
+"Paywall.Annual" = "Annual Plan";
+"Paywall.Monthly" = "Monthly Plan";
+"Paywall.SavePercent" = "Save 50%";
+"Paywall.FreeTrial" = "7-day free trial";
+"Paywall.StartTrial" = "Start 7-Day Free Trial";
+
+// MARK: - Premium Manager
+"Premium.Feature.Sounds" = "Premium Sounds";
+"Premium.Feature.Mixing" = "Multi-Track Mixing";
+"Premium.Feature.Timer" = "Extended Timer";
+"Premium.Feature.Schedules" = "Sleep Schedules";
+"Premium.Feature.Offline" = "Offline Packs";
+"Premium.Feature.Controls" = "Advanced Controls";
+"Premium.Feature.Favorites" = "Unlimited Favorites";
+"Premium.Feature.DarkMode" = "Dark Night Mode";
+
+"Premium.Feature.SoundsDesc" = "Access 50+ exclusive premium sounds";
+"Premium.Feature.MixingDesc" = "Play up to 4 sounds simultaneously";
+"Premium.Feature.TimerDesc" = "Sleep timer up to 12 hours";
+"Premium.Feature.SchedulesDesc" = "Automated bedtime routines";
+"Premium.Feature.OfflineDesc" = "Download for offline listening";
+"Premium.Feature.ControlsDesc" = "Gain, pan, and fade controls";
+"Premium.Feature.FavoritesDesc" = "Save unlimited favorite sounds";
+"Premium.Feature.DarkModeDesc" = "Red-tinted UI for nighttime use";
+
+"Premium.Gate.Timer" = "Extended sleep timer (over 30 minutes) requires Premium";
+"Premium.Gate.Controls" = "Advanced audio controls require Premium";
+"Premium.Gate.Favorites" = "Free users can save up to 5 favorites. Upgrade to Premium for unlimited favorites.";
+"Premium.Gate.UnlockToPlay" = "🔒 Unlock Premium to Play";
+"Premium.Gate.UnlockMixing" = "🔒 Premium: Multi-Track Mixing";
+"Premium.Gate.UnlockTimer" = "🔒 Premium: Extended Timer";
+"Premium.Gate.UnlockFavorites" = "🔒 Premium: Unlimited Favorites";
+"Premium.Gate.UnlockFeature" = "🔒 Premium Feature";
+"Paywall.MaybeLater" = "Maybe Later";
+"Paywall.Terms" = "Terms of Service";
+"Paywall.Privacy" = "Privacy Policy";
+"Paywall.Restore" = "Restore";
+"Paywall.Legal" = "7-day free trial, then %@";
+"Paywall.AutoRenew" = "Subscription automatically renews. Cancel anytime in Settings.";
+
+// MARK: - Settings
+"Settings.Subscription" = "Subscription";
+"Settings.PremiumActive" = "Premium Active";
+"Settings.UpgradePremium" = "Upgrade to Premium";
+"Settings.RestorePurchases" = "Restore Purchases";
+"Settings.App" = "App";
+"Settings.Theme" = "Theme";
+"Settings.Notifications" = "Notifications";
+"Settings.Schedules" = "Schedules";
+"Settings.OfflinePacks" = "Offline Packs";
+"Settings.Support" = "Support";
+"Settings.Help" = "Help & FAQ";
+"Settings.PrivacyPolicy" = "Privacy Policy";
+"Settings.TermsOfService" = "Terms of Service";
+
+// MARK: - Favorites
+"Favorites.Empty.Title" = "No Favorite Sounds";
+"Favorites.Empty.Description" = "Add sounds to favorites by tapping the heart icon";
+
+// MARK: - Playroom
+"Playroom.Exit" = "👨‍👩‍👧‍👦 Exit";
+
+// MARK: - Timer Options
+"Timer.Infinite" = "∞";
+"Timer.15min" = "15m";
+"Timer.30min" = "30m";
+"Timer.45min" = "45m";
+"Timer.60min" = "1h";
+"Timer.90min" = "1.5h";
+"Timer.120min" = "2h";
+
+// MARK: - Errors
+"Error.PurchaseFailed" = "Purchase failed. Please try again.";
+"Error.RestoreFailed" = "Restore failed. Please try again.";
+"Error.AudioFailed" = "Audio playback failed. Please check your device settings.";
+
+// MARK: - Accessibility
+"Accessibility.PlayButton" = "Play sound";
+"Accessibility.PauseButton" = "Pause sound";
+"Accessibility.VolumeSlider" = "Volume control";
+"Accessibility.TimerButton" = "Set sleep timer";
+"Accessibility.FavoriteButton" = "Add to favorites";
+"Accessibility.UnfavoriteButton" = "Remove from favorites";
+
+// MARK: - StoreKit 2 Subscriptions
+"subscription_monthly_name" = "Monthly Premium";
+"subscription_annual_name" = "Annual Premium";
+"subscription_trial_info" = "%d-day free trial";
+"subscription_purchase_success" = "Purchase successful!";
+"subscription_restore_success" = "Purchases restored successfully";
+"subscription_status_trial" = "Free Trial";
+"subscription_status_active" = "Premium Active";
+"subscription_status_expired" = "Subscription Expired";
+"subscription_status_pending" = "Purchase Pending";
+
+// Subscription Errors
+"subscription_error_storekit_unavailable" = "Store is not available";
+"subscription_error_product_not_found" = "Product not found";
+"subscription_error_purchase_failed" = "Purchase failed: %@";
+"subscription_error_restore_failed" = "Restore failed: %@";
+"subscription_error_receipt_validation_failed" = "Receipt validation failed";
+"subscription_error_network" = "Network error";
+"subscription_error_user_cancelled" = "Purchase cancelled";
+
+// MARK: - Safe Volume / Child Safety
+"volume_warning_safe" = "Volume is at a safe level";
+"volume_warning_caution" = "Volume is moderate - use with caution";
+"volume_warning_warning" = "Volume is high - consider lowering";
+"volume_warning_danger" = "Volume is too high for children";
+
+"safety_recommendation_enable" = "Enable safe volume protection for child safety";
+"safety_recommendation_lower_volume" = "Consider lowering the volume for safer listening";
+"safety_recommendation_take_break" = "Time for a listening break to protect hearing";
+"safety_recommendation_good" = "Current settings are safe for children";
+
+// MARK: - Sleep Schedules
+"sleep_schedules_title" = "Sleep Schedules";
+"no_schedules_title" = "No Sleep Schedules";
+"no_schedules_description" = "Create a schedule to automatically play soothing sounds at bedtime";
+"create_schedule_button" = "Create Schedule";
+"next_event_section" = "Next Event";
+"my_schedules_section" = "My Schedules";
+"reminder_type" = "Reminder";
+"bedtime_type" = "Bedtime";
+"schedule_reminder_title" = "Bedtime Reminder";
+"schedule_bedtime_title" = "Time for Bed!";
+"notifications_disabled_title" = "Notifications Disabled";
+"notifications_disabled_description" = "Enable notifications for schedules to work";
+"enable_notifications_button" = "Enable";
+"unlimited_schedules_title" = "Unlimited Schedules";
+"unlimited_schedules_description" = "Create unlimited sleep schedules with flexible settings";
+"new_schedule_title" = "New Schedule";
+"edit_schedule_title" = "Edit Schedule";
+"schedule_name_placeholder" = "Schedule Name";
+"basic_settings_section" = "Basic Settings";
+"time_settings_section" = "Time";
+"days_section" = "Days of Week";
+"sounds_section" = "Sounds";
+"advanced_section" = "Advanced";
+"bedtime_label" = "Bedtime";
+"wake_time_label" = "Wake Time";
+"reminder_label" = "Reminder";
+"auto_fade_label" = "Auto Fade";
+"select_sounds_button" = "Select Sounds";
+"sounds_not_selected" = "None Selected";
+"sounds_count" = "%d sound(s)";
+"all_days_quick" = "All Days";
+"weekdays_quick" = "Weekdays";
+"weekends_quick" = "Weekends";
+"schedule_footer_reminder" = "Reminder notification will be sent before bedtime";
+"schedule_footer_days" = "Select days when the schedule should activate";
+"schedule_footer_sounds" = "Selected sounds will automatically play at the specified time";
+"schedule_footer_fade" = "Sounds will automatically fade out after the specified time";
+"sound_selection_title" = "Select Sounds";
+"search_sounds_prompt" = "Search sounds...";
+"schedule_error_notification_denied" = "Notification permission denied";
+"schedule_error_invalid_time" = "Invalid time configuration";
+"schedule_error_not_found" = "Schedule not found";
+"schedule_error_max_reached" = "Maximum number of schedules reached"; 
