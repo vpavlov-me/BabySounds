@@ -271,77 +271,76 @@ struct SoundCardModern: View {
     @State private var pulseScale: CGFloat = 1.0
     
     private var cardContent: some View {
-            VStack(spacing: 0) {
-                // Image
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(
-                        LinearGradient(
-                            colors: [sound.color, sound.color.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+        VStack(spacing: 0) {
+            // Image
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    LinearGradient(
+                        colors: [sound.color, sound.color.opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay {
+                    // Sound visualization or icon
+                    Text(sound.emoji)
+                        .font(.system(size: 40))
+                        .scaleEffect(isPlaying ? pulseScale : 1.0)
+                        .animation(
+                            isPlaying ? 
+                            Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true) :
+                            .easeOut(duration: 0.3),
+                            value: isPlaying
                         )
-                    )
-                    .overlay {
-                                        // Sound visualization or icon
-                Text(sound.emoji)
-                    .font(.system(size: 40))
-                    .scaleEffect(isPlaying ? pulseScale : 1.0)
-                    .animation(
-                        isPlaying ? 
-                        Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true) :
-                        .easeOut(duration: 0.3),
-                        value: isPlaying
-                    )
-                    }
-                    .aspectRatio(1, contentMode: .fit)
-                    .overlay(alignment: .topTrailing) {
-                        HStack(spacing: 4) {
-                            if let onFavoriteTap = onFavoriteTap {
-                                Button(action: onFavoriteTap) {
-                                    Image(systemName: isFavorite ? "heart.fill" : "heart")
-                                        .font(.caption)
-                                        .foregroundColor(isFavorite ? .red : .white)
-                                        .background(
-                                            Circle()
-                                                .fill(.ultraThinMaterial)
-                                                .frame(width: 24, height: 24)
-                                        )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                            
-                            if sound.premium {
-                                Image(systemName: "crown.fill")
+                }
+                .aspectRatio(1, contentMode: .fit)
+                .overlay(alignment: .topTrailing) {
+                    HStack(spacing: 4) {
+                        if let onFavoriteTap = onFavoriteTap {
+                            Button(action: onFavoriteTap) {
+                                Image(systemName: isFavorite ? "heart.fill" : "heart")
                                     .font(.caption)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(isFavorite ? .red : .white)
                                     .background(
                                         Circle()
                                             .fill(.ultraThinMaterial)
                                             .frame(width: 24, height: 24)
                                     )
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .padding(8)
+                        
+                        if sound.premium {
+                            Image(systemName: "crown.fill")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .background(
+                                    Circle()
+                                        .fill(.ultraThinMaterial)
+                                        .frame(width: 24, height: 24)
+                                )
+                        }
                     }
-                
-                // Title
-                VStack(spacing: 4) {
-                    Text(sound.title)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                    
-                    if isPlaying {
-                        Text("Playing")
-                            .font(.caption)
-                            .foregroundColor(.pink)
-                    }
+                    .padding(8)
                 }
-                .padding(.horizontal, 8)
-                .padding(.bottom, 12)
-                .frame(height: 50)
+            
+            // Title
+            VStack(spacing: 4) {
+                Text(sound.title)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                
+                if isPlaying {
+                    Text("Playing")
+                        .font(.caption)
+                        .foregroundColor(.pink)
+                }
             }
+            .padding(.horizontal, 8)
+            .padding(.bottom, 12)
+            .frame(height: 50)
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
@@ -355,34 +354,52 @@ struct SoundCardModern: View {
             cardContent
         }
         .buttonStyle(PlainButtonStyle())
-        .scaleEffect(isPressed ? 0.95 : (isPlaying ? 1.05 : 1.0))
+        .scaleEffect(currentScale)
         .animation(.easeInOut(duration: 0.1), value: isPressed)
         .animation(.easeInOut(duration: 0.2), value: isPlaying)
-        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
-            withAnimation(.easeInOut(duration: 0.1)) {
-                isPressed = pressing
-            }
-        }, perform: {})
-        .onAppear {
-            if isPlaying {
-                pulseScale = 1.1
-            }
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: handlePress, perform: {})
+        .onAppear(perform: handleAppear)
+        .onChange(of: isPlaying) { _, newValue in
+            handlePlayingChange(false, newValue)
         }
-        .onChange(of: isPlaying) { oldValue, newValue in
-            withAnimation {
-                pulseScale = newValue ? 1.1 : 1.0
-            }
-        }
-        // Accessibility
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(sound.title)
-        .accessibilityHint(isPlaying ? "Currently playing. Tap to open player controls." : "Tap to play this sound.")
+        .accessibilityHint(accessibilityHintText)
         .accessibilityValue(isPlaying ? "Playing" : "Stopped")
         .accessibilityAddTraits(isPlaying ? [.isSelected] : [])
         .accessibilityAction(.default) { onTap() }
-        .accessibilityAction(.activate) { onTap() }
-        .accessibilityAction(named: isFavorite ? "Remove from favorites" : "Add to favorites") {
+        .accessibilityAction(named: favoriteActionName) {
             onFavoriteTap?()
+        }
+    }
+    
+    private var currentScale: CGFloat {
+        isPressed ? 0.95 : (isPlaying ? 1.05 : 1.0)
+    }
+    
+    private var accessibilityHintText: String {
+        isPlaying ? "Currently playing. Tap to open player controls." : "Tap to play this sound."
+    }
+    
+    private var favoriteActionName: String {
+        isFavorite ? "Remove from favorites" : "Add to favorites"
+    }
+    
+    private func handlePress(_ pressing: Bool) {
+        withAnimation(.easeInOut(duration: 0.1)) {
+            isPressed = pressing
+        }
+    }
+    
+    private func handleAppear() {
+        if isPlaying {
+            pulseScale = 1.1
+        }
+    }
+    
+    private func handlePlayingChange(_ oldValue: Bool, _ newValue: Bool) {
+        withAnimation {
+            pulseScale = newValue ? 1.1 : 1.0
         }
     }
 }

@@ -4,6 +4,7 @@ import SwiftUI
 // MARK: - Sound Category
 
 enum SoundCategory: String, CaseIterable, Codable {
+    case all = "all"
     case white = "white"
     case pink = "pink" 
     case brown = "brown"
@@ -17,6 +18,7 @@ enum SoundCategory: String, CaseIterable, Codable {
     
     var localizedName: LocalizedStringKey {
         switch self {
+        case .all: return "All Sounds"
         case .white: return "White Noise"
         case .pink: return "Pink Noise"
         case .brown: return "Brown Noise"
@@ -32,6 +34,7 @@ enum SoundCategory: String, CaseIterable, Codable {
     
     var emoji: String {
         switch self {
+        case .all: return "🎵"
         case .white: return "🌬️"
         case .pink: return "🌸"
         case .brown: return "🤎"
@@ -93,6 +96,33 @@ struct Sound: Identifiable, Codable, Hashable {
     
     var displayEmoji: String {
         emoji ?? category.emoji
+    }
+    
+    var gradientColors: [Color] {
+        switch category {
+        case .all:
+            return [.pink.opacity(0.8), .purple.opacity(0.6)]
+        case .nature:
+            return [.green.opacity(0.8), .blue.opacity(0.6)]
+        case .white:
+            return [.gray.opacity(0.8), .white]
+        case .pink:
+            return [.pink.opacity(0.8), .purple.opacity(0.6)]
+        case .brown:
+            return [.brown.opacity(0.8), .orange.opacity(0.6)]
+        case .womb:
+            return [.red.opacity(0.6), .pink.opacity(0.8)]
+        case .fan:
+            return [.blue.opacity(0.6), .cyan.opacity(0.8)]
+        case .animal:
+            return [.orange.opacity(0.8), .yellow.opacity(0.6)]
+        case .transport:
+            return [.blue.opacity(0.8), .gray.opacity(0.6)]
+        case .music:
+            return [.purple.opacity(0.8), .pink.opacity(0.6)]
+        case .custom:
+            return [color.color, color.color.opacity(0.6)]
+        }
     }
     
     private enum CodingKeys: String, CodingKey {

@@ -9,48 +9,79 @@ struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showParentGate = false
     @State private var showPaywall = false
+    @State private var showNowPlaying = false
     @AppStorage("hasPassedParentGate") private var hasPassedParentGate = false
     @AppStorage("parentGateTimeout") private var parentGateTimeout: Double = 0
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            SleepView()
+        ZStack(alignment: .bottom) {
+            // Main TabView
+            TabView(selection: $selectedTab) {
+                // Sleep Tab
+                NavigationView {
+                    SleepListView()
+                }
                 .tabItem {
-                    Image(systemName: "moon.zzz")
+                    Image(systemName: "moon.zzz.fill")
                     Text("Sleep")
                 }
                 .tag(0)
-            
-            PlayroomView()
-                .tabItem {
-                    Image(systemName: "gamecontroller")
-                    Text("Playroom")
+                
+                // Playroom Tab
+                PlayroomView()
+                    .tabItem {
+                        Image(systemName: "gamecontroller.fill")
+                        Text("Playroom")
+                    }
+                    .tag(1)
+                
+                // Favorites Tab
+                NavigationView {
+                    FavoritesListView()
                 }
-                .tag(1)
-            
-            FavoritesView()
                 .tabItem {
-                    Image(systemName: "heart")
+                    Image(systemName: "heart.fill")
                     Text("Favorites")
                 }
                 .tag(2)
-            
-            SettingsView()
+                
+                // Schedules Tab
+                NavigationView {
+                    SchedulesListView()
+                }
                 .tabItem {
-                    Image(systemName: "gearshape")
-                    Text("Settings")
+                    Image(systemName: "calendar")
+                    Text("Schedules")
                 }
                 .tag(3)
-            
-            #if DEBUG
-            DataDebugView()
+                
+                // Settings Tab
+                NavigationView {
+                    AppleMusicSettingsView()
+                }
                 .tabItem {
-                    Image(systemName: "doc.text.magnifyingglass")
-                    Text("Debug")
+                    Image(systemName: "gearshape.fill")
+                    Text("Settings")
                 }
                 .tag(4)
-            #endif
+                
+                #if DEBUG
+                DataDebugView()
+                    .tabItem {
+                        Image(systemName: "doc.text.magnifyingglass")
+                        Text("Debug")
+                    }
+                    .tag(5)
+                #endif
+            }
+            .tint(.pink) // iOS 17 accent color
+            .appleMusicTabBar()
+            
+            // Mini Player overlay
+            MiniPlayerView(showNowPlaying: $showNowPlaying)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: audioManager.currentSound != nil)
         }
+        .preferredColorScheme(nil) // Automatic dark mode support
         .onChange(of: selectedTab) { newTab in
             // Require parent gate for Settings tab (but not Debug in development)
             if newTab == 3 && !isParentGateValid() {
