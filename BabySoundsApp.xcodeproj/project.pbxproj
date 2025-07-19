@@ -477,7 +477,7 @@
 			};
 			name = Release;
 		};
-		CE0A0A2D2C495F2F00000001 /* Debug */ = {
+		CE0A0A2D2C495F2F00000002 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
@@ -577,7 +577,7 @@
 		CE0A0A2D2C495F2F00000001 /* Build configuration list for PBXNativeTarget "BabySoundsAppTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CE0A0A2D2C495F2F00000001 /* Debug */,
+				CE0A0A2D2C495F2F00000002 /* Debug */,
 				CE0A0A2E2C495F2F00000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
