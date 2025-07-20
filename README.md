@@ -1,161 +1,80 @@
 # BabySounds 🍼🎵
 
-[![iOS Build](https://github.com/vpavlov-me/BabySounds/actions/workflows/ios-build.yml/badge.svg)](https://github.com/vpavlov-me/BabySounds/actions/workflows/ios-build.yml)
-[![Swift 6.0](https://img.shields.io/badge/Swift-6.0-orange)](https://swift.org)
-[![iOS 17.0+](https://img.shields.io/badge/iOS-17.0+-blue)](https://developer.apple.com/ios/)
-[![Kids Category](https://img.shields.io/badge/Category-Kids-green)](https://developer.apple.com/app-store/kids-apps/)
-[![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen)](https://swift.org/package-manager/)
+> **Baby sleep sounds app with Apple Music-inspired interface**
 
-> **Production-Ready Kids Category iOS App** - Professional sleep aid app for children with modular Swift Package Manager architecture.
+A modern iOS app for children with soothing sounds to help babies and kids sleep better.
 
-## 🏗 Project Architecture
+## ✨ Features
 
-The project is organized with a **Feature-First** approach and modular architecture via SPM:
+🎵 **Apple Music Interface** - Familiar 5-tab design (Sleep, Playroom, Favorites, Schedules, Settings)  
+🎶 **Mini Player** - Persistent player with progress bar and controls  
+🎧 **Full-screen Now Playing** - Immersive 300×300 artwork experience  
+🔊 **High-quality Audio** - Professional sound library with fade effects  
+💎 **Premium Subscription** - Extended features with StoreKit 2  
+🔒 **Child Safety** - WHO-compliant volume limits and parental controls  
+🌍 **Localization** - English and Russian support  
+♿ **Accessibility** - VoiceOver and Dynamic Type support  
 
-```
-BabySounds/
-├── 📱 BabySounds/        # Main application (SwiftUI + Swift 6)
-├── 📦 Packages/          # SPM modules (Core + UI)
-├── 🛠 Tools/            # DevOps tools
-├── 📚 Examples/         # Usage examples
-└── 📖 docs/            # Complete documentation
-```
+## 📱 Screenshots
 
-**Detailed documentation:** [📁 Project Structure](docs/PROJECT_STRUCTURE.md)
+*Coming soon - app screenshots will be added here*
 
-## 🚀 Quick Start
+## 🚀 Requirements
 
-### Requirements
-- **Xcode 15.4+** (iOS 17 SDK)
-- **Swift 6.0+** 
-- **macOS Ventura 13.0+**
-- Apple Developer Account (for StoreKit)
+- **iOS 17.0+**
+- **Xcode 15.4+** for development
+- **Swift 6.0**
 
-### Installation
+## 🛠 Development
+
+### Quick Start
 
 ```bash
-# Clone the project
+# Clone the repository
 git clone https://github.com/vpavlov-me/BabySounds.git
 cd BabySounds
 
-# Automatic setup
-make bootstrap
+# Open in Xcode
+open BabySoundsApp.xcodeproj
 
-# Alternative: manual setup
-swift package resolve
+# Or use Xcode workspace
+open BabySounds.xcworkspace
 ```
 
-### Building and Testing
+### Building
 
 ```bash
-# Build all modules
-swift build
+# Build for simulator
+xcodebuild -project BabySoundsApp.xcodeproj -scheme BabySoundsApp -destination 'platform=iOS Simulator,name=iPhone 16' build
 
 # Run tests
-swift test
-
-# Code checking
-make lint
-
-# Formatting
-make format
+xcodebuild test -project BabySoundsApp.xcodeproj -scheme BabySoundsApp -destination 'platform=iOS Simulator,name=iPhone 16'
 ```
 
-## 📦 SPM Modules
+## 📝 Code Quality
 
-### BabySoundsCore
-Core business logic without UI dependencies:
-- 🔊 AudioEngine management
-- 📊 Data services and models  
-- ⚡ Utilities and extensions
+The project follows Swift 6 strict concurrency and uses:
+- SwiftLint for code style
+- SwiftFormat for consistent formatting
+- No force unwrapping
+- Accessibility-first design
 
-### BabySoundsUI  
-Reusable SwiftUI components:
-- 🧩 UI Components
-- 🎨 Design System
-- ♿ Accessibility support
+## 🏪 App Store
 
-## 🎯 Key Features
-
-- **🎵 Audio Engine** - AVAudioEngine with 4+ sound support
-- **⏰ Sleep Schedules** - Smart sleep scheduling
-- **💳 StoreKit 2** - Subscriptions without third-party SDKs
-- **👨‍👩‍👧‍👦 Parental Gate** - Child safety
-- **🌍 Localization** - EN/RU with support for new languages
-- **♿ Accessibility** - VoiceOver and Switch Control
-
-## 📋 Development Commands
-
-```bash
-# Development
-make dev          # Start development server
-make test         # All tests
-make test-ui      # UI tests
-make clean        # Clean build
-
-# Code quality  
-make lint         # SwiftLint check
-make format       # SwiftFormat auto-format
-make danger       # Danger PR checks
-
-# Deployment
-make build        # Release build
-make archive      # Archive for App Store
-fastlane beta     # TestFlight upload
-```
-
-## 📖 Documentation
-
-- **[📁 Project Structure](docs/PROJECT_STRUCTURE.md)** - Architecture and organization
-- **[🔧 Technical Documentation](docs/technical/)** - Deep dive  
-- **[👨‍💻 Contributing Guide](docs/development/CONTRIBUTING.md)** - Development workflow
-- **[🏪 App Store Materials](docs/app-store/)** - Release procedures
-- **[🚀 Refactoring Report](docs/REFACTORING_SUMMARY.md)** - Work completed
-
-## ✅ Project Principles
-
-### 1. **Swift 6 + SwiftUI-only**
-- No UIKit/Storyboard
-- No force unwrap
-- Async/await for asynchronous operations
-
-### 2. **Feature-First Architecture**  
-- Each feature is a separate folder
-- Structure: `Feature > Data > UI > Tests`
-- Clear boundaries
-
-### 3. **Kids Category Compliance**
+This app is designed for the **Kids Category** with:
 - COPPA compliance
-- Parental controls
-- Safe volume (WHO guidelines)
-- No third-party trackers
-
-### 4. **Production Quality**
-- Comprehensive testing (Unit/UI/Integration)
-- CI/CD via GitHub Actions + Fastlane
-- Automatic code quality control
-- StoreKit testing
-
-## 🤝 Contributing
-
-We welcome contributions to the project! 
-
-1. **Read** [Contributing Guide](docs/development/CONTRIBUTING.md)
-2. **Create** feature branch
-3. **Follow** code style (SwiftLint + SwiftFormat)
-4. **Add** tests for new functionality
-5. **Create** Pull Request
+- No data collection from children
+- Parental controls required for purchases
+- WHO hearing safety guidelines
 
 ## 📄 License
 
-MIT License. Details in [LICENSE](LICENSE) file.
+*License information to be added*
 
-## 📞 Support
+## 🤝 Contributing
 
-- **Issues:** [GitHub Issues](https://github.com/vpavlov-me/BabySounds/issues)
-- **Documentation:** [docs/](docs/)
-- **Email:** support@babysounds.app
+*Contribution guidelines to be added*
 
 ---
 
-**Made with ❤️ for children and their parents** 
+Made with ❤️ for better baby sleep 
