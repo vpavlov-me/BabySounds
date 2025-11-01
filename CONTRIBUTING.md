@@ -77,6 +77,24 @@ BabySounds/
 
 ## Development Workflow
 
+### Branching Strategy
+
+**IMPORTANT**: Until v1.0 release, we work directly in the `main` branch for speed and simplicity.
+
+**Current Phase (Pre-v1.0)**:
+- Work directly in `main` branch
+- Commit frequently with clear messages
+- Test before pushing
+- No broken builds in main
+
+**Future Phase (Post-v1.0)**:
+- Feature branch workflow with `develop` branch
+- All features in separate branches
+- Pull requests required
+- Code review before merge
+
+See detailed workflow: [GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md)
+
 ### 1. Find or Create an Issue
 
 - Browse [existing issues](https://github.com/vpavlov-me/BabySounds/issues)
@@ -84,29 +102,53 @@ BabySounds/
 - Wait for maintainer approval before starting work
 - If no issue exists for your contribution, create one first
 
-### 2. Create a Branch
+### 2. Work in Main (Current - Pre-v1.0)
 
-Always create a new branch for your work:
+Until v1.0 release, work directly in main:
 
 ```bash
 # Update main branch
 git checkout main
-git pull upstream main
+git pull origin main
 
-# Create feature branch
-git checkout -b feature/your-feature-name
+# Make changes
+# ... edit files ...
 
-# Or for bug fixes
-git checkout -b fix/bug-description
+# Test your changes
+swift test
+
+# Commit with clear message
+git add .
+git commit -m "feat(audio): add buffer scheduling"
+
+# Push to main
+git push origin main
 ```
 
-Branch naming conventions:
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation updates
-- `test/` - Test additions or improvements
-- `refactor/` - Code refactoring
-- `chore/` - Maintenance tasks
+### 3. Future: Create Feature Branch (Post-v1.0)
+
+After v1.0, use feature branches:
+
+```bash
+# Update develop branch
+git checkout develop
+git pull origin develop
+
+# Create feature branch
+git checkout -b feature/42-your-feature-name
+
+# Or for bug fixes
+git checkout -b fix/38-bug-description
+```
+
+Branch naming conventions (Post-v1.0):
+- `feature/ISSUE-description` - New features
+- `fix/ISSUE-description` - Bug fixes
+- `hotfix/ISSUE-description` - Critical production fixes
+- `docs/description` - Documentation updates
+- `test/description` - Test additions
+- `refactor/description` - Code refactoring
+- `chore/description` - Maintenance tasks
 
 ### 3. Make Your Changes
 

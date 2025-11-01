@@ -20,6 +20,10 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 
+# Swift Package Manager
+.build/
+.swiftpm/
+
 # Environment files
 .env
 .env.local
