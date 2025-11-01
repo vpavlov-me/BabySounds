@@ -133,7 +133,6 @@ public final class AudioEngineManager: ObservableObject {
     
     /// Configure the audio engine with optimal settings for baby sounds
     private func setupEngine() {
-        // TODO-AUDIO: Setup audio engine configuration
         
         // Configure main mixer for stereo output
         let outputFormat = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 2)
@@ -208,7 +207,6 @@ public final class AudioEngineManager: ObservableObject {
     
     /// Preload a sound file into memory for fast playback
     public func preload(sound: Sound) async throws {
-        // TODO-AUDIO: Implement audio file preloading
         
         let cacheKey = "\(sound.fileName).\(sound.fileExt)"
         
@@ -258,7 +256,6 @@ public final class AudioEngineManager: ObservableObject {
         gainDb: Float? = nil,
         pan: Float = 0.0
     ) async throws -> TrackHandle {
-        // TODO-AUDIO: Implement sound playback
         
         // Ensure engine is running
         if !engine.isRunning {
@@ -322,7 +319,6 @@ public final class AudioEngineManager: ObservableObject {
     
     /// Stop a specific track with optional fade-out
     public func stop(id: UUID, fade: TimeInterval? = nil) {
-        // TODO-AUDIO: Implement track stopping with fade
         
         guard let track = tracks[id] else {
             print("AudioEngineManager: Track \(id) not found for stopping")

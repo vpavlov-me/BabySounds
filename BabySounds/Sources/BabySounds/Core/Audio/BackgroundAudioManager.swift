@@ -12,7 +12,6 @@ extension AudioEngineManager {
     
     /// Setup audio session for background playback
     public func setupBackgroundAudioSession() {
-        // TODO-BG: Setup background audio session
         
         do {
             let session = AVAudioSession.sharedInstance()
@@ -237,7 +236,6 @@ extension AudioEngineManager {
     
     /// Update Now Playing Info Center with current track information
     public func updateNowPlayingInfo() {
-        // TODO-BG: Update Now Playing info
         
         let nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
         
@@ -294,7 +292,6 @@ extension AudioEngineManager {
     
     /// Generate artwork for Now Playing display
     private func generateNowPlayingArtwork() -> MPMediaItemArtwork? {
-        // TODO-BG: Generate dynamic artwork
         
         let artworkSize = CGSize(width: 512, height: 512)
         
