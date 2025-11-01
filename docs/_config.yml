@@ -1,0 +1,32 @@
+# BabySounds GitHub Pages Configuration
+
+title: BabySounds
+description: Baby sleep sounds app with Apple Music-inspired interface
+url: https://vpavlov-me.github.io
+baseurl: /BabySounds
+
+# Theme
+theme: jekyll-theme-minimal
+# Alternative themes: jekyll-theme-cayman, jekyll-theme-slate
+
+# Social
+github_username: vpavlov-me
+
+# Build settings
+markdown: kramdown
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Navigation
+header_pages:
+  - index.md
+  - privacy-policy.md
+  - terms-of-service.md
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
