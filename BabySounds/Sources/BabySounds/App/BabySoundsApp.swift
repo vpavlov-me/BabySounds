@@ -3,6 +3,8 @@ import AVFoundation
 
 @main
 struct BabySoundsApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     @StateObject private var audioManager = AudioEngineManager.shared
     @StateObject private var subscriptionService = SubscriptionServiceSK2.shared
     @StateObject private var soundCatalog = SoundCatalog.shared
