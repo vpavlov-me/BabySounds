@@ -38,7 +38,7 @@ struct SleepScheduleEditView: View {
             _selectedSounds = State(initialValue: schedule.selectedSounds)
             _autoFadeMinutes = State(initialValue: schedule.autoFadeMinutes)
         } else {
-            _name = State(initialValue: "Мое расписание сна")
+            _name = State(initialValue: "My Sleep Schedule")
             _isEnabled = State(initialValue: true)
             _bedTime = State(initialValue: Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: Date()) ?? Date())
             _wakeTime = State(initialValue: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date())
@@ -60,17 +60,17 @@ struct SleepScheduleEditView: View {
                 soundsSection
                 advancedSection
             }
-            .navigationTitle(originalSchedule == nil ? "Новое расписание" : "Изменить расписание")
+            .navigationTitle(originalSchedule == nil ? "New Schedule" : "Edit Schedule")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Отмена") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Сохранить") {
+                    Button("Save") {
                         saveSchedule()
                     }
                     .disabled(isSaving || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -79,7 +79,7 @@ struct SleepScheduleEditView: View {
             .sheet(isPresented: $showingSoundSelection) {
                 SoundSelectionView(selectedSounds: $selectedSounds)
             }
-            .alert("Ошибка", isPresented: $showingError) {
+            .alert("Error", isPresented: $showingError) {
                 Button("OK") { }
             } message: {
                 if let error = lastError {
@@ -92,56 +92,56 @@ struct SleepScheduleEditView: View {
     // MARK: - Basic Settings Section
     
     private var basicSettingsSection: some View {
-        Section("Основные настройки") {
+        Section("Basic Settings") {
             HStack {
-                Text("Название")
+                Text("Name")
                 Spacer()
-                TextField("Название расписания", text: $name)
+                TextField("Schedule name", text: $name)
                     .multilineTextAlignment(.trailing)
             }
-            
-            Toggle("Включено", isOn: $isEnabled)
+
+            Toggle("Enabled", isOn: $isEnabled)
         }
     }
     
     // MARK: - Time Settings Section
     
          private var timeSettingsSection: some View {
-        Section("Время") {
-            DatePicker("Время сна", selection: $bedTime, displayedComponents: .hourAndMinute)
+        Section("Time") {
+            DatePicker("Bedtime", selection: $bedTime, displayedComponents: .hourAndMinute)
                 .datePickerStyle(CompactDatePickerStyle())
-            
-            DatePicker("Время подъема", selection: $wakeTime, displayedComponents: .hourAndMinute)
+
+            DatePicker("Wake Time", selection: $wakeTime, displayedComponents: .hourAndMinute)
                 .datePickerStyle(CompactDatePickerStyle())
-            
+
             HStack {
-                Text("Напоминание")
+                Text("Reminder")
                 Spacer()
                 Picker("", selection: $reminderMinutes) {
-                    Text("5 мин").tag(5)
-                    Text("10 мин").tag(10)
-                    Text("15 мин").tag(15)
-                    Text("30 мин").tag(30)
-                    Text("45 мин").tag(45)
-                    Text("60 мин").tag(60)
+                    Text("5 min").tag(5)
+                    Text("10 min").tag(10)
+                    Text("15 min").tag(15)
+                    Text("30 min").tag(30)
+                    Text("45 min").tag(45)
+                    Text("60 min").tag(60)
                 }
                 .pickerStyle(MenuPickerStyle())
             }
         } footer: {
-            Text("Уведомление-напоминание будет отправлено за выбранное время до сна")
+            Text("A reminder notification will be sent before bedtime")
         }
     }
     
     // MARK: - Days Section
     
     private var daysSection: some View {
-        Section("Дни недели") {
+        Section("Weekdays") {
             VStack(spacing: 12) {
                 // Quick selection buttons
                 HStack {
-                    quickSelectButton("Все дни", days: Set(Weekday.allCases))
-                    quickSelectButton("Будни", days: [.monday, .tuesday, .wednesday, .thursday, .friday])
-                    quickSelectButton("Выходные", days: [.saturday, .sunday])
+                    quickSelectButton("All Days", days: Set(Weekday.allCases))
+                    quickSelectButton("Weekdays", days: [.monday, .tuesday, .wednesday, .thursday, .friday])
+                    quickSelectButton("Weekends", days: [.saturday, .sunday])
                 }
                 
                 // Individual day toggles
@@ -163,24 +163,24 @@ struct SleepScheduleEditView: View {
             }
             .padding(.vertical, 4)
         } footer: {
-            Text("Выберите дни, когда должно активироваться расписание")
+            Text("Select the days when the schedule should be active")
         }
     }
     
     // MARK: - Sounds Section
     
     private var soundsSection: some View {
-        Section("Звуки") {
+        Section("Sounds") {
             Button(action: { showingSoundSelection = true }) {
                 HStack {
-                    Text("Выбрать звуки")
+                    Text("Select Sounds")
                     Spacer()
-                    
+
                     if selectedSounds.isEmpty {
-                        Text("Не выбрано")
+                        Text("None selected")
                             .foregroundColor(.secondary)
                     } else {
-                        Text("\(selectedSounds.count) звук(ов)")
+                        Text("\(selectedSounds.count) sound(s)")
                             .foregroundColor(.secondary)
                     }
                     
@@ -210,36 +210,36 @@ struct SleepScheduleEditView: View {
                 }
                 
                 if selectedSounds.count > 3 {
-                    Text("... и еще \(selectedSounds.count - 3)")
+                    Text("... and \(selectedSounds.count - 3) more")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .padding(.leading, 16)
                 }
             }
         } footer: {
-            Text("Выбранные звуки будут автоматически воспроизводиться в указанное время")
+            Text("Selected sounds will play automatically at the scheduled time")
         }
     }
     
     // MARK: - Advanced Section
     
     private var advancedSection: some View {
-        Section("Дополнительно") {
+        Section("Advanced") {
             HStack {
-                Text("Автозатухание")
+                Text("Auto Fade")
                 Spacer()
                 Picker("", selection: $autoFadeMinutes) {
-                    Text("15 мин").tag(15)
-                    Text("30 мин").tag(30)
-                    Text("45 мин").tag(45)
-                    Text("60 мин").tag(60)
-                    Text("90 мин").tag(90)
-                    Text("120 мин").tag(120)
+                    Text("15 min").tag(15)
+                    Text("30 min").tag(30)
+                    Text("45 min").tag(45)
+                    Text("60 min").tag(60)
+                    Text("90 min").tag(90)
+                    Text("120 min").tag(120)
                 }
                 .pickerStyle(MenuPickerStyle())
             }
         } footer: {
-            Text("Звуки автоматически затихнут через указанное время")
+            Text("Sounds will automatically fade out after the selected time")
         }
     }
     
@@ -354,18 +354,18 @@ struct SoundSelectionView: View {
                     )
                 }
             }
-            .navigationTitle("Выбор звуков")
+            .navigationTitle("Select Sounds")
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, prompt: "Поиск звуков...")
+            .searchable(text: $searchText, prompt: "Search sounds...")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Отмена") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Готово") {
+                    Button("Done") {
                         dismiss()
                     }
                     .fontWeight(.semibold)
