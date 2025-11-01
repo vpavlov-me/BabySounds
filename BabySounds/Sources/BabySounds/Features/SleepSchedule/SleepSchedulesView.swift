@@ -19,12 +19,12 @@ struct SleepSchedulesView: View {
                     .ignoresSafeArea()
                 
                 if scheduleManager.isLoadingSchedules {
-                    ProgressView("Загрузка расписаний...")
+                    ProgressView("Loading schedules...")
                 } else {
                     mainContent
                 }
             }
-            .navigationTitle("Расписания сна")
+            .navigationTitle("Sleep Schedules")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -37,17 +37,17 @@ struct SleepSchedulesView: View {
             .sheet(item: $editingSchedule) { schedule in
                 SleepScheduleEditView(schedule: schedule)
             }
-            .alert("Разрешение на уведомления", isPresented: $showingPermissionAlert) {
-                Button("Настройки") {
+            .alert("Notification Permission", isPresented: $showingPermissionAlert) {
+                Button("Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                 }
-                Button("Отмена", role: .cancel) { }
+                Button("Cancel", role: .cancel) { }
             } message: {
-                Text("Для работы расписаний сна необходимо разрешение на уведомления. Перейдите в Настройки → BabySounds → Уведомления и включите их.")
+                Text("Sleep schedules require notification permission. Go to Settings → BabySounds → Notifications and enable them.")
             }
-            .alert("Ошибка", isPresented: $showingError) {
+            .alert("Error", isPresented: $showingError) {
                 Button("OK") { }
             } message: {
                 if let error = scheduleManager.lastError {
@@ -77,21 +77,21 @@ struct SleepSchedulesView: View {
                 .foregroundColor(.secondary)
             
             VStack(spacing: 8) {
-                Text("Нет расписаний сна")
+                Text("No Sleep Schedules")
                     .font(.title2)
                     .fontWeight(.semibold)
-                
-                Text("Создайте расписание для автоматического запуска убаюкивающих звуков в нужное время")
+
+                Text("Create a schedule to automatically play soothing sounds at bedtime")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }
-            
+
             Button(action: addScheduleAction) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
-                    Text("Создать расписание")
+                    Text("Create Schedule")
                 }
                 .font(.headline)
                 .foregroundColor(.white)
@@ -109,22 +109,22 @@ struct SleepSchedulesView: View {
     
     private var schedulesList: View {
         List {
-            // Уведомления секция
+            // Notifications section
             if !scheduleManager.isNotificationPermissionGranted {
                 notificationPermissionSection
             }
-            
-            // Следующее событие
+
+            // Next event
             if let nextEvent = scheduleManager.nextScheduledEvent {
                 nextEventSection(nextEvent)
             }
-            
-            // Premium баннер для бесплатных пользователей
+
+            // Premium banner for free users
             if !premiumManager.hasFeature(.sleepSchedules) {
                 premiumSection
             }
-            
-            // Список расписаний
+
+            // Schedules list
             schedulesSection
         }
         .listStyle(InsetGroupedListStyle())
@@ -140,17 +140,17 @@ struct SleepSchedulesView: View {
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Уведомления отключены")
+                    Text("Notifications Disabled")
                         .font(.headline)
-                    
-                    Text("Включите уведомления для работы расписаний")
+
+                    Text("Enable notifications for schedules to work")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
-                Button("Включить") {
+
+                Button("Enable") {
                     Task {
                         let granted = await scheduleManager.requestNotificationPermission()
                         if !granted {
@@ -168,18 +168,18 @@ struct SleepSchedulesView: View {
     // MARK: - Next Event Section
     
     private func nextEventSection(_ event: (schedule: SleepSchedule, time: Date, type: String)) -> some View {
-        Section("Следующее событие") {
+        Section("Next Event") {
             HStack {
                 Image(systemName: event.type == "reminder" ? "bell" : "moon.zzz")
                     .foregroundColor(event.type == "reminder" ? .orange : .blue)
                     .frame(width: 24)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(event.schedule.name)
                         .font(.headline)
-                    
+
                     HStack {
-                        Text(event.type == "reminder" ? "Напоминание" : "Время сна")
+                        Text(event.type == "reminder" ? "Reminder" : "Bedtime")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
@@ -208,8 +208,8 @@ struct SleepSchedulesView: View {
         Section {
             PremiumGateView(
                 feature: .sleepSchedules,
-                title: "Безлимитные расписания",
-                description: "Создавайте неограниченное количество расписаний сна с гибкими настройками",
+                title: "Unlimited Schedules",
+                description: "Create unlimited sleep schedules with flexible settings",
                 icon: "moon.zzz",
                 action: {
                     parentGateManager.requestAccess(.paywall) { granted in
@@ -226,7 +226,7 @@ struct SleepSchedulesView: View {
     // MARK: - Schedules Section
     
     private var schedulesSection: some View {
-        Section("Мои расписания") {
+        Section("My Schedules") {
             ForEach(scheduleManager.schedules) { schedule in
                 SleepScheduleRow(
                     schedule: schedule,
@@ -289,18 +289,18 @@ struct SleepSchedulesView: View {
     private func formatRelativeTime(_ date: Date) -> String {
         let now = Date()
         let timeInterval = date.timeIntervalSince(now)
-        
+
         if timeInterval < 60 {
-            return "сейчас"
+            return "now"
         } else if timeInterval < 3600 {
             let minutes = Int(timeInterval / 60)
-            return "через \(minutes) мин"
+            return "in \(minutes) min"
         } else if timeInterval < 86400 {
             let hours = Int(timeInterval / 3600)
-            return "через \(hours) ч"
+            return "in \(hours) h"
         } else {
             let days = Int(timeInterval / 86400)
-            return "через \(days) д"
+            return "in \(days) d"
         }
     }
 }
@@ -349,7 +349,7 @@ struct SleepScheduleRow: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text("\(schedule.selectedSounds.count) звук(ов)")
+                        Text("\(schedule.selectedSounds.count) sound(s)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -378,11 +378,11 @@ struct SleepScheduleRow: View {
             onEdit()
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button("Удалить", role: .destructive) {
+            Button("Delete", role: .destructive) {
                 onDelete()
             }
-            
-            Button("Изменить") {
+
+            Button("Edit") {
                 onEdit()
             }
             .tint(.blue)
@@ -392,18 +392,18 @@ struct SleepScheduleRow: View {
     private func formatRelativeTime(_ date: Date) -> String {
         let now = Date()
         let timeInterval = date.timeIntervalSince(now)
-        
+
         if timeInterval < 60 {
-            return "сейчас"
+            return "now"
         } else if timeInterval < 3600 {
             let minutes = Int(timeInterval / 60)
-            return "\(minutes)м"
+            return "\(minutes)m"
         } else if timeInterval < 86400 {
             let hours = Int(timeInterval / 3600)
-            return "\(hours)ч"
+            return "\(hours)h"
         } else {
             let days = Int(timeInterval / 86400)
-            return "\(days)д"
+            return "\(days)d"
         }
     }
 }
