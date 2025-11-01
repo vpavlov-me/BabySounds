@@ -17,7 +17,7 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
     
     init(
         id: UUID = UUID(),
-        name: String = "Мое расписание сна",
+        name: String = "My Sleep Schedule",
         isEnabled: Bool = true,
         bedTime: Date = Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: Date()) ?? Date(),
         wakeTime: Date = Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date(),
@@ -48,21 +48,21 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
         let calendar = Calendar.current
         let now = Date()
         
-        // Проверяем каждый день недели начиная с сегодня
+        // Check each weekday starting from today
         for dayOffset in 0..<7 {
             guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else { continue }
             let weekday = Weekday(from: calendar.component(.weekday, from: targetDate))
-            
+
             guard selectedDays.contains(weekday) else { continue }
-            
-            // Создаем время сна для этого дня
+
+            // Create bedtime for this day
             let bedTimeComponents = calendar.dateComponents([.hour, .minute], from: bedTime)
-            guard let scheduledBedTime = calendar.date(bySettingHour: bedTimeComponents.hour ?? 20, 
-                                                      minute: bedTimeComponents.minute ?? 0, 
-                                                      second: 0, 
+            guard let scheduledBedTime = calendar.date(bySettingHour: bedTimeComponents.hour ?? 20,
+                                                      minute: bedTimeComponents.minute ?? 0,
+                                                      second: 0,
                                                       of: targetDate) else { continue }
-            
-            // Если это сегодня и время еще не прошло, или это будущий день
+
+            // If it's today and time hasn't passed, or it's a future day
             if scheduledBedTime > now {
                 return scheduledBedTime
             }
@@ -90,11 +90,11 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
     
     var selectedDaysText: String {
         if selectedDays.count == 7 {
-            return "Каждый день"
+            return "Every day"
         } else if selectedDays.count == 5 && selectedDays.isSuperset(of: [.monday, .tuesday, .wednesday, .thursday, .friday]) {
-            return "Будни"
+            return "Weekdays"
         } else if selectedDays.count == 2 && selectedDays.isSuperset(of: [.saturday, .sunday]) {
-            return "Выходные"
+            return "Weekends"
         } else {
             return selectedDays.sorted().map { $0.shortName }.joined(separator: ", ")
         }
@@ -122,30 +122,30 @@ enum Weekday: Int, CaseIterable, Codable, Comparable {
     
     var name: String {
         switch self {
-        case .sunday: return "Воскресенье"
-        case .monday: return "Понедельник"
-        case .tuesday: return "Вторник"
-        case .wednesday: return "Среда"
-        case .thursday: return "Четверг"
-        case .friday: return "Пятница"
-        case .saturday: return "Суббота"
+        case .sunday: return "Sunday"
+        case .monday: return "Monday"
+        case .tuesday: return "Tuesday"
+        case .wednesday: return "Wednesday"
+        case .thursday: return "Thursday"
+        case .friday: return "Friday"
+        case .saturday: return "Saturday"
         }
     }
-    
+
     var shortName: String {
         switch self {
-        case .sunday: return "Вс"
-        case .monday: return "Пн"
-        case .tuesday: return "Вт"
-        case .wednesday: return "Ср"
-        case .thursday: return "Чт"
-        case .friday: return "Пт"
-        case .saturday: return "Сб"
+        case .sunday: return "Sun"
+        case .monday: return "Mon"
+        case .tuesday: return "Tue"
+        case .wednesday: return "Wed"
+        case .thursday: return "Thu"
+        case .friday: return "Fri"
+        case .saturday: return "Sat"
         }
     }
     
     static func < (lhs: Weekday, rhs: Weekday) -> Bool {
-        // Сортировка: Понедельник первый, Воскресенье последний
+        // Sort: Monday first, Sunday last
         let lhsOrder = lhs == .sunday ? 7 : lhs.rawValue
         let rhsOrder = rhs == .sunday ? 7 : rhs.rawValue
         return lhsOrder < rhsOrder
@@ -163,13 +163,13 @@ enum SleepScheduleError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notificationPermissionDenied:
-            return "Разрешение на уведомления не предоставлено"
+            return "Notification permission not granted"
         case .invalidTimeConfiguration:
-            return "Неверная конфигурация времени"
+            return "Invalid time configuration"
         case .scheduleNotFound:
-            return "Расписание не найдено"
+            return "Schedule not found"
         case .maxSchedulesReached:
-            return "Достигнуто максимальное количество расписаний"
+            return "Maximum number of schedules reached"
         }
     }
 } 
