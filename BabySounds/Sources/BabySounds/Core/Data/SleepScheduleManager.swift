@@ -31,7 +31,7 @@ class SleepScheduleManager: ObservableObject {
         loadSchedules()
         checkNotificationPermission()
         
-        // Слушаем изменения premium статуса
+        // Listen to premium status changes
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(premiumStatusChanged),
@@ -43,7 +43,7 @@ class SleepScheduleManager: ObservableObject {
     // MARK: - Schedule Management
     
     func addSchedule(_ schedule: SleepSchedule) async throws {
-        // Проверяем premium лимиты
+        // Check premium limits
         if !premiumManager.hasFeature(.sleepSchedules) && schedules.count >= maxFreeSchedules {
             throw SleepScheduleError.maxSchedulesReached
         }
@@ -58,7 +58,7 @@ class SleepScheduleManager: ObservableObject {
             try await scheduleNotifications(for: newSchedule)
         }
         
-        print("✅ [SleepScheduleManager] Добавлено расписание: \(newSchedule.name)")
+        print("✅ [SleepScheduleManager] Added schedule: \(newSchedule.name)")
     }
     
     func updateSchedule(_ schedule: SleepSchedule) async throws {
@@ -69,7 +69,7 @@ class SleepScheduleManager: ObservableObject {
         var updatedSchedule = schedule
         updatedSchedule.lastModified = Date()
         
-        // Удаляем старые уведомления
+        // Remove old notifications
         await removeNotifications(for: schedules[index])
         
         schedules[index] = updatedSchedule
@@ -79,7 +79,7 @@ class SleepScheduleManager: ObservableObject {
             try await scheduleNotifications(for: updatedSchedule)
         }
         
-        print("✅ [SleepScheduleManager] Обновлено расписание: \(updatedSchedule.name)")
+        print("✅ [SleepScheduleManager] Updated schedule: \(updatedSchedule.name)")
     }
     
     func deleteSchedule(_ schedule: SleepSchedule) async {
@@ -87,7 +87,7 @@ class SleepScheduleManager: ObservableObject {
         schedules.removeAll { $0.id == schedule.id }
         saveSchedules()
         
-        print("🗑️ [SleepScheduleManager] Удалено расписание: \(schedule.name)")
+        print("🗑️ [SleepScheduleManager] Deleted schedule: \(schedule.name)")
     }
     
     func toggleSchedule(_ schedule: SleepSchedule) async throws {
@@ -114,18 +114,18 @@ class SleepScheduleManager: ObservableObject {
             }
             
             if granted {
-                print("✅ [SleepScheduleManager] Разрешение на уведомления получено")
-                // Перепланируем все активные расписания
+                print("✅ [SleepScheduleManager] Notification permission granted")
+                // Reschedule all active schedules
                 for schedule in schedules.filter({ $0.isEnabled }) {
                     try? await scheduleNotifications(for: schedule)
                 }
             } else {
-                print("❌ [SleepScheduleManager] Разрешение на уведомления отклонено")
+                print("❌ [SleepScheduleManager] Notification permission denied")
             }
             
             return granted
         } catch {
-            print("❌ [SleepScheduleManager] Ошибка запроса разрешений: \(error)")
+            print("❌ [SleepScheduleManager] Error requesting permissions: \(error)")
             return false
         }
     }
@@ -144,13 +144,13 @@ class SleepScheduleManager: ObservableObject {
             throw SleepScheduleError.notificationPermissionDenied
         }
         
-        // Удаляем существующие уведомления для этого расписания
+        // Remove existing notifications for this schedule
         await removeNotifications(for: schedule)
         
         let calendar = Calendar.current
         let now = Date()
         
-        // Планируем уведомления на следующие 30 дней
+        // Schedule notifications for next 30 days
         for dayOffset in 0..<30 {
             guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else { continue }
             let weekday = Weekday(from: calendar.component(.weekday, from: targetDate))
@@ -163,13 +163,13 @@ class SleepScheduleManager: ObservableObject {
                                                       second: 0, 
                                                       of: targetDate) else { continue }
             
-            // Уведомление-напоминание
+            // Reminder notification
             if let reminderTime = calendar.date(byAdding: .minute, value: -schedule.reminderMinutes, to: scheduledBedTime),
                reminderTime > now {
                 
                 let reminderContent = UNMutableNotificationContent()
-                reminderContent.title = "Скоро время сна"
-                reminderContent.body = "Через \(schedule.reminderMinutes) мин. начинается расписание \"\(schedule.name)\""
+                reminderContent.title = "Bedtime soon"
+                reminderContent.body = "Через \(schedule.reminderMinutes) мин. schedule starts \"\(schedule.name)\""
                 reminderContent.sound = .default
                 reminderContent.userInfo = [
                     "scheduleId": schedule.id.uuidString,
@@ -190,11 +190,11 @@ class SleepScheduleManager: ObservableObject {
                 try await notificationCenter.add(reminderRequest)
             }
             
-            // Уведомление времени сна
+            // Bedtime notification
             if scheduledBedTime > now {
                 let bedtimeContent = UNMutableNotificationContent()
-                bedtimeContent.title = "Время сна!"
-                bedtimeContent.body = "Расписание \"\(schedule.name)\" начинается сейчас"
+                bedtimeContent.title = "Bedtime!"
+                bedtimeContent.body = "Schedule \"\(schedule.name)\" starts now"
                 bedtimeContent.sound = .default
                 bedtimeContent.userInfo = [
                     "scheduleId": schedule.id.uuidString,
@@ -217,20 +217,20 @@ class SleepScheduleManager: ObservableObject {
             }
         }
         
-        print("📅 [SleepScheduleManager] Запланированы уведомления для: \(schedule.name)")
+        print("📅 [SleepScheduleManager] Scheduled notifications for: \(schedule.name)")
     }
     
     private func removeNotifications(for schedule: SleepSchedule) async {
         var identifiersToRemove: [String] = []
         
-        // Собираем все идентификаторы для этого расписания
+        // Collect all identifiers for this schedule
         for dayOffset in 0..<30 {
             identifiersToRemove.append("\(schedule.reminderNotificationId)_\(dayOffset)")
             identifiersToRemove.append("\(schedule.bedtimeNotificationId)_\(dayOffset)")
         }
         
         notificationCenter.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
-        print("🗑️ [SleepScheduleManager] Удалены уведомления для: \(schedule.name)")
+        print("🗑️ [SleepScheduleManager] Removed notifications for: \(schedule.name)")
     }
     
     // MARK: - Persistence
@@ -239,9 +239,9 @@ class SleepScheduleManager: ObservableObject {
         do {
             let data = try JSONEncoder().encode(schedules)
             UserDefaults.standard.set(data, forKey: userDefaultsKey)
-            print("💾 [SleepScheduleManager] Сохранено \(schedules.count) расписаний")
+            print("💾 [SleepScheduleManager] Saved \(schedules.count) schedules")
         } catch {
-            print("❌ [SleepScheduleManager] Ошибка сохранения: \(error)")
+            print("❌ [SleepScheduleManager] Save error: \(error)")
             lastError = error
         }
     }
@@ -254,15 +254,15 @@ class SleepScheduleManager: ObservableObject {
         }
         
         guard let data = UserDefaults.standard.data(forKey: userDefaultsKey) else {
-            print("📱 [SleepScheduleManager] Нет сохраненных расписаний")
+            print("📱 [SleepScheduleManager] No saved schedules")
             return
         }
         
         do {
             schedules = try JSONDecoder().decode([SleepSchedule].self, from: data)
-            print("📖 [SleepScheduleManager] Загружено \(schedules.count) расписаний")
+            print("📖 [SleepScheduleManager] Loaded \(schedules.count) schedules")
         } catch {
-            print("❌ [SleepScheduleManager] Ошибка загрузки: \(error)")
+            print("❌ [SleepScheduleManager] Load error: \(error)")
             lastError = error
         }
     }
@@ -270,7 +270,7 @@ class SleepScheduleManager: ObservableObject {
     // MARK: - Premium Integration
     
     @objc private func premiumStatusChanged() {
-        // Если пользователь потерял premium и у него больше лимита - деактивируем лишние
+        // If user lost premium and has more than the limit - deactivate excess
         if !premiumManager.hasFeature(.sleepSchedules) && schedules.count > maxFreeSchedules {
             Task {
                 let schedulesToDisable = Array(schedules.suffix(schedules.count - maxFreeSchedules))
@@ -317,12 +317,12 @@ class SleepScheduleManager: ObservableObject {
     // MARK: - Action Handlers
     
     func handleBedtimeNotification(scheduleId: String, selectedSounds: [String]) {
-        // Этот метод будет вызван из AppDelegate при получении уведомления
+        // This method will be called from AppDelegate when notification received
         guard let schedule = schedules.first(where: { $0.id.uuidString == scheduleId }) else { return }
         
-        print("🌙 [SleepScheduleManager] Обработка уведомления времени сна: \(schedule.name)")
+        print("🌙 [SleepScheduleManager] Processing bedtime notification: \(schedule.name)")
         
-        // Автоматически запускаем выбранные звуки
+        // Automatically start selected sounds
         Task {
             await AudioEngineManager.shared.startSleepSchedule(
                 sounds: selectedSounds, 

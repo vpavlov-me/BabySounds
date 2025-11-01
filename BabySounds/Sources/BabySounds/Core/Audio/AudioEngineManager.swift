@@ -756,12 +756,12 @@ extension AudioEngineManager {
     // MARK: - Sleep Schedule Integration
     
     func startSleepSchedule(sounds: [String], fadeMinutes: Int) async {
-        print("🌙 [AudioEngineManager] Запуск расписания сна с \(sounds.count) звуками")
-        
-        // Останавливаем текущее воспроизведение
+        print("🌙 [AudioEngineManager] Starting sleep schedule with \(sounds.count) sound(s)")
+
+        // Stop current playback
         stopAll(fade: 0.5)
-        
-        // Запускаем выбранные звуки
+
+        // Start selected sounds
         for soundId in sounds {
             do {
                 let handle = try await play(
@@ -770,28 +770,28 @@ extension AudioEngineManager {
                     fadeInDuration: 2.0,
                     gain: safeVolumeManager.currentSafeVolume
                 )
-                
-                // Планируем автозатухание
+
+                // Schedule auto fade
                 if fadeMinutes > 0 {
                     scheduleAutoFade(handle: handle, fadeMinutes: fadeMinutes)
                 }
             } catch {
-                print("❌ [AudioEngineManager] Ошибка запуска звука \(soundId): \(error)")
+                print("❌ [AudioEngineManager] Error starting sound \(soundId): \(error)")
             }
         }
     }
-    
+
     private func scheduleAutoFade(handle: TrackHandle, fadeMinutes: Int) {
         Task {
-            // Ждем указанное время
+            // Wait for specified time
             try? await Task.sleep(nanoseconds: UInt64(fadeMinutes * 60 * 1_000_000_000))
-            
-            // Проверяем, что трек еще воспроизводится
+
+            // Check if track is still playing
             guard tracks[handle.id] != nil else { return }
-            
-            print("🌙 [AudioEngineManager] Автозатухание через \(fadeMinutes) мин для трека \(handle.id)")
-            
-            // Плавно затухаем
+
+            print("🌙 [AudioEngineManager] Auto fade after \(fadeMinutes) min for track \(handle.id)")
+
+            // Fade out smoothly
             fadeOutTrack(tracks[handle.id]!, duration: 30.0) { [weak self] in
                 self?.removeTrack(handle.id)
             }
