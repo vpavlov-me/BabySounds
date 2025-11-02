@@ -386,16 +386,36 @@ struct EnhancedSoundListRow: View {
 struct PlayroomView: View {
     @EnvironmentObject var soundCatalog: SoundCatalog
     @State private var showParentGate = false
-    
-    private let playgroundSounds: [Sound] = [
-        // TODO: Filter sounds appropriate for children's playroom
-    ]
-    
+
+    /// Child-appropriate sounds for playroom
+    /// Criteria: Simple, soothing, not overstimulating
+    private var playroomSounds: [Sound] {
+        soundCatalog.sounds.filter { sound in
+            // Include basic nature sounds and white noise
+            let childFriendlyCategories: [SoundCategory] = [
+                .white, .pink, .brown,
+                .nature, .womb, .lullaby
+            ]
+
+            // Exclude complex or potentially overstimulating sounds
+            let excludedCategories: [SoundCategory] = [
+                .music, .household, .vehicle
+            ]
+
+            return childFriendlyCategories.contains(sound.category) &&
+                   !excludedCategories.contains(sound.category) &&
+                   !sound.isPremium // Only free sounds in playroom
+        }
+        .sorted { $0.name < $1.name }
+        .prefix(8) // Limit to 8 sounds for simple interface
+        .map { $0 }
+    }
+
     private let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -412,10 +432,10 @@ struct PlayroomView: View {
                     .cornerRadius(8)
                 }
                 .padding()
-                
+
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(soundCatalog.sounds.prefix(6), id: \.id) { sound in
+                        ForEach(playroomSounds, id: \.id) { sound in
                             PlayroomSoundButton(sound: sound)
                         }
                     }
