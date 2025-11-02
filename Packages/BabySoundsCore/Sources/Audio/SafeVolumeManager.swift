@@ -4,6 +4,7 @@ import AVFoundation
 // MARK: - Safe Volume Manager
 
 /// Manages safe volume levels and child safety features for audio playback
+@available(iOS 17.0, macOS 10.15, *)
 @MainActor
 public class SafeVolumeManager: ObservableObject {
     

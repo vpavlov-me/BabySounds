@@ -88,6 +88,7 @@ private class AudioTrack {
 // MARK: - Audio Engine Manager
 
 /// Main audio engine manager using AVAudioEngine for high-quality multi-track playback
+@available(iOS 17.0, macOS 10.15, *)
 @MainActor
 public final class AudioEngineManager: ObservableObject {
     
@@ -567,12 +568,7 @@ public final class AudioEngineManager: ObservableObject {
             self?.updateNowPlayingInfo()
         }
     }
-    
-    /// Stub method - actual implementation in BackgroundAudioManager.swift extension
-    private func updateNowPlayingInfo() {
-        // Will be overridden by extension
-    }
-    
+
     // MARK: - Utility Functions
     
     /// Convert linear gain (0.0-1.0) to decibels
@@ -586,6 +582,98 @@ public final class AudioEngineManager: ObservableObject {
         guard db > -80.0 else { return 0.0 } // Silence
         return pow(10.0, db / 20.0)
     }
+
+    // MARK: - Safe Volume Notification Handlers
+
+    @objc private func handleAudioRouteChangedForSafety() {
+        // Pause all audio when headphones are unplugged for safety
+        stopAll(fade: 0.5)
+        safeVolumeManager.endListeningSession()
+
+        print("[AudioEngineManager] Audio paused due to route change for safety")
+    }
+
+    @objc private func handleVolumeWarning(notification: Notification) {
+        guard let volume = notification.userInfo?["volume"] as? Float,
+              let level = notification.userInfo?["level"] as? SafeVolumeManager.VolumeWarningLevel else {
+            return
+        }
+
+        print("[AudioEngineManager] Volume warning: \(volume) at level \(level)")
+
+        // Optionally reduce volume automatically for high warning levels
+        if level == .danger {
+            // Auto-reduce to safe level
+            let safeVolume = SafeVolumeManager.SafetyLimits.maxChildSafeVolume
+            updateAllTracksVolume(to: safeVolume)
+        }
+    }
+
+    @objc private func handleBreakRecommendation(notification: Notification) {
+        guard let duration = notification.userInfo?["duration"] as? TimeInterval else {
+            return
+        }
+
+        print("[AudioEngineManager] Break recommendation after \(duration) seconds")
+
+        // Gradually fade volume to encourage break
+        fadeAllTracks(to: 0.3, duration: 10.0)
+    }
+
+    @objc private func handleMaxListeningTimeReached(notification: Notification) {
+        guard let duration = notification.userInfo?["duration"] as? TimeInterval else {
+            return
+        }
+
+        print("[AudioEngineManager] Maximum listening time reached: \(duration) seconds")
+
+        // Auto-pause after maximum listening time
+        stopAll(fade: 2.0)
+        safeVolumeManager.endListeningSession()
+    }
+
+    // MARK: - Safe Volume Helpers
+
+    private func updateAllTracksVolume(to volume: Float) {
+        for track in tracks.values {
+            // Update track volume through mixer node
+            if let mixerNode = getTrackMixerNode(for: track.id) {
+                mixerNode.outputVolume = volume
+            }
+        }
+    }
+
+    private func fadeAllTracks(to targetVolume: Float, duration: TimeInterval) {
+        for track in tracks.values {
+            if let mixerNode = getTrackMixerNode(for: track.id) {
+                let currentVolume = mixerNode.outputVolume
+
+                // Create fade animation
+                let steps = Int(duration * 10) // 10 steps per second
+                let volumeStep = (targetVolume - currentVolume) / Float(steps)
+
+                for step in 1...steps {
+                    let delay = Double(step) * (duration / Double(steps))
+                    let newVolume = currentVolume + (volumeStep * Float(step))
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                        mixerNode.outputVolume = newVolume
+                    }
+                }
+            }
+        }
+    }
+
+    private func getTrackMixerNode(for trackId: UUID) -> AVAudioMixerNode? {
+        // This would return the mixer node for a specific track
+        // Implementation depends on the audio chain setup
+        // For now, return nil as this requires more complex audio graph setup
+        return nil
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }
 
 // MARK: - Audio Engine Errors
@@ -595,7 +683,7 @@ public enum AudioEngineError: Error, LocalizedError {
     case fileLoadError(Error)
     case engineNotRunning
     case trackNotFound(UUID)
-    
+
     public var errorDescription: String? {
         switch self {
         case .fileNotFound(let fileName):
@@ -608,102 +696,11 @@ public enum AudioEngineError: Error, LocalizedError {
             return "Audio track not found: \(id)"
         }
     }
-    
-    // MARK: - Safe Volume Notification Handlers
-    
-    @objc private func handleAudioRouteChangedForSafety() {
-        // Pause all audio when headphones are unplugged for safety
-        stopAll(fade: 0.5)
-        safeVolumeManager.endListeningSession()
-        
-        print("[AudioEngineManager] Audio paused due to route change for safety")
-    }
-    
-    @objc private func handleVolumeWarning(notification: Notification) {
-        guard let volume = notification.userInfo?["volume"] as? Float,
-              let level = notification.userInfo?["level"] as? SafeVolumeManager.VolumeWarningLevel else {
-            return
-        }
-        
-        print("[AudioEngineManager] Volume warning: \(volume) at level \(level)")
-        
-        // Optionally reduce volume automatically for high warning levels
-        if level == .danger {
-            // Auto-reduce to safe level
-            let safeVolume = SafeVolumeManager.SafetyLimits.maxChildSafeVolume
-            updateAllTracksVolume(to: safeVolume)
-        }
-    }
-    
-    @objc private func handleBreakRecommendation(notification: Notification) {
-        guard let duration = notification.userInfo?["duration"] as? TimeInterval else {
-            return
-        }
-        
-        print("[AudioEngineManager] Break recommendation after \(duration) seconds")
-        
-        // Gradually fade volume to encourage break
-        fadeAllTracks(to: 0.3, duration: 10.0)
-    }
-    
-    @objc private func handleMaxListeningTimeReached(notification: Notification) {
-        guard let duration = notification.userInfo?["duration"] as? TimeInterval else {
-            return
-        }
-        
-        print("[AudioEngineManager] Maximum listening time reached: \(duration) seconds")
-        
-        // Auto-pause after maximum listening time
-        stopAll(fade: 2.0)
-        safeVolumeManager.endListeningSession()
-    }
-    
-    // MARK: - Safe Volume Helpers
-    
-    private func updateAllTracksVolume(to volume: Float) {
-        for track in tracks.values {
-            // Update track volume through mixer node
-            if let mixerNode = getTrackMixerNode(for: track.id) {
-                mixerNode.outputVolume = volume
-            }
-        }
-    }
-    
-    private func fadeAllTracks(to targetVolume: Float, duration: TimeInterval) {
-        for track in tracks.values {
-            if let mixerNode = getTrackMixerNode(for: track.id) {
-                let currentVolume = mixerNode.outputVolume
-                
-                // Create fade animation
-                let steps = Int(duration * 10) // 10 steps per second
-                let volumeStep = (targetVolume - currentVolume) / Float(steps)
-                
-                for step in 1...steps {
-                    let delay = Double(step) * (duration / Double(steps))
-                    let newVolume = currentVolume + (volumeStep * Float(step))
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                        mixerNode.outputVolume = newVolume
-                    }
-                }
-            }
-        }
-    }
-    
-    private func getTrackMixerNode(for trackId: UUID) -> AVAudioMixerNode? {
-        // This would return the mixer node for a specific track
-        // Implementation depends on the audio chain setup
-        // For now, return nil as this requires more complex audio graph setup
-        return nil
-    }
-    
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
 }
 
 // MARK: - Legacy Compatibility
 
+@available(iOS 17.0, macOS 10.15, *)
 extension AudioEngineManager {
     /// Legacy method for simple sound playback
     public func playSound(_ sound: Sound, loop: Bool = true) {

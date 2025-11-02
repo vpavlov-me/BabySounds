@@ -6,6 +6,7 @@ import SwiftUI
 // MARK: - Background Audio Management
 
 /// Extension to AudioEngineManager for background audio support and Now Playing Info
+@available(iOS 17.0, macOS 10.15, *)
 extension AudioEngineManager {
     
     // MARK: - Audio Session Management
@@ -466,6 +467,7 @@ public struct BackgroundAudioState {
 
 // MARK: - Background Audio Extensions
 
+@available(iOS 17.0, macOS 10.15, *)
 extension AudioEngineManager {
     
     /// Get current background audio state

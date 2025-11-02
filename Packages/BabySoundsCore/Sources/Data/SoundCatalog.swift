@@ -4,6 +4,7 @@ import SwiftUI
 // MARK: - Sound Catalog
 
 /// Manages the catalog of available sounds, sound packs, and user favorites
+@available(iOS 17.0, macOS 10.15, *)
 @MainActor
 public final class SoundCatalog: ObservableObject {
     
