@@ -54,7 +54,7 @@ A modern, enterprise-grade iOS app designed to help babies and children sleep be
 
 ## 📱 Screenshots
 
-*Coming soon - app screenshots will be added here*
+See [APP_STORE.md](APP_STORE.md) for screenshot composition guidelines and App Store marketing materials.
 
 ## 🚀 Requirements
 
@@ -162,9 +162,8 @@ swift test
 - ✅ GitHub Pages documentation ([vpavlov-me.github.io/BabySounds](https://vpavlov-me.github.io/BabySounds))
 
 **Remaining for v1.0** (See [Issues](https://github.com/vpavlov-me/BabySounds/issues)):
-- 📝 Update documentation (Issue #18) - IN PROGRESS
-- 📝 Create GitHub Wiki with technical guides (Issue #19)
-- 🎨 App Store assets preparation (Issue #20)
+- 🎨 App Store assets (screenshots, icon) preparation (Issue #20)
+- 🧪 Final testing and bug fixes before submission
 
 See [Milestone v1.0](https://github.com/vpavlov-me/BabySounds/milestone/1) for complete task list.
 

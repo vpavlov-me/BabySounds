@@ -2,20 +2,20 @@ import Foundation
 
 // MARK: - SleepSchedule Model
 
-struct SleepSchedule: Identifiable, Codable, Hashable {
-    let id: UUID
-    var name: String
-    var isEnabled: Bool
-    var bedTime: Date
-    var wakeTime: Date
-    var selectedDays: Set<Weekday>
-    var reminderMinutes: Int // Минуты до сна для напоминания
-    var selectedSounds: [String] // Sound IDs для воспроизведения
-    var autoFadeMinutes: Int // Автоматическое затухание через X минут
-    let dateCreated: Date
-    var lastModified: Date
-    
-    init(
+public struct SleepSchedule: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public var name: String
+    public var isEnabled: Bool
+    public var bedTime: Date
+    public var wakeTime: Date
+    public var selectedDays: Set<Weekday>
+    public var reminderMinutes: Int
+    public var selectedSounds: [String]
+    public var autoFadeMinutes: Int
+    public let dateCreated: Date
+    public var lastModified: Date
+
+    public init(
         id: UUID = UUID(),
         name: String = "Мое расписание сна",
         isEnabled: Bool = true,
@@ -41,8 +41,8 @@ struct SleepSchedule: Identifiable, Codable, Hashable {
     }
     
     // MARK: - Computed Properties
-    
-    var nextBedTime: Date? {
+
+    public var nextBedTime: Date? {
         guard isEnabled && !selectedDays.isEmpty else { return nil }
         
         let calendar = Calendar.current
@@ -71,24 +71,24 @@ struct SleepSchedule: Identifiable, Codable, Hashable {
         return nil
     }
     
-    var nextReminderTime: Date? {
+    public var nextReminderTime: Date? {
         guard let bedTime = nextBedTime else { return nil }
         return Calendar.current.date(byAdding: .minute, value: -reminderMinutes, to: bedTime)
     }
     
-    var formattedBedTime: String {
+    public var formattedBedTime: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: bedTime)
     }
     
-    var formattedWakeTime: String {
+    public var formattedWakeTime: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: wakeTime)
     }
     
-    var selectedDaysText: String {
+    public var selectedDaysText: String {
         if selectedDays.count == 7 {
             return "Каждый день"
         } else if selectedDays.count == 5 && selectedDays.isSuperset(of: [.monday, .tuesday, .wednesday, .thursday, .friday]) {
@@ -102,25 +102,25 @@ struct SleepSchedule: Identifiable, Codable, Hashable {
     
     // MARK: - Notification Identifiers
     
-    var reminderNotificationId: String {
+    public var reminderNotificationId: String {
         return "sleep_reminder_\(id.uuidString)"
     }
     
-    var bedtimeNotificationId: String {
+    public var bedtimeNotificationId: String {
         return "sleep_bedtime_\(id.uuidString)"
     }
 }
 
 // MARK: - Weekday Enum
 
-enum Weekday: Int, CaseIterable, Codable, Comparable {
+public enum Weekday: Int, CaseIterable, Codable, Comparable {
     case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
-    
-    init(from weekdayComponent: Int) {
+
+    public init(from weekdayComponent: Int) {
         self = Weekday(rawValue: weekdayComponent) ?? .sunday
     }
-    
-    var name: String {
+
+    public var name: String {
         switch self {
         case .sunday: return "Воскресенье"
         case .monday: return "Понедельник"
@@ -132,7 +132,7 @@ enum Weekday: Int, CaseIterable, Codable, Comparable {
         }
     }
     
-    var shortName: String {
+    public var shortName: String {
         switch self {
         case .sunday: return "Вс"
         case .monday: return "Пн"
@@ -144,7 +144,7 @@ enum Weekday: Int, CaseIterable, Codable, Comparable {
         }
     }
     
-    static func < (lhs: Weekday, rhs: Weekday) -> Bool {
+    public static func < (lhs: Weekday, rhs: Weekday) -> Bool {
         // Сортировка: Понедельник первый, Воскресенье последний
         let lhsOrder = lhs == .sunday ? 7 : lhs.rawValue
         let rhsOrder = rhs == .sunday ? 7 : rhs.rawValue
@@ -154,7 +154,7 @@ enum Weekday: Int, CaseIterable, Codable, Comparable {
 
 // MARK: - SleepScheduleError
 
-enum SleepScheduleError: LocalizedError {
+public enum SleepScheduleError: LocalizedError {
     case notificationPermissionDenied
     case invalidTimeConfiguration
     case scheduleNotFound

@@ -7,14 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v1.0
-- Complete audio playback implementation
-- StoreKit 2 purchase flow
-- Sleep schedule notifications
-- English-only localization
-- Privacy policy and terms of service
-- Basic unit test coverage
-- App Store assets and submission
+### Planned for v1.0 (95% Complete)
+- App Store assets (screenshots, icon)
+- Final testing and bug fixes
 
 ### Planned for v1.1
 - Custom sound mixes
@@ -28,6 +23,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spatial audio effects
 - Community features
 - Advanced mixing controls
+
+## [0.95.0] - 2025-11-02
+
+### Added
+- Privacy-compliant analytics service (OSLog-based)
+- Comprehensive settings screen with all features
+- Child-appropriate content filtering in Playroom
+- Unit tests for core managers (48 tests passing)
+- Complete English localization
+- GitHub Pages documentation site
+
+### Changed
+- Updated project status to 95% complete for v1.0
+- Consolidated documentation (removed duplicate files)
+- Improved .gitignore to exclude build artifacts
+
+### Fixed
+- Build artifacts no longer tracked in git
 
 ## [0.9.0] - 2025-11-01
 

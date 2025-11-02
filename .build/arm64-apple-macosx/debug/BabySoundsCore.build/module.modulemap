@@ -1,4 +1,0 @@
-module BabySoundsCore {
-    header "/Users/pavlov/Documents/Vibecoding/BabySounds/.build/arm64-apple-macosx/debug/BabySoundsCore.build/BabySoundsCore-Swift.h"
-    requires objc
-}

@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Sound Category
 
-enum SoundCategory: String, CaseIterable, Codable {
+public enum SoundCategory: String, CaseIterable, Codable {
     case white = "white"
     case pink = "pink" 
     case brown = "brown"
@@ -48,20 +48,20 @@ enum SoundCategory: String, CaseIterable, Codable {
 
 // MARK: - Sound Model
 
-struct Sound: Identifiable, Codable, Hashable {
-    let id: UUID
-    let titleKey: LocalizedStringKey
-    let category: SoundCategory
-    let fileName: String
-    let fileExt: String
-    let loop: Bool
-    let premium: Bool
-    let previewGainDb: Float?
-    let defaultGainDb: Float
-    let color: CodableColor
-    let emoji: String?
-    
-    init(
+public struct Sound: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let titleKey: LocalizedStringKey
+    public let category: SoundCategory
+    public let fileName: String
+    public let fileExt: String
+    public let loop: Bool
+    public let premium: Bool
+    public let previewGainDb: Float?
+    public let defaultGainDb: Float
+    public let color: CodableColor
+    public let emoji: String?
+
+    public init(
         id: UUID = UUID(),
         titleKey: LocalizedStringKey,
         category: SoundCategory,
@@ -137,15 +137,15 @@ struct Sound: Identifiable, Codable, Hashable {
 
 // MARK: - Sound Pack
 
-struct SoundPack: Identifiable, Codable {
-    let id: UUID
-    let titleKey: LocalizedStringKey
-    let sounds: [Sound]
-    let premium: Bool
-    let ageMin: Int?
-    let ageMax: Int?
-    
-    init(
+public struct SoundPack: Identifiable, Codable {
+    public let id: UUID
+    public let titleKey: LocalizedStringKey
+    public let sounds: [Sound]
+    public let premium: Bool
+    public let ageMin: Int?
+    public let ageMax: Int?
+
+    public init(
         id: UUID = UUID(),
         titleKey: LocalizedStringKey,
         sounds: [Sound],
@@ -164,21 +164,21 @@ struct SoundPack: Identifiable, Codable {
     private enum CodingKeys: String, CodingKey {
         case id, titleKey, sounds, premium, ageMin, ageMax
     }
-    
-    init(from decoder: Decoder) throws {
+
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
-        
+
         let titleString = try container.decode(String.self, forKey: .titleKey)
         titleKey = LocalizedStringKey(titleString)
-        
+
         sounds = try container.decode([Sound].self, forKey: .sounds)
         premium = try container.decode(Bool.self, forKey: .premium)
         ageMin = try container.decodeIfPresent(Int.self, forKey: .ageMin)
         ageMax = try container.decodeIfPresent(Int.self, forKey: .ageMax)
     }
-    
-    func encode(to encoder: Encoder) throws {
+
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(String(describing: titleKey), forKey: .titleKey)
