@@ -180,13 +180,16 @@ public final class ParentGateManager {
         #if DEBUG
         print("ParentGate SUCCESS: \(context.rawValue) at \(timestamp)")
         #endif
-        
-        // TODO: Send to analytics
-        // Analytics.track("parent_gate_success", properties: [
-        //     "context": context.rawValue,
-        //     "timestamp": timestamp.timeIntervalSince1970
-        // ])
-        
+
+        // Track analytics
+        Task { @MainActor in
+            let attempts = UserDefaults.standard.integer(forKey: "parentGate_failedAttempts_\(context.rawValue)") + 1
+            AnalyticsService.shared.trackParentGatePassed(
+                action: context.rawValue,
+                attempts: attempts
+            )
+        }
+
         // Update last success time for this context
         UserDefaults.standard.set(timestamp, forKey: "parentGate_lastSuccess_\(context.rawValue)")
     }
@@ -201,14 +204,15 @@ public final class ParentGateManager {
         
         #if DEBUG
         print("ParentGate FAILED: \(context.rawValue) - attempt \(currentCount + 1)")
+        
+        Task { @MainActor in
+            AnalyticsService.shared.trackParentGateFailed(
+                action: context.rawValue,
+                attempts: currentCount + 1
+            )
+        }
         #endif
         
-        // TODO: Send to analytics
-        // Analytics.track("parent_gate_failed", properties: [
-        //     "context": context.rawValue,
-        //     "attempt_number": currentCount + 1,
-        //     "timestamp": timestamp.timeIntervalSince1970
-        // ])
     }
     
     /// Record cancellation
@@ -217,11 +221,7 @@ public final class ParentGateManager {
         print("ParentGate CANCELLED: \(context.rawValue)")
         #endif
         
-        // TODO: Send to analytics
         // Analytics.track("parent_gate_cancelled", properties: [
-        //     "context": context.rawValue,
-        //     "timestamp": Date().timeIntervalSince1970
-        // ])
     }
     
     /// Record timeout
@@ -230,11 +230,7 @@ public final class ParentGateManager {
         print("ParentGate TIMEOUT: \(context.rawValue)")
         #endif
         
-        // TODO: Send to analytics
         // Analytics.track("parent_gate_timeout", properties: [
-        //     "context": context.rawValue,
-        //     "timestamp": Date().timeIntervalSince1970
-        // ])
     }
     
     // MARK: - Security Features
