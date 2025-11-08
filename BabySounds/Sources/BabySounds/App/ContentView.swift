@@ -528,11 +528,11 @@ struct FavoritesView: View {
                         // Free user limitations info
                         if !subscriptionService.isPremium {
                             VStack(spacing: 8) {
-                                Text("Free Plan: \(favoriteSounds.count)/\(maxFreeFavorites) favorites")
+                                Text("Free Plan: \(favoriteSounds.count)/\(PremiumManager.Limits.maxFavoritesForFree) favorites")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                
-                                if favoriteSounds.count >= maxFreeFavorites {
+
+                                if favoriteSounds.count >= PremiumManager.Limits.maxFavoritesForFree {
                                     Text("Upgrade to Premium for unlimited favorites")
                                         .font(.caption)
                                         .foregroundColor(.orange)

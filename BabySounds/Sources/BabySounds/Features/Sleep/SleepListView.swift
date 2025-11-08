@@ -9,6 +9,7 @@ struct SleepListView: View {
     
     @State private var scrollOffset: CGFloat = 0
     @State private var showNowPlaying = false
+    @State private var showSearch = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -71,7 +72,7 @@ struct SleepListView: View {
                 HStack(spacing: 16) {
                     // Search button
                     Button {
-                        // Handle search
+                        showSearch = true
                         HapticManager.shared.impact(.light)
                     } label: {
                         Image(systemName: "magnifyingglass")
@@ -93,6 +94,9 @@ struct SleepListView: View {
         }
         .fullScreenCover(isPresented: $showNowPlaying) {
             NowPlayingView(isPresented: $showNowPlaying)
+        }
+        .sheet(isPresented: $showSearch) {
+            SearchView()
         }
     }
     

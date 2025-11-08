@@ -85,7 +85,19 @@ public final class SoundCatalog: ObservableObject {
     public var favoriteSounds: [Sound] {
         return favorites.compactMap { soundsById[$0] }
     }
-    
+
+    /// Get all sounds (alias for sounds property)
+    public var allSounds: [Sound] {
+        return sounds
+    }
+
+    /// Reload sounds from storage
+    public func loadSounds() async {
+        await MainActor.run {
+            loadSounds()
+        }
+    }
+
     // MARK: - Private Implementation
     
     /// Load sounds from bundle JSON

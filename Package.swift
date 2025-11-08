@@ -10,14 +10,6 @@ let package = Package(
         .library(
             name: "BabySounds",
             targets: ["BabySounds"]
-        ),
-        .library(
-            name: "BabySoundsCore",
-            targets: ["BabySoundsCore"]
-        ),
-        .library(
-            name: "BabySoundsUI",
-            targets: ["BabySoundsUI"]
         )
     ],
     dependencies: [
@@ -26,39 +18,16 @@ let package = Package(
     targets: [
         .target(
             name: "BabySounds",
-            dependencies: [
-                "BabySoundsCore",
-                "BabySoundsUI"
-            ],
+            dependencies: [],
             path: "BabySounds/Sources/BabySounds",
             resources: [
                 .process("Resources")
             ]
         ),
-        .target(
-            name: "BabySoundsCore",
-            dependencies: [],
-            path: "Packages/BabySoundsCore/Sources"
-        ),
-        .target(
-            name: "BabySoundsUI",
-            dependencies: ["BabySoundsCore"],
-            path: "Packages/BabySoundsUI/Sources"
-        ),
         .testTarget(
             name: "BabySoundsTests",
             dependencies: ["BabySounds"],
             path: "BabySounds/Tests"
-        ),
-        .testTarget(
-            name: "BabySoundsCoreTests",
-            dependencies: ["BabySoundsCore"],
-            path: "Packages/BabySoundsCore/Tests"
-        ),
-        .testTarget(
-            name: "BabySoundsUITests",
-            dependencies: ["BabySoundsUI"],
-            path: "Packages/BabySoundsUI/Tests"
         )
     ]
 ) 

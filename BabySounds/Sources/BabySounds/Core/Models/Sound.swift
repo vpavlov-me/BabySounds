@@ -6,7 +6,7 @@ import SwiftUI
 enum SoundCategory: String, CaseIterable, Codable {
     case all = "all"
     case white = "white"
-    case pink = "pink" 
+    case pink = "pink"
     case brown = "brown"
     case nature = "nature"
     case womb = "womb"
@@ -14,6 +14,9 @@ enum SoundCategory: String, CaseIterable, Codable {
     case animal = "animal"
     case transport = "transport"
     case music = "music"
+    case lullaby = "lullaby"
+    case household = "household"
+    case vehicle = "vehicle"
     case custom = "custom"
     
     var localizedName: LocalizedStringKey {
@@ -28,6 +31,9 @@ enum SoundCategory: String, CaseIterable, Codable {
         case .animal: return "Animals"
         case .transport: return "Transport"
         case .music: return "Music"
+        case .lullaby: return "Lullabies"
+        case .household: return "Household"
+        case .vehicle: return "Vehicles"
         case .custom: return "Custom"
         }
     }
@@ -44,6 +50,9 @@ enum SoundCategory: String, CaseIterable, Codable {
         case .animal: return "🐾"
         case .transport: return "🚗"
         case .music: return "🎵"
+        case .lullaby: return "🎼"
+        case .household: return "🏠"
+        case .vehicle: return "🚙"
         case .custom: return "⭐"
         }
     }
@@ -97,7 +106,17 @@ struct Sound: Identifiable, Codable, Hashable {
     var displayEmoji: String {
         emoji ?? category.emoji
     }
-    
+
+    /// Check if sound is premium content
+    var isPremium: Bool {
+        return premium
+    }
+
+    /// Sound name for display (from titleKey)
+    var name: String {
+        return String(describing: titleKey)
+    }
+
     var gradientColors: [Color] {
         switch category {
         case .all:
@@ -120,6 +139,12 @@ struct Sound: Identifiable, Codable, Hashable {
             return [.blue.opacity(0.8), .gray.opacity(0.6)]
         case .music:
             return [.purple.opacity(0.8), .pink.opacity(0.6)]
+        case .lullaby:
+            return [.purple.opacity(0.6), .pink.opacity(0.8)]
+        case .household:
+            return [.orange.opacity(0.7), .brown.opacity(0.5)]
+        case .vehicle:
+            return [.blue.opacity(0.8), .gray.opacity(0.6)]
         case .custom:
             return [color.color, color.color.opacity(0.6)]
         }

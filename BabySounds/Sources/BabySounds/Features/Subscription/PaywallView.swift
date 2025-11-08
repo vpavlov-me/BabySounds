@@ -178,7 +178,7 @@ struct PaywallView: View {
                     
                     // Legal Text
                     VStack(spacing: 8) {
-                        Text("7-day free trial, then \(selectedProductId == "baby.annual" ? "$19.99/year" : "$3.99/month")")
+                        Text("7-day free trial, then \(selectedProduct?.id == "baby.annual" ? "$19.99/year" : "$3.99/month")")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         

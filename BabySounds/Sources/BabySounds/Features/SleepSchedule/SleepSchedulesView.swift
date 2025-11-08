@@ -11,6 +11,7 @@ struct SleepSchedulesView: View {
     @State private var editingSchedule: SleepSchedule?
     @State private var showingPermissionAlert = false
     @State private var showingError = false
+    @State private var showPaywall = false
     
     var body: some View {
         NavigationView {
@@ -54,6 +55,10 @@ struct SleepSchedulesView: View {
                     Text(error.localizedDescription)
                 }
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(isPresented: $showPaywall)
+            }
+            .premiumGateAlert(premiumManager: premiumManager, showPaywall: $showPaywall)
         }
     }
     
@@ -212,12 +217,7 @@ struct SleepSchedulesView: View {
                 description: "Create unlimited sleep schedules with flexible settings",
                 icon: "moon.zzz",
                 action: {
-                    parentGateManager.requestAccess(.paywall) { granted in
-                        if granted {
-                            // Show Paywall
-                            // TODO: Integration with PaywallView
-                        }
-                    }
+                    premiumManager.requestAccess(to: .sleepSchedules)
                 }
             )
         }
@@ -267,14 +267,10 @@ struct SleepSchedulesView: View {
     private func addScheduleAction() {
         guard scheduleManager.canAddMoreSchedules else {
             // Show premium gate
-            parentGateManager.requestAccess(.paywall) { granted in
-                if granted {
-                    // TODO: Show Paywall
-                }
-            }
+            premiumManager.requestAccess(to: .sleepSchedules)
             return
         }
-        
+
         showingAddSchedule = true
     }
     
