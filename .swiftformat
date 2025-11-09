@@ -98,7 +98,6 @@
 --enable modifierOrder
 --enable numberFormatting
 --enable opaqueGenericParameters
---enable operatorFunctions
 --enable preferKeyPath
 --enable redundantBackticks
 --enable redundantBreak
