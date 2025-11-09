@@ -238,13 +238,12 @@ struct PaywallView: View {
         .sheet(isPresented: $showParentGate) {
             ParentGateView(
                 isPresented: $showParentGate,
-                context: parentGateContext,
-                onSuccess: {
+                context: parentGateContext
+            )                {
                     Task {
                         await handleParentGateSuccess()
                     }
                 }
-            )
         }
         .alert("Subscription Error", isPresented: $showAlert) {
             Button("OK") { }
@@ -257,8 +256,10 @@ struct PaywallView: View {
         switch parentGateContext {
         case .paywall:
             await purchaseSubscription()
+
         case .restore:
             await restorePurchases()
+
         default:
             break
         }
@@ -394,4 +395,4 @@ struct SubscriptionCard: View {
 #Preview {
     PaywallView(isPresented: .constant(true))
         .environmentObject(SubscriptionServiceSK2())
-} 
+}

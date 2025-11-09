@@ -5,7 +5,6 @@ import UIKit
 /// Provides haptic feedback across the app
 @MainActor
 final class HapticManager {
-
     // MARK: - Singleton
 
     static let shared = HapticManager()
@@ -37,18 +36,23 @@ final class HapticManager {
         case .light:
             impactLight.impactOccurred()
             impactLight.prepare()
+
         case .medium:
             impactMedium.impactOccurred()
             impactMedium.prepare()
+
         case .heavy:
             impactHeavy.impactOccurred()
             impactHeavy.prepare()
+
         case .soft:
             impactLight.impactOccurred(intensity: 0.5)
             impactLight.prepare()
+
         case .rigid:
             impactHeavy.impactOccurred(intensity: 1.0)
             impactHeavy.prepare()
+
         @unknown default:
             impactMedium.impactOccurred()
             impactMedium.prepare()

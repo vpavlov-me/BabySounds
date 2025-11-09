@@ -92,13 +92,12 @@ struct ContentView: View {
         .sheet(isPresented: $showParentGate) {
             ParentGateView(
                 isPresented: $showParentGate,
-                context: .settings,
-                onSuccess: {
+                context: .settings
+            )                {
                     hasPassedParentGate = true
                     parentGateTimeout = Date().timeIntervalSince1970 + 300 // 5 minutes
                     selectedTab = 3 // Navigate to Settings
                 }
-            )
         }
         .sheet(isPresented: $showPaywall) {
             PaywallView(isPresented: $showPaywall)
@@ -669,7 +668,7 @@ struct SettingsView: View {
                     Section("Premium Features") {
                         ForEach(PremiumManager.PremiumFeature.allCases, id: \.self) { feature in
                             PremiumFeatureCard(
-                                feature: feature, 
+                                feature: feature,
                                 isUnlocked: premiumManager.hasAccess(to: feature)
                             )
                         }
@@ -705,13 +704,12 @@ struct SettingsView: View {
         .sheet(isPresented: $showParentGateForRestore) {
             ParentGateView(
                 isPresented: $showParentGateForRestore,
-                context: .restore,
-                onSuccess: {
+                context: .restore
+            )                {
                     Task {
                         try? await subscriptionService.restorePurchases()
                     }
                 }
-            )
         }
         .premiumGateAlert(premiumManager: premiumManager, showPaywall: $showPaywall)
     }
@@ -779,4 +777,4 @@ struct TermsOfServiceView: View {
         .environmentObject(SubscriptionServiceSK2())
         .environmentObject(SoundCatalog())
         .environmentObject(PremiumManager(subscriptionService: SubscriptionServiceSK2()))
-} 
+}

@@ -1,9 +1,8 @@
-import XCTest
 @testable import BabySounds
+import XCTest
 
 @MainActor
 final class SleepScheduleTests: XCTestCase {
-
     // MARK: - Model Tests
 
     func testScheduleCreatedWithDefaults() {

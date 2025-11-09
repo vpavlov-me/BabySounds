@@ -1,6 +1,6 @@
 import Foundation
-import UserNotifications
 import SwiftUI
+import UserNotifications
 
 // MARK: - SleepScheduleManager
 
@@ -158,15 +158,14 @@ class SleepScheduleManager: ObservableObject {
             guard schedule.selectedDays.contains(weekday) else { continue }
             
             let bedTimeComponents = calendar.dateComponents([.hour, .minute], from: schedule.bedTime)
-            guard let scheduledBedTime = calendar.date(bySettingHour: bedTimeComponents.hour ?? 20, 
-                                                      minute: bedTimeComponents.minute ?? 0, 
-                                                      second: 0, 
+            guard let scheduledBedTime = calendar.date(bySettingHour: bedTimeComponents.hour ?? 20,
+                                                      minute: bedTimeComponents.minute ?? 0,
+                                                      second: 0,
                                                       of: targetDate) else { continue }
             
             // Reminder notification
             if let reminderTime = calendar.date(byAdding: .minute, value: -schedule.reminderMinutes, to: scheduledBedTime),
                reminderTime > now {
-                
                 let reminderContent = UNMutableNotificationContent()
                 reminderContent.title = "Bedtime soon"
                 reminderContent.body = "Через \(schedule.reminderMinutes) мин. schedule starts \"\(schedule.name)\""
@@ -311,7 +310,7 @@ class SleepScheduleManager: ObservableObject {
     }
     
     var canAddMoreSchedules: Bool {
-        return premiumManager.hasFeature(.sleepSchedules) || schedules.count < maxFreeSchedules
+        premiumManager.hasFeature(.sleepSchedules) || schedules.count < maxFreeSchedules
     }
     
     // MARK: - Action Handlers
@@ -325,9 +324,9 @@ class SleepScheduleManager: ObservableObject {
         // Automatically start selected sounds
         Task {
             await AudioEngineManager.shared.startSleepSchedule(
-                sounds: selectedSounds, 
+                sounds: selectedSounds,
                 fadeMinutes: schedule.autoFadeMinutes
             )
         }
     }
-} 
+}

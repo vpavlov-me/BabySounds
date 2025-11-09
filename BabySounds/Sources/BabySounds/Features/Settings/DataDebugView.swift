@@ -18,14 +18,19 @@ struct DataDebugView: View {
         switch subscriptionService.subscriptionStatus {
         case .notSubscribed:
             return "Free"
+
         case .subscribed:
             return "Premium"
+
         case .inTrialPeriod:
             return "Trial"
+
         case .expired:
             return "Expired"
+
         case .pending:
             return "Pending"
+
         case .inGracePeriod:
             return "Grace Period"
         }
@@ -35,10 +40,13 @@ struct DataDebugView: View {
         switch safeVolumeManager.volumeWarningLevel {
         case .safe:
             return "SAFE"
+
         case .caution:
             return "CAUTION"
+
         case .warning:
             return "WARNING"
+
         case .danger:
             return "DANGER"
         }
@@ -437,7 +445,7 @@ struct DataDebugView: View {
         }
     }
     
-    private func testAudioLoading() {
+    func testAudioLoading() {
         guard let firstSound = soundCatalog.sounds.first else { return }
         
         Task {
@@ -459,7 +467,7 @@ struct DataDebugView: View {
         }
     }
     
-    private func testVolumeWarning() {
+    func testVolumeWarning() {
         // Simulate a volume warning by posting notification
         NotificationCenter.default.post(
             name: .volumeWarningTriggered,
@@ -472,7 +480,7 @@ struct DataDebugView: View {
         print("DataDebugView: Triggered test volume warning")
     }
     
-    private func testBreakReminder() {
+    func testBreakReminder() {
         // Simulate a break reminder by posting notification
         NotificationCenter.default.post(
             name: .breakRecommendationTriggered,
@@ -643,12 +651,12 @@ struct CompactSoundRow: View {
         return formatter.string(from: date)
     }
     
-    private func testScheduleReminder() {
+    func testScheduleReminder() {
         print("🧪 [DataDebugView] Тестирование напоминания расписания сна")
         
         // Simulate reminder notification
         let testSchedule = SleepSchedule(
-            name: "Тестовое расписание", 
+            name: "Тестовое расписание",
             selectedSounds: ["white_noise_ocean", "lullaby_brahms"]
         )
         
@@ -658,7 +666,7 @@ struct CompactSoundRow: View {
         )
     }
     
-    private func testScheduleBedtime() {
+    func testScheduleBedtime() {
         print("🧪 [DataDebugView] Тестирование времени сна")
         
         // Test bedtime with sample sounds
@@ -730,4 +738,4 @@ struct PremiumStatsCard: View {
                 .fill(Color(.systemGray6))
         )
     }
-} 
+}

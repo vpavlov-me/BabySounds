@@ -15,7 +15,7 @@ struct SoundPlayerView: View {
     private let timerOptions = [0, 15, 30, 45, 60, 90, 120] // 0 = infinite
     
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ScrollView {
                 VStack(spacing: 32) {
                     Spacer(minLength: 20)
@@ -297,4 +297,4 @@ struct TimerButton: View {
     .environmentObject(AudioEngineManager.shared)
     .environmentObject(SubscriptionServiceSK2())
     .environmentObject(SoundCatalog())
-} 
+}

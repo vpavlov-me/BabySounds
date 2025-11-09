@@ -1,5 +1,5 @@
-import SwiftUI
 import AVFoundation
+import SwiftUI
 
 // MARK: - Parent Gate View
 
@@ -10,7 +10,7 @@ struct ParentGateView: View {
     let onSuccess: () -> Void
     
     @State private var currentChallenge: ParentGateChallenge?
-    @State private var selectedAnswer: String? = nil
+    @State private var selectedAnswer: String?
     @State private var textAnswer: String = ""
     @State private var showError = false
     @State private var attempts = 0
@@ -362,6 +362,7 @@ struct ParentGateView: View {
         switch challenge.type {
         case .textInput:
             return !textAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
         default:
             return selectedAnswer != nil
         }
@@ -395,6 +396,7 @@ struct ParentGateView: View {
         switch challenge.type {
         case .textInput:
             userAnswer = textAnswer.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
         default:
             userAnswer = selectedAnswer ?? ""
         }
@@ -516,18 +518,16 @@ struct ClockView: View {
     Group {
         ParentGateView(
             isPresented: .constant(true),
-            context: .settings,
-            onSuccess: {
+            context: .settings
+        )            {
                 print("Parent gate passed!")
             }
-        )
         
         ParentGateView(
             isPresented: .constant(true),
-            context: .paywall,
-            onSuccess: {
+            context: .paywall
+        )            {
                 print("Paywall access granted!")
             }
-        )
     }
-} 
+}

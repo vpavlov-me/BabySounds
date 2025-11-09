@@ -1,5 +1,5 @@
-import SwiftUI
 import AVFoundation
+import SwiftUI
 
 // MARK: - Mini Player View
 
@@ -188,16 +188,21 @@ extension Sound {
         switch category {
         case .nature:
             return [.green.opacity(0.8), .blue.opacity(0.6)]
+
         case .white:
             return [.gray.opacity(0.8), .white]
+
         case .pink:
             return [.pink.opacity(0.8), .purple.opacity(0.6)]
+
         case .brown:
             return [.brown.opacity(0.8), .orange.opacity(0.6)]
+
         case .womb:
             return [.red.opacity(0.6), .pink.opacity(0.8)]
+
         case .fan:
             return [.blue.opacity(0.6), .cyan.opacity(0.8)]
         }
     }
-} 
+}

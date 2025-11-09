@@ -246,11 +246,10 @@ struct SmartRefreshControl: View {
     
     var body: some View {
         RefreshControl(
-            coordinateSpace: "pullToRefresh",
-            onRefresh: {
+            coordinateSpace: "pullToRefresh"
+        )            {
                 await performRefresh()
             }
-        )
     }
     
     private func performRefresh() async {
@@ -363,4 +362,4 @@ struct ErrorView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemGroupedBackground))
     }
-} 
+}

@@ -12,7 +12,7 @@ struct FavoritesListView: View {
     @State private var showNowPlaying = false
     
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ZStack(alignment: .bottom) {
                 Group {
                     if favoriteSounds.isEmpty {
@@ -353,4 +353,4 @@ extension FavoritesManager {
             .environmentObject(SoundCatalog())
             .environmentObject(PremiumManager.shared)
     }
-} 
+}

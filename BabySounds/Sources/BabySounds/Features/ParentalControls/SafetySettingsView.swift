@@ -56,11 +56,10 @@ struct SafetySettingsView: View {
         .sheet(isPresented: $showParentGate) {
             ParentGateView(
                 isPresented: $showParentGate,
-                context: .settings,
-                onSuccess: {
+                context: .settings
+            )                {
                     // Parent gate passed, allow changes
                 }
-            )
         }
         .sheet(isPresented: $showVolumeInfo) {
             VolumeInfoSheet(isPresented: $showVolumeInfo)
@@ -110,9 +109,8 @@ struct VolumeSafetySection: View {
         VStack(spacing: 16) {
             SectionHeader(
                 title: "Volume Safety",
-                icon: "speaker.wave.2",
-                infoAction: { showVolumeInfo = true }
-            )
+                icon: "speaker.wave.2"
+            )                { showVolumeInfo = true }
             
             VStack(spacing: 20) {
                 // Safe Volume Toggle
@@ -230,9 +228,8 @@ struct ListeningTimeSection: View {
         VStack(spacing: 16) {
             SectionHeader(
                 title: "Listening Time",
-                icon: "clock",
-                infoAction: { showTimeInfo = true }
-            )
+                icon: "clock"
+            )                { showTimeInfo = true }
             
             VStack(spacing: 16) {
                 // Current Session
@@ -656,4 +653,4 @@ struct SafetySettingsView_Previews: PreviewProvider {
         SafetySettingsView()
     }
 }
-#endif 
+#endif

@@ -20,7 +20,7 @@ struct PlayroomView: View {
     ]
     
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ZStack(alignment: .bottom) {
                 // Background
                 LinearGradient(
@@ -67,14 +67,13 @@ struct PlayroomView: View {
         .sheet(isPresented: $showParentGate) {
             ParentGateView(
                 isPresented: $showParentGate,
-                context: .playroom,
-                onSuccess: {
+                context: .playroom
+            )                {
                     hasPassedParentGate = true
                     parentGateTimeout = Date().timeIntervalSince1970 + 300 // 5 minutes
                     pendingAction?()
                     pendingAction = nil
                 }
-            )
         }
         .fullScreenCover(isPresented: $showNowPlaying) {
             NowPlayingView(isPresented: $showNowPlaying)
@@ -138,6 +137,7 @@ struct PlayroomView: View {
             switch sound.category {
             case .nature, .womb:
                 return true
+
             case .white, .pink, .brown, .fan:
                 return false // These are more for sleep
             case .all:
@@ -319,4 +319,4 @@ extension ParentGateContext {
         .environmentObject(SoundCatalog())
         .environmentObject(PremiumManager.shared)
         .environmentObject(ParentGateManager.shared)
-} 
+}

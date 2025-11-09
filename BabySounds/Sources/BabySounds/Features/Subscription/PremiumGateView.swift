@@ -290,4 +290,4 @@ extension View {
     }
     .padding()
     .environmentObject(PremiumManager(subscriptionService: SubscriptionServiceSK2()))
-} 
+}

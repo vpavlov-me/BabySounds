@@ -1,5 +1,5 @@
-import SwiftUI
 import AVFoundation
+import SwiftUI
 
 @main
 struct BabySoundsApp: App {
@@ -31,4 +31,4 @@ struct BabySoundsApp: App {
                 }
         }
     }
-} 
+}

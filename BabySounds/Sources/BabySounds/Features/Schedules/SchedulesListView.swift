@@ -12,7 +12,7 @@ struct SchedulesListView: View {
     @State private var selectedSchedule: SleepSchedule?
     
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ZStack(alignment: .bottom) {
                 Group {
                     if scheduleManager.schedules.isEmpty {
@@ -279,4 +279,4 @@ struct ScheduleCard: View {
             .environmentObject(PremiumManager.shared)
             .environmentObject(SoundCatalog())
     }
-} 
+}

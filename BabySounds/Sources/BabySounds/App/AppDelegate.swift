@@ -2,9 +2,8 @@ import UIKit
 import UserNotifications
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-
     func application(_ application: UIApplication,
-                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         // Set notification delegate
         UNUserNotificationCenter.current().delegate = self
 
@@ -17,7 +16,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                willPresent notification: UNNotification,
                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-
         // Show notification even when app is in foreground
         completionHandler([.banner, .sound, .badge])
     }
@@ -26,7 +24,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                didReceive response: UNNotificationResponse,
                                withCompletionHandler completionHandler: @escaping () -> Void) {
-
         let userInfo = response.notification.request.content.userInfo
 
         // Check if this is a bedtime notification
@@ -34,7 +31,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
            type == "bedtime",
            let scheduleId = userInfo["scheduleId"] as? String,
            let selectedSounds = userInfo["selectedSounds"] as? [String] {
-
             // Handle bedtime notification on main thread
             Task { @MainActor in
                 SleepScheduleManager.shared.handleBedtimeNotification(

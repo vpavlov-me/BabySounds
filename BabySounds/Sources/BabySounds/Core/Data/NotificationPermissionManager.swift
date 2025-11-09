@@ -1,13 +1,12 @@
 import Foundation
-import UserNotifications
 import SwiftUI
+import UserNotifications
 
 // MARK: - Notification Permission Manager
 
 /// Manages notification permissions with parental gate integration
 @MainActor
 public final class NotificationPermissionManager: ObservableObject {
-    
     // MARK: - Published Properties
     
     @Published public private(set) var authorizationStatus: UNAuthorizationStatus = .notDetermined
@@ -117,17 +116,17 @@ public final class NotificationPermissionManager: ObservableObject {
     
     /// Whether notifications are enabled
     public var isEnabled: Bool {
-        return authorizationStatus == .authorized
+        authorizationStatus == .authorized
     }
     
     /// Whether we can request permissions
     public var canRequestPermissions: Bool {
-        return authorizationStatus == .notDetermined
+        authorizationStatus == .notDetermined
     }
     
     /// Whether user needs to go to settings
     public var needsSettingsAccess: Bool {
-        return authorizationStatus == .denied
+        authorizationStatus == .denied
     }
     
     /// User-friendly status message
@@ -135,14 +134,19 @@ public final class NotificationPermissionManager: ObservableObject {
         switch authorizationStatus {
         case .notDetermined:
             return NSLocalizedString("Notifications.Status.NotDetermined", value: "Tap to enable sleep reminders", comment: "")
+
         case .denied:
             return NSLocalizedString("Notifications.Status.Denied", value: "Enable in Settings to receive reminders", comment: "")
+
         case .authorized:
             return NSLocalizedString("Notifications.Status.Authorized", value: "Sleep reminders enabled", comment: "")
+
         case .provisional:
             return NSLocalizedString("Notifications.Status.Provisional", value: "Quiet notifications enabled", comment: "")
+
         case .ephemeral:
             return NSLocalizedString("Notifications.Status.Ephemeral", value: "Temporary notifications enabled", comment: "")
+
         @unknown default:
             return NSLocalizedString("Notifications.Status.Unknown", value: "Unknown notification status", comment: "")
         }
@@ -153,10 +157,13 @@ public final class NotificationPermissionManager: ObservableObject {
         switch authorizationStatus {
         case .authorized, .provisional, .ephemeral:
             return .green
+
         case .denied:
             return .red
+
         case .notDetermined:
             return .orange
+
         @unknown default:
             return .gray
         }
@@ -167,10 +174,13 @@ public final class NotificationPermissionManager: ObservableObject {
         switch authorizationStatus {
         case .authorized, .provisional, .ephemeral:
             return "bell.fill"
+
         case .denied:
             return "bell.slash.fill"
+
         case .notDetermined:
             return "bell"
+
         @unknown default:
             return "bell.badge.question"
         }
@@ -184,14 +194,19 @@ extension UNAuthorizationStatus {
         switch self {
         case .notDetermined:
             return "notDetermined"
+
         case .denied:
             return "denied"
+
         case .authorized:
             return "authorized"
+
         case .provisional:
             return "provisional"
+
         case .ephemeral:
             return "ephemeral"
+
         @unknown default:
             return "unknown"
         }
@@ -233,7 +248,6 @@ public struct NotificationSettingsView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .disabled(permissionManager.isRequestInProgress)
-                        
                     } else if permissionManager.needsSettingsAccess {
                         Button("Settings") {
                             permissionManager.openAppSettings()
@@ -296,11 +310,10 @@ public struct NotificationSettingsView: View {
         .sheet(isPresented: $showParentGate) {
             ParentGateView(
                 isPresented: $showParentGate,
-                context: .notifications,
-                onSuccess: {
+                context: .notifications
+            )                {
                     permissionManager.handleParentGateSuccess()
                 }
-            )
         }
         .onReceive(permissionManager.$shouldShowParentGate) { shouldShow in
             showParentGate = shouldShow
@@ -348,4 +361,4 @@ struct NotificationTypeRow: View {
         }
         .padding(.vertical, 4)
     }
-} 
+}

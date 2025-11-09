@@ -248,7 +248,6 @@ public class AnalyticsService: ObservableObject {
 // MARK: - Analytics Extension for Common Patterns
 
 public extension AnalyticsService {
-
     /// Track feature usage
     func trackFeatureUsed(_ featureName: String) {
         track("feature_used", category: .app, properties: ["feature": featureName])

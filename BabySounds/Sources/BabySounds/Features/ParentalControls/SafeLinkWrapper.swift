@@ -39,11 +39,10 @@ public struct SafeLinkWrapper: View {
         .sheet(isPresented: $showParentGate) {
             ParentGateView(
                 isPresented: $showParentGate,
-                context: .externalLink,
-                onSuccess: {
+                context: .externalLink
+            )                {
                     openExternalLink()
                 }
-            )
         }
     }
     
@@ -93,8 +92,10 @@ public struct SafeLinkButton: View {
             switch self {
             case .primary:
                 return .blue
+
             case .secondary:
                 return .gray
+
             case .destructive:
                 return .red
             }
@@ -128,11 +129,10 @@ public struct SafeLinkButton: View {
         .sheet(isPresented: $showParentGate) {
             ParentGateView(
                 isPresented: $showParentGate,
-                context: .externalLink,
-                onSuccess: {
+                context: .externalLink
+            )                {
                     openExternalLink()
                 }
-            )
         }
     }
     
@@ -155,7 +155,6 @@ public struct SafeLinkButton: View {
 
 /// Updated HelpView with safe external links and parent gate integration
 public struct EnhancedHelpView: View {
-    
     public var body: some View {
         List {
             Section("Getting Started") {
@@ -321,4 +320,4 @@ struct HelpRow: View {
     NavigationView {
         EnhancedHelpView()
     }
-} 
+}

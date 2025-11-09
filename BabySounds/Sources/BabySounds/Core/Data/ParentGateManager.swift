@@ -5,7 +5,6 @@ import SwiftUI
 
 /// Manages parent gate challenges, contexts, and security features
 public final class ParentGateManager {
-    
     // MARK: - Constants
     
     public static let maxAttempts = 3
@@ -68,10 +67,13 @@ public final class ParentGateManager {
         switch selectedType {
         case "math":
             return generateMathChallenge()
+
         case "time":
             return generateTimeChallenge()
+
         case "reading":
             return generateReadingChallenge()
+
         default:
             return generateMathChallenge()
         }
@@ -162,7 +164,7 @@ public final class ParentGateManager {
     }
     
     private static func generateSimilarWords(to target: String, from wordList: [String]) -> [String] {
-        return wordList.filter { word in
+        wordList.filter { word in
             word != target && (
                 word.count == target.count ||
                 word.first == target.first ||
@@ -212,7 +214,6 @@ public final class ParentGateManager {
             )
         }
         #endif
-        
     }
     
     /// Record cancellation
@@ -303,14 +304,19 @@ public enum ParentGateContext: String, CaseIterable {
         switch self {
         case .settings:
             return NSLocalizedString("ParentGate.Settings.Title", value: "Parent Verification", comment: "")
+
         case .paywall:
             return NSLocalizedString("ParentGate.Paywall.Title", value: "Purchase Authorization", comment: "")
+
         case .restore:
             return NSLocalizedString("ParentGate.Restore.Title", value: "Restore Verification", comment: "")
+
         case .notifications:
             return NSLocalizedString("ParentGate.Notifications.Title", value: "Notification Permissions", comment: "")
+
         case .externalLink:
             return NSLocalizedString("ParentGate.ExternalLink.Title", value: "External Link Warning", comment: "")
+
         case .deleteData:
             return NSLocalizedString("ParentGate.DeleteData.Title", value: "Data Deletion Confirmation", comment: "")
         }
@@ -320,14 +326,19 @@ public enum ParentGateContext: String, CaseIterable {
         switch self {
         case .settings:
             return NSLocalizedString("ParentGate.Settings.Description", value: "To access settings, please complete this verification:", comment: "")
+
         case .paywall:
             return NSLocalizedString("ParentGate.Paywall.Description", value: "To proceed with purchase, please solve this problem:", comment: "")
+
         case .restore:
             return NSLocalizedString("ParentGate.Restore.Description", value: "To restore purchases, please verify:", comment: "")
+
         case .notifications:
             return NSLocalizedString("ParentGate.Notifications.Description", value: "To enable notifications, please complete:", comment: "")
+
         case .externalLink:
             return NSLocalizedString("ParentGate.ExternalLink.Description", value: "Before leaving the app, please verify:", comment: "")
+
         case .deleteData:
             return NSLocalizedString("ParentGate.DeleteData.Description", value: "To delete data permanently, please confirm:", comment: "")
         }
@@ -337,14 +348,19 @@ public enum ParentGateContext: String, CaseIterable {
         switch self {
         case .settings:
             return "gearshape.fill"
+
         case .paywall:
             return "creditcard.fill"
+
         case .restore:
             return "arrow.clockwise.circle.fill"
+
         case .notifications:
             return "bell.fill"
+
         case .externalLink:
             return "safari.fill"
+
         case .deleteData:
             return "trash.fill"
         }
@@ -354,14 +370,19 @@ public enum ParentGateContext: String, CaseIterable {
         switch self {
         case .settings:
             return .blue
+
         case .paywall:
             return .green
+
         case .restore:
             return .orange
+
         case .notifications:
             return .purple
+
         case .externalLink:
             return .red
+
         case .deleteData:
             return .red
         }
@@ -403,4 +424,4 @@ public struct ParentGateChallenge {
             return answer.lowercased() == expectedAnswer.lowercased()
         }
     }
-} 
+}

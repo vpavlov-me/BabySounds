@@ -6,7 +6,6 @@ import SwiftUI
 /// Manages the catalog of available sounds, sound packs, and user favorites
 @MainActor
 public final class SoundCatalog: ObservableObject {
-    
     // MARK: - Published Properties
     
     @Published public private(set) var sounds: [Sound] = []
@@ -28,22 +27,22 @@ public final class SoundCatalog: ObservableObject {
     
     /// Get sounds for a specific category
     public func sounds(for category: SoundCategory) -> [Sound] {
-        return sounds.filter { $0.category == category }
+        sounds.filter { $0.category == category }
     }
     
     /// Get all free sounds
     public var freeSounds: [Sound] {
-        return sounds.filter { !$0.premium }
+        sounds.filter { !$0.premium }
     }
     
     /// Get all premium sounds
     public var premiumSounds: [Sound] {
-        return sounds.filter { $0.premium }
+        sounds.filter { $0.premium }
     }
     
     /// Get a sound by ID
     public func sound(by id: UUID) -> Sound? {
-        return soundsById[id]
+        soundsById[id]
     }
     
     /// Toggle favorite status for a sound
@@ -78,17 +77,17 @@ public final class SoundCatalog: ObservableObject {
     
     /// Check if a sound is favorited
     public func isFavorite(_ soundId: UUID) -> Bool {
-        return favorites.contains(soundId)
+        favorites.contains(soundId)
     }
     
     /// Get all favorited sounds
     public var favoriteSounds: [Sound] {
-        return favorites.compactMap { soundsById[$0] }
+        favorites.compactMap { soundsById[$0] }
     }
 
     /// Get all sounds (alias for sounds property)
     public var allSounds: [Sound] {
-        return sounds
+        sounds
     }
 
     /// Reload sounds from storage
@@ -141,7 +140,7 @@ public final class SoundCatalog: ObservableObject {
     
     /// Create sample sounds for development
     private func createSampleSounds() -> [Sound] {
-        return [
+        [
             Sound(
                 id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
                 titleKey: "White Noise",
@@ -156,7 +155,7 @@ public final class SoundCatalog: ObservableObject {
             ),
             Sound(
                 id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
-                titleKey: "Pink Noise", 
+                titleKey: "Pink Noise",
                 category: .pink,
                 fileName: "pink_noise",
                 fileExt: "mp3",
@@ -269,7 +268,6 @@ public final class SoundCatalog: ObservableObject {
 // MARK: - JSON Loading
 
 extension SoundCatalog {
-    
     /// Load sounds from the bundled JSON file
     public func loadSoundsFromJSON() async throws {
         // TODO-DATA: Implement complete JSON loading with color parsing
@@ -380,22 +378,31 @@ extension SoundCatalog {
         switch category {
         case .white:
             return .white
+
         case .pink:
             return .pink
+
         case .brown:
             return Color.brown
+
         case .nature:
             return .green
+
         case .womb:
             return .red
+
         case .fan:
             return .gray
+
         case .animal:
             return .orange
+
         case .transport:
             return .blue
+
         case .music:
             return .purple
+
         case .custom:
             return .mint
         }
@@ -413,10 +420,12 @@ public enum SoundCatalogError: Error, LocalizedError {
         switch self {
         case .bundleFileNotFound(let fileName):
             return "Bundle file not found: \(fileName)"
+
         case .invalidJSONStructure:
             return "Invalid JSON structure in sounds catalog"
+
         case .decodingError(let error):
             return "Failed to decode sound catalog: \(error.localizedDescription)"
         }
     }
-} 
+}

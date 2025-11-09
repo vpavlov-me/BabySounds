@@ -1,5 +1,5 @@
-import Foundation
 import AVFoundation
+import Foundation
 import UIKit
 
 // MARK: - Safe Volume Manager
@@ -7,7 +7,6 @@ import UIKit
 /// Manages safe volume levels and child safety features for audio playback
 @MainActor
 public class SafeVolumeManager: ObservableObject {
-    
     // MARK: - Singleton
     public static let shared = SafeVolumeManager()
     
@@ -91,10 +90,13 @@ public class SafeVolumeManager: ObservableObject {
             switch self {
             case .safe:
                 return NSLocalizedString("volume_warning_safe", comment: "Safe volume level")
+
             case .caution:
                 return NSLocalizedString("volume_warning_caution", comment: "Caution volume level")
+
             case .warning:
                 return NSLocalizedString("volume_warning_warning", comment: "Warning volume level")
+
             case .danger:
                 return NSLocalizedString("volume_warning_danger", comment: "Danger volume level")
             }
@@ -475,4 +477,4 @@ extension Notification.Name {
     static let breakRecommendationTriggered = Notification.Name("BreakRecommendationTriggered")
     static let maxListeningTimeReached = Notification.Name("MaxListeningTimeReached")
     static let audioRouteChangedForSafety = Notification.Name("AudioRouteChangedForSafety")
-} 
+}

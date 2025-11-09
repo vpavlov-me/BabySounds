@@ -1,5 +1,5 @@
-import SwiftUI
 import StoreKit
+import SwiftUI
 
 struct SubscriptionCardStoreKit: View {
     let product: Product
@@ -104,16 +104,14 @@ struct SubscriptionCardStoreKit_Previews: PreviewProvider {
             SubscriptionCardStoreKit(
                 product: MockProduct.monthly,
                 isSelected: false,
-                subscriptionService: SubscriptionServiceSK2.shared,
-                action: {}
-            )
+                subscriptionService: SubscriptionServiceSK2.shared
+            )                {}
             
             SubscriptionCardStoreKit(
                 product: MockProduct.annual,
                 isSelected: true,
-                subscriptionService: SubscriptionServiceSK2.shared,
-                action: {}
-            )
+                subscriptionService: SubscriptionServiceSK2.shared
+            )                {}
         }
         .padding()
         .previewLayout(.sizeThatFits)
@@ -131,7 +129,7 @@ private struct MockProduct {
     
     static let annual = MockStoreKitProduct(
         id: "baby.annual",
-        displayName: "Annual Premium", 
+        displayName: "Annual Premium",
         displayPrice: "$29.99",
         price: 29.99
     )
@@ -155,4 +153,4 @@ private class MockStoreKitProduct: Product {
     override var displayPrice: String { _displayPrice }
     override var price: Decimal { _price }
 }
-#endif 
+#endif

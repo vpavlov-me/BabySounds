@@ -232,10 +232,13 @@ struct VolumeWarningCard: View {
         switch level {
         case .safe:
             return "speaker.wave.1"
+
         case .caution:
             return "speaker.wave.2"
+
         case .warning:
             return "speaker.wave.2.fill"
+
         case .danger:
             return "speaker.wave.3.fill"
         }
@@ -410,4 +413,4 @@ struct MaxTimeReachedCard_Previews: PreviewProvider {
         .previewLayout(.sizeThatFits)
     }
 }
-#endif 
+#endif

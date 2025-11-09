@@ -215,11 +215,10 @@ struct SleepSchedulesView: View {
                 feature: .sleepSchedules,
                 title: "Unlimited Schedules",
                 description: "Create unlimited sleep schedules with flexible settings",
-                icon: "moon.zzz",
-                action: {
+                icon: "moon.zzz"
+            )                {
                     premiumManager.requestAccess(to: .sleepSchedules)
                 }
-            )
         }
     }
     
@@ -231,7 +230,7 @@ struct SleepSchedulesView: View {
                 SleepScheduleRow(
                     schedule: schedule,
                     onEdit: { editingSchedule = schedule },
-                    onToggle: { 
+                    onToggle: {
                         Task {
                             do {
                                 try await scheduleManager.toggleSchedule(schedule)
@@ -291,11 +290,11 @@ struct SleepSchedulesView: View {
         } else if timeInterval < 3600 {
             let minutes = Int(timeInterval / 60)
             return "in \(minutes) min"
-        } else if timeInterval < 86400 {
+        } else if timeInterval < 86_400 {
             let hours = Int(timeInterval / 3600)
             return "in \(hours) h"
         } else {
-            let days = Int(timeInterval / 86400)
+            let days = Int(timeInterval / 86_400)
             return "in \(days) d"
         }
     }
@@ -394,11 +393,11 @@ struct SleepScheduleRow: View {
         } else if timeInterval < 3600 {
             let minutes = Int(timeInterval / 60)
             return "\(minutes)m"
-        } else if timeInterval < 86400 {
+        } else if timeInterval < 86_400 {
             let hours = Int(timeInterval / 3600)
             return "\(hours)h"
         } else {
-            let days = Int(timeInterval / 86400)
+            let days = Int(timeInterval / 86_400)
             return "\(days)d"
         }
     }
@@ -410,4 +409,4 @@ struct SleepSchedulesView_Previews: PreviewProvider {
     static var previews: some View {
         SleepSchedulesView()
     }
-} 
+}

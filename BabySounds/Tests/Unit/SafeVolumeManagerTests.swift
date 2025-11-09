@@ -1,9 +1,8 @@
-import XCTest
 @testable import BabySounds
+import XCTest
 
 @MainActor
 final class SafeVolumeManagerTests: XCTestCase {
-
     var sut: SafeVolumeManager!
 
     override func setUp() async throws {

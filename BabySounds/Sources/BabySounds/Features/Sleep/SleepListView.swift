@@ -12,7 +12,7 @@ struct SleepListView: View {
     @State private var showSearch = false
     
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ZStack(alignment: .bottom) {
                 // Main content
                 ScrollView {
@@ -230,16 +230,22 @@ extension SoundCategory {
         switch self {
         case .all:
             return "All"
+
         case .nature:
             return "Nature"
+
         case .white:
             return "White Noise"
+
         case .pink:
-            return "Pink Noise" 
+            return "Pink Noise"
+
         case .brown:
             return "Brown Noise"
+
         case .womb:
             return "Womb Sounds"
+
         case .fan:
             return "Fan Sounds"
         }
@@ -249,16 +255,22 @@ extension SoundCategory {
         switch self {
         case .all:
             return "music.note.list"
+
         case .nature:
             return "leaf"
+
         case .white:
             return "waveform"
+
         case .pink:
             return "waveform.path"
+
         case .brown:
             return "waveform.circle"
+
         case .womb:
             return "heart"
+
         case .fan:
             return "fanblades"
         }
@@ -274,4 +286,4 @@ extension SoundCategory {
             .environmentObject(SoundCatalog())
             .environmentObject(PremiumManager.shared)
     }
-} 
+}

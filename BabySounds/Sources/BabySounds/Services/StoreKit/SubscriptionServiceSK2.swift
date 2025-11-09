@@ -1,6 +1,6 @@
-import StoreKit
-import Foundation
 import Combine
+import Foundation
+import StoreKit
 
 // MARK: - Product Identifiers
 // swiftlint:disable:next no_hardcoded_strings
@@ -12,13 +12,14 @@ public enum SubscriptionProduct: String, CaseIterable {
         switch self {
         case .monthly:
             return NSLocalizedString("subscription_monthly_name", comment: "Monthly subscription name")
+
         case .annual:
             return NSLocalizedString("subscription_annual_name", comment: "Annual subscription name")
         }
     }
     
     public var trialDays: Int {
-        return 7 // 7-day trial for both plans
+        7 // 7-day trial for both plans
     }
 }
 
@@ -35,6 +36,7 @@ public enum SubscriptionStatus {
         switch self {
         case .subscribed, .inTrialPeriod, .inGracePeriod:
             return true
+
         case .notSubscribed, .expired, .pending:
             return false
         }
@@ -48,6 +50,7 @@ public enum SubscriptionStatus {
              .inGracePeriod(let product, _),
              .pending(let product):
             return product
+
         case .notSubscribed:
             return nil
         }
@@ -68,16 +71,22 @@ public enum SubscriptionError: LocalizedError {
         switch self {
         case .storeKitNotAvailable:
             return NSLocalizedString("subscription_error_storekit_unavailable", comment: "StoreKit not available")
+
         case .productNotFound(let productId):
             return NSLocalizedString("subscription_error_product_not_found", comment: "Product not found")
+
         case .purchaseFailed(let reason):
             return String(format: NSLocalizedString("subscription_error_purchase_failed", comment: "Purchase failed"), reason)
+
         case .restoreFailed(let reason):
             return String(format: NSLocalizedString("subscription_error_restore_failed", comment: "Restore failed"), reason)
+
         case .receiptValidationFailed:
             return NSLocalizedString("subscription_error_receipt_validation_failed", comment: "Receipt validation failed")
+
         case .networkError:
             return NSLocalizedString("subscription_error_network", comment: "Network error")
+
         case .userCancelled:
             return NSLocalizedString("subscription_error_user_cancelled", comment: "User cancelled")
         }
@@ -142,7 +151,6 @@ public class SubscriptionServiceSK2: ObservableObject {
             self.lastError = nil
             
             print("[SubscriptionService] Loaded \(products.count) products")
-            
         } catch {
             print("[SubscriptionService] Failed to load products: \(error)")
             self.lastError = .productNotFound("Failed to load products")
@@ -189,7 +197,6 @@ public class SubscriptionServiceSK2: ObservableObject {
                 print("[SubscriptionService] Unknown purchase result")
                 throw SubscriptionError.purchaseFailed("Unknown error occurred")
             }
-            
         } catch let error as SubscriptionError {
             lastError = error
             throw error
@@ -211,7 +218,6 @@ public class SubscriptionServiceSK2: ObservableObject {
             await updateSubscriptionStatus()
             lastError = nil
             print("[SubscriptionService] Restore purchases completed")
-            
         } catch {
             print("[SubscriptionService] Restore failed: \(error)")
             let subscriptionError = SubscriptionError.restoreFailed(error.localizedDescription)
@@ -222,12 +228,12 @@ public class SubscriptionServiceSK2: ObservableObject {
     
     /// Get product by subscription type
     public func product(for subscription: SubscriptionProduct) -> Product? {
-        return availableProducts.first { $0.id == subscription.rawValue }
+        availableProducts.first { $0.id == subscription.rawValue }
     }
     
     /// Get formatted price for product
     public func formattedPrice(for product: Product) -> String {
-        return product.displayPrice
+        product.displayPrice
     }
     
     /// Get trial information
@@ -243,7 +249,7 @@ public class SubscriptionServiceSK2: ObservableObject {
     
     /// Check if user has active subscription
     public var hasActiveSubscription: Bool {
-        return subscriptionStatus.isActive
+        subscriptionStatus.isActive
     }
     
     /// Get current subscription product
@@ -303,7 +309,6 @@ public class SubscriptionServiceSK2: ObservableObject {
         // Update status based on entitlement
         if let transaction = currentEntitlement,
            let product = currentProduct {
-            
             let now = Date()
             
             // Check if subscription is still valid
@@ -311,8 +316,8 @@ public class SubscriptionServiceSK2: ObservableObject {
                 if now < expirationDate {
                     // Check if in trial period
                     if let originalPurchaseDate = transaction.originalPurchaseDate {
-                        let trialEndDate = Calendar.current.date(byAdding: .day, 
-                                                                value: SubscriptionProduct(rawValue: product.id)?.trialDays ?? 0, 
+                        let trialEndDate = Calendar.current.date(byAdding: .day,
+                                                                value: SubscriptionProduct(rawValue: product.id)?.trialDays ?? 0,
                                                                 to: originalPurchaseDate) ?? originalPurchaseDate
                         if now < trialEndDate {
                             subscriptionStatus = .inTrialPeriod(product, transaction)
@@ -341,12 +346,12 @@ public class SubscriptionServiceSK2: ObservableObject {
 
 extension Product {
     var subscriptionProduct: SubscriptionProduct? {
-        return SubscriptionProduct(rawValue: self.id)
+        SubscriptionProduct(rawValue: self.id)
     }
 }
 
 extension Transaction {
     var subscriptionProduct: SubscriptionProduct? {
-        return SubscriptionProduct(rawValue: self.productID)
+        SubscriptionProduct(rawValue: self.productID)
     }
-} 
+}

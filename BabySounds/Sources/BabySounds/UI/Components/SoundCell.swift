@@ -265,4 +265,4 @@ struct SectionHeaderView: View {
     }
     .environmentObject(AudioEngineManager.shared)
     .environmentObject(PremiumManager.shared)
-} 
+}

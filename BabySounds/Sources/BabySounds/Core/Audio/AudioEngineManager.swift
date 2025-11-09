@@ -1,5 +1,5 @@
-import Foundation
 import AVFoundation
+import Foundation
 import MediaPlayer
 import SwiftUI
 
@@ -90,7 +90,6 @@ private class AudioTrack {
 /// Main audio engine manager using AVAudioEngine for high-quality multi-track playback
 @MainActor
 public final class AudioEngineManager: ObservableObject {
-    
     // MARK: - Singleton
     
     public static let shared = AudioEngineManager()
@@ -139,9 +138,8 @@ public final class AudioEngineManager: ObservableObject {
     
     /// Configure the audio engine with optimal settings for baby sounds
     private func setupEngine() {
-        
         // Configure main mixer for stereo output
-        let outputFormat = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 2)
+        let outputFormat = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 2)
         guard let format = outputFormat else {
             print("AudioEngineManager: Failed to create output format")
             return
@@ -213,7 +211,6 @@ public final class AudioEngineManager: ObservableObject {
     
     /// Preload a sound file into memory for fast playback
     public func preload(sound: Sound) async throws {
-        
         let cacheKey = "\(sound.fileName).\(sound.fileExt)"
         
         // Check if already cached
@@ -262,7 +259,6 @@ public final class AudioEngineManager: ObservableObject {
         gainDb: Float? = nil,
         pan: Float = 0.0
     ) async throws -> TrackHandle {
-        
         // Ensure engine is running
         if !engine.isRunning {
             startEngine()
@@ -325,7 +321,6 @@ public final class AudioEngineManager: ObservableObject {
     
     /// Stop a specific track with optional fade-out
     public func stop(id: UUID, fade: TimeInterval? = nil) {
-        
         guard let track = tracks[id] else {
             print("AudioEngineManager: Track \(id) not found for stopping")
             return
@@ -454,11 +449,11 @@ public final class AudioEngineManager: ObservableObject {
             playerNode.scheduleBuffer(buffer, at: nil, options: .loops, completionHandler: nil)
         } else {
             // Schedule buffer once with completion handler
-            playerNode.scheduleBuffer(buffer, at: nil, options: [], completionHandler: { [weak self] in
+            playerNode.scheduleBuffer(buffer, at: nil, options: []) { [weak self] in
                 DispatchQueue.main.async {
                     self?.removeTrack(track.id)
                 }
-            })
+            }
         }
         
         track.isScheduled = true
@@ -683,10 +678,13 @@ public enum AudioEngineError: Error, LocalizedError {
         switch self {
         case .fileNotFound(let fileName):
             return "Audio file not found: \(fileName)"
+
         case .fileLoadError(let error):
             return "Failed to load audio file: \(error.localizedDescription)"
+
         case .engineNotRunning:
             return "Audio engine is not running"
+
         case .trackNotFound(let id):
             return "Audio track not found: \(id)"
         }
@@ -741,7 +739,7 @@ extension AudioEngineManager {
     public var timerRemaining: TimeInterval {
         // This would need to be computed from scheduled stops
         // For now, return 0 to maintain compatibility
-        return 0
+        0
     }
     
     // MARK: - Sleep Schedule Integration
@@ -797,4 +795,4 @@ extension AudioEngineManager {
             }
         }
     }
-} 
+}

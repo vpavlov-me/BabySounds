@@ -103,11 +103,11 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
     // MARK: - Notification Identifiers
     
     var reminderNotificationId: String {
-        return "sleep_reminder_\(id.uuidString)"
+        "sleep_reminder_\(id.uuidString)"
     }
     
     var bedtimeNotificationId: String {
-        return "sleep_bedtime_\(id.uuidString)"
+        "sleep_bedtime_\(id.uuidString)"
     }
 }
 
@@ -164,12 +164,15 @@ enum SleepScheduleError: LocalizedError {
         switch self {
         case .notificationPermissionDenied:
             return "Notification permission not granted"
+
         case .invalidTimeConfiguration:
             return "Invalid time configuration"
+
         case .scheduleNotFound:
             return "Schedule not found"
+
         case .maxSchedulesReached:
             return "Maximum number of schedules reached"
         }
     }
-} 
+}

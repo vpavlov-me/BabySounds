@@ -6,7 +6,6 @@ import SwiftUI
 /// Centralizes premium feature management and access control
 @MainActor
 public final class PremiumManager: ObservableObject {
-    
     // MARK: - Singleton
     public static let shared = PremiumManager()
     
@@ -29,18 +28,25 @@ public final class PremiumManager: ObservableObject {
             switch self {
             case .premiumSounds:
                 return NSLocalizedString("Premium.Feature.Sounds", value: "Premium Sounds", comment: "")
+
             case .multiTrackMixing:
                 return NSLocalizedString("Premium.Feature.Mixing", value: "Multi-Track Mixing", comment: "")
+
             case .extendedTimer:
                 return NSLocalizedString("Premium.Feature.Timer", value: "Extended Timer", comment: "")
+
             case .sleepSchedules:
                 return NSLocalizedString("Premium.Feature.Schedules", value: "Sleep Schedules", comment: "")
+
             case .offlinePacks:
                 return NSLocalizedString("Premium.Feature.Offline", value: "Offline Packs", comment: "")
+
             case .advancedControls:
                 return NSLocalizedString("Premium.Feature.Controls", value: "Advanced Controls", comment: "")
+
             case .unlimitedFavorites:
                 return NSLocalizedString("Premium.Feature.Favorites", value: "Unlimited Favorites", comment: "")
+
             case .darkNightMode:
                 return NSLocalizedString("Premium.Feature.DarkMode", value: "Dark Night Mode", comment: "")
             }
@@ -50,18 +56,25 @@ public final class PremiumManager: ObservableObject {
             switch self {
             case .premiumSounds:
                 return NSLocalizedString("Premium.Feature.SoundsDesc", value: "Access 50+ exclusive premium sounds", comment: "")
+
             case .multiTrackMixing:
                 return NSLocalizedString("Premium.Feature.MixingDesc", value: "Play up to 4 sounds simultaneously", comment: "")
+
             case .extendedTimer:
                 return NSLocalizedString("Premium.Feature.TimerDesc", value: "Sleep timer up to 12 hours", comment: "")
+
             case .sleepSchedules:
                 return NSLocalizedString("Premium.Feature.SchedulesDesc", value: "Automated bedtime routines", comment: "")
+
             case .offlinePacks:
                 return NSLocalizedString("Premium.Feature.OfflineDesc", value: "Download for offline listening", comment: "")
+
             case .advancedControls:
                 return NSLocalizedString("Premium.Feature.ControlsDesc", value: "Gain, pan, and fade controls", comment: "")
+
             case .unlimitedFavorites:
                 return NSLocalizedString("Premium.Feature.FavoritesDesc", value: "Save unlimited favorite sounds", comment: "")
+
             case .darkNightMode:
                 return NSLocalizedString("Premium.Feature.DarkModeDesc", value: "Red-tinted UI for nighttime use", comment: "")
             }
@@ -71,18 +84,25 @@ public final class PremiumManager: ObservableObject {
             switch self {
             case .premiumSounds:
                 return "music.note.list"
+
             case .multiTrackMixing:
                 return "slider.horizontal.3"
+
             case .extendedTimer:
                 return "timer"
+
             case .sleepSchedules:
                 return "calendar"
+
             case .offlinePacks:
                 return "arrow.down.circle"
+
             case .advancedControls:
                 return "dial.max"
+
             case .unlimitedFavorites:
                 return "heart.circle"
+
             case .darkNightMode:
                 return "moon.fill"
             }
@@ -107,7 +127,7 @@ public final class PremiumManager: ObservableObject {
     
     // MARK: - Published Properties
     
-    @Published public private(set) var gateActionTrigger: UUID = UUID()
+    @Published public private(set) var gateActionTrigger = UUID()
     @Published public var pendingGateAction: PremiumGateAction?
     
     // MARK: - Initialization
@@ -120,7 +140,7 @@ public final class PremiumManager: ObservableObject {
     
     /// Check if a feature is available for current subscription status
     public func hasAccess(to feature: PremiumFeature) -> Bool {
-        return subscriptionService.hasActiveSubscription
+        subscriptionService.hasActiveSubscription
     }
     
     /// Gate access to a premium feature and return appropriate action
@@ -132,18 +152,25 @@ public final class PremiumManager: ObservableObject {
         switch feature {
         case .premiumSounds:
             return .showPaywall
+
         case .multiTrackMixing:
             return .showPaywall
+
         case .extendedTimer:
             return .showMessage(NSLocalizedString("Premium.Gate.Timer", value: "Extended sleep timer (over 30 minutes) requires Premium", comment: ""))
+
         case .sleepSchedules:
             return .showPaywall
+
         case .offlinePacks:
             return .showPaywall
+
         case .advancedControls:
             return .showMessage(NSLocalizedString("Premium.Gate.Controls", value: "Advanced audio controls require Premium", comment: ""))
+
         case .unlimitedFavorites:
             return .showMessage(NSLocalizedString("Premium.Gate.Favorites", value: "Free users can save up to 5 favorites. Upgrade to Premium for unlimited favorites.", comment: ""))
+
         case .darkNightMode:
             return .showPaywall
         }
@@ -168,7 +195,7 @@ public final class PremiumManager: ObservableObject {
     
     /// Check if user can play a premium sound
     public func canPlayPremiumSound() -> Bool {
-        return hasAccess(to: .premiumSounds)
+        hasAccess(to: .premiumSounds)
     }
     
     /// Check if user can add more favorites
@@ -197,19 +224,19 @@ public final class PremiumManager: ObservableObject {
     
     /// Check if user can use advanced audio controls
     public func canUseAdvancedControls() -> Bool {
-        return hasAccess(to: .advancedControls)
+        hasAccess(to: .advancedControls)
     }
     
     // MARK: - UI State Helpers
     
     /// Get opacity for premium-locked content
     public func premiumContentOpacity(for feature: PremiumFeature) -> Double {
-        return hasAccess(to: feature) ? 1.0 : 0.6
+        hasAccess(to: feature) ? 1.0 : 0.6
     }
     
     /// Check if content should be disabled
     public func isPremiumContentDisabled(for feature: PremiumFeature) -> Bool {
-        return !hasAccess(to: feature)
+        !hasAccess(to: feature)
     }
     
     /// Get appropriate UI feedback for premium gate
@@ -219,12 +246,16 @@ public final class PremiumManager: ObservableObject {
         switch feature {
         case .premiumSounds:
             return NSLocalizedString("Premium.Gate.UnlockToPlay", value: "🔒 Unlock Premium to Play", comment: "")
+
         case .multiTrackMixing:
             return NSLocalizedString("Premium.Gate.UnlockMixing", value: "🔒 Premium: Multi-Track Mixing", comment: "")
+
         case .extendedTimer:
             return NSLocalizedString("Premium.Gate.UnlockTimer", value: "🔒 Premium: Extended Timer", comment: "")
+
         case .unlimitedFavorites:
             return NSLocalizedString("Premium.Gate.UnlockFavorites", value: "🔒 Premium: Unlimited Favorites", comment: "")
+
         default:
             return NSLocalizedString("Premium.Gate.UnlockFeature", value: "🔒 Premium Feature", comment: "")
         }
@@ -273,4 +304,4 @@ public struct PremiumGateResult {
         }
         return nil
     }
-} 
+}

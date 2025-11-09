@@ -1,9 +1,8 @@
-import XCTest
 @testable import BabySounds
+import XCTest
 
 @MainActor
 final class PremiumManagerTests: XCTestCase {
-
     var sut: PremiumManager!
 
     override func setUp() async throws {

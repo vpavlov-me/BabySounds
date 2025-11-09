@@ -1,5 +1,5 @@
-import Foundation
 import AVFoundation
+import Foundation
 import MediaPlayer
 import SwiftUI
 
@@ -7,12 +7,10 @@ import SwiftUI
 
 /// Extension to AudioEngineManager for background audio support and Now Playing Info
 extension AudioEngineManager {
-    
     // MARK: - Audio Session Management
     
     /// Setup audio session for background playback
     public func setupBackgroundAudioSession() {
-        
         do {
             let session = AVAudioSession.sharedInstance()
             
@@ -33,7 +31,6 @@ extension AudioEngineManager {
             
             // Setup remote control events
             setupRemoteControlEvents()
-            
         } catch {
             print("BackgroundAudioManager: Failed to setup audio session: \(error)")
         }
@@ -103,7 +100,6 @@ extension AudioEngineManager {
                         }
                         
                         updateCurrentlyPlaying()
-                        
                     } catch {
                         print("BackgroundAudioManager: Failed to resume after interruption: \(error)")
                     }
@@ -234,7 +230,6 @@ extension AudioEngineManager {
     
     /// Update Now Playing Info Center with current track information
     public func updateNowPlayingInfo() {
-        
         let nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
         
         if currentlyPlaying.isEmpty {
@@ -290,7 +285,6 @@ extension AudioEngineManager {
     
     /// Generate artwork for Now Playing display
     private func generateNowPlayingArtwork() -> MPMediaItemArtwork? {
-        
         let artworkSize = CGSize(width: 512, height: 512)
         
         let artwork = MPMediaItemArtwork(boundsSize: artworkSize) { size in
@@ -312,7 +306,7 @@ extension AudioEngineManager {
                 
                 context.cgContext.drawLinearGradient(
                     gradient,
-                    start: CGPoint(x: 0, y: 0),
+                    start: CGPoint.zero,
                     end: CGPoint(x: size.width, y: size.height),
                     options: []
                 )
@@ -462,7 +456,6 @@ public struct BackgroundAudioState {
 // MARK: - Background Audio Extensions
 
 extension AudioEngineManager {
-    
     /// Get current background audio state
     public var backgroundAudioState: BackgroundAudioState {
         let isBackgroundCapable = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] ?? []
@@ -495,6 +488,6 @@ extension AudioEngineManager {
 
 private extension AVAudioPlayerNode {
     var isCurrentlyPlaying: Bool {
-        return self.isPlaying
+        self.isPlaying
     }
-} 
+}

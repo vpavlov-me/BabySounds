@@ -1,5 +1,5 @@
-import SwiftUI
 import AVFoundation
+import SwiftUI
 
 // MARK: - Now Playing View
 
@@ -343,4 +343,4 @@ class FavoritesManager: ObservableObject {
             UserDefaults.standard.set(encoded, forKey: "favorites")
         }
     }
-} 
+}

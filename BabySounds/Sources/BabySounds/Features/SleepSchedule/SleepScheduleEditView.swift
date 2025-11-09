@@ -343,15 +343,14 @@ struct SoundSelectionView: View {
                 ForEach(filteredSounds, id: \.id) { sound in
                     SoundSelectionRow(
                         sound: sound,
-                        isSelected: selectedSounds.contains(sound.id),
-                        onToggle: { isSelected in
+                        isSelected: selectedSounds.contains(sound.id)
+                    )                        { isSelected in
                             if isSelected {
                                 selectedSounds.append(sound.id)
                             } else {
                                 selectedSounds.removeAll { $0 == sound.id }
                             }
                         }
-                    )
                 }
             }
             .navigationTitle("Select Sounds")
@@ -448,4 +447,4 @@ struct SleepScheduleEditView_Previews: PreviewProvider {
     static var previews: some View {
         SleepScheduleEditView(schedule: nil)
     }
-} 
+}

@@ -109,42 +109,55 @@ struct Sound: Identifiable, Codable, Hashable {
 
     /// Check if sound is premium content
     var isPremium: Bool {
-        return premium
+        premium
     }
 
     /// Sound name for display (from titleKey)
     var name: String {
-        return String(describing: titleKey)
+        String(describing: titleKey)
     }
 
     var gradientColors: [Color] {
         switch category {
         case .all:
             return [.pink.opacity(0.8), .purple.opacity(0.6)]
+
         case .nature:
             return [.green.opacity(0.8), .blue.opacity(0.6)]
+
         case .white:
             return [.gray.opacity(0.8), .white]
+
         case .pink:
             return [.pink.opacity(0.8), .purple.opacity(0.6)]
+
         case .brown:
             return [.brown.opacity(0.8), .orange.opacity(0.6)]
+
         case .womb:
             return [.red.opacity(0.6), .pink.opacity(0.8)]
+
         case .fan:
             return [.blue.opacity(0.6), .cyan.opacity(0.8)]
+
         case .animal:
             return [.orange.opacity(0.8), .yellow.opacity(0.6)]
+
         case .transport:
             return [.blue.opacity(0.8), .gray.opacity(0.6)]
+
         case .music:
             return [.purple.opacity(0.8), .pink.opacity(0.6)]
+
         case .lullaby:
             return [.purple.opacity(0.6), .pink.opacity(0.8)]
+
         case .household:
             return [.orange.opacity(0.7), .brown.opacity(0.5)]
+
         case .vehicle:
             return [.blue.opacity(0.8), .gray.opacity(0.6)]
+
         case .custom:
             return [color.color, color.color.opacity(0.6)]
         }
@@ -361,4 +374,4 @@ struct SleepSchedule: Identifiable, Codable {
         if repeatPattern & 0b1000000 != 0 { days.append("Saturday") }
         return days
     }
-} 
+}
