@@ -752,8 +752,19 @@ public extension AudioEngineManager {
     internal func startSleepSchedule(sounds: [String], fadeMinutes: Int) async {
         print("🌙 [AudioEngineManager] Starting sleep schedule with \(sounds.count) sound(s)")
 
+        // Setup audio session for background playback (critical for schedules!)
+        setupBackgroundAudioSession()
+
+        // Ensure engine is running
+        if !engine.isRunning {
+            startEngine()
+        }
+
         // Stop current playback
         stopAll(fade: 0.5)
+
+        // Wait for stop to complete
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
 
         // Get sound catalog
         let catalog = SoundCatalog.shared
@@ -774,6 +785,8 @@ public extension AudioEngineManager {
                     pan: 0.0
                 )
 
+                print("✅ [AudioEngineManager] Started sound: \(soundFileName)")
+
                 // Schedule auto fade
                 if fadeMinutes > 0 {
                     scheduleAutoFade(handle: handle, fadeMinutes: fadeMinutes)
@@ -782,6 +795,11 @@ public extension AudioEngineManager {
                 print("❌ [AudioEngineManager] Error starting sound \(soundFileName): \(error)")
             }
         }
+
+        // Update Now Playing info
+        updateNowPlayingInfo()
+
+        print("🌙 [AudioEngineManager] Sleep schedule started successfully")
     }
 
     private func scheduleAutoFade(handle: TrackHandle, fadeMinutes: Int) {

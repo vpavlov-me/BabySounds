@@ -326,16 +326,29 @@ class SleepScheduleManager: ObservableObject {
 
     func handleBedtimeNotification(scheduleId: String, selectedSounds: [String]) {
         // This method will be called from AppDelegate when notification received
-        guard let schedule = schedules.first(where: { $0.id.uuidString == scheduleId }) else { return }
+        guard let schedule = schedules.first(where: { $0.id.uuidString == scheduleId }) else {
+            print("❌ [SleepScheduleManager] Schedule not found: \(scheduleId)")
+            return
+        }
 
         print("🌙 [SleepScheduleManager] Processing bedtime notification: \(schedule.name)")
+        print("🌙 [SleepScheduleManager] Selected sounds: \(selectedSounds)")
+
+        // Verify we have sounds to play
+        guard !selectedSounds.isEmpty else {
+            print("❌ [SleepScheduleManager] No sounds selected for schedule")
+            return
+        }
 
         // Automatically start selected sounds
-        Task {
-            await AudioEngineManager.shared.startSleepSchedule(
-                sounds: selectedSounds,
-                fadeMinutes: schedule.autoFadeMinutes
-            )
+        Task { @MainActor in
+            do {
+                await AudioEngineManager.shared.startSleepSchedule(
+                    sounds: selectedSounds,
+                    fadeMinutes: schedule.autoFadeMinutes
+                )
+                print("✅ [SleepScheduleManager] Sleep schedule playback started successfully")
+            }
         }
     }
 }
