@@ -125,6 +125,7 @@ jobs:
 
       - name: Generate code coverage report
         if: matrix.destination == 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5'
+        continue-on-error: true
         run: |
           xcrun xccov view --report --json build/DerivedData/Logs/Test/*.xcresult > coverage.json
           echo "📊 Code coverage report generated"
