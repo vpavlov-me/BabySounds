@@ -96,12 +96,12 @@ jobs:
       - name: Clean build folder
         run: |
           rm -rf ~/Library/Developer/Xcode/DerivedData/BabySounds*
-          xcodebuild clean -workspace BabySoundsDemo.xcworkspace -scheme BabySounds
+          xcodebuild clean -workspace BabySounds.xcworkspace -scheme BabySounds
 
       - name: Build project
         run: |
           xcodebuild build \
-            -workspace BabySoundsDemo.xcworkspace \
+            -workspace BabySounds.xcworkspace \
             -scheme BabySounds \
             -destination '${{ matrix.destination }}' \
             -configuration Debug \
@@ -113,7 +113,7 @@ jobs:
       - name: Run unit tests
         run: |
           xcodebuild test \
-            -workspace BabySoundsDemo.xcworkspace \
+            -workspace BabySounds.xcworkspace \
             -scheme BabySounds \
             -destination '${{ matrix.destination }}' \
             -configuration Debug \
@@ -181,7 +181,7 @@ jobs:
       - name: Build release archive
         run: |
           xcodebuild archive \
-            -workspace BabySoundsDemo.xcworkspace \
+            -workspace BabySounds.xcworkspace \
             -scheme BabySounds \
             -configuration Release \
             -destination 'generic/platform=iOS' \
@@ -214,7 +214,7 @@ jobs:
       - name: Run static analysis
         run: |
           xcodebuild analyze \
-            -workspace BabySoundsDemo.xcworkspace \
+            -workspace BabySounds.xcworkspace \
             -scheme BabySounds \
             -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' \
             -configuration Debug \
