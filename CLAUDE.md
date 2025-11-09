@@ -305,6 +305,24 @@ Button("Play Sound") { }
 
 ## 🧪 Testing
 
+**IMPORTANT:** This project uses **Swift Package Manager (SPM)** for testing, NOT Xcode test targets.
+
+### Testing Architecture
+
+- **Main app**: `BabySoundsApp.xcodeproj` - NO test targets here
+- **Tests location**: `BabySounds/Tests/` - SPM test target only
+- **Test command**: `swift test` - runs SPM tests
+
+❌ **DO NOT:**
+- Create test targets in `BabySoundsApp.xcodeproj`
+- Add folders like `BabySoundsAppTests` or `BabySoundsAppUITests`
+- Use Xcode's "Add Test Target" feature
+
+✅ **CORRECT:**
+- All tests live in `BabySounds/Tests/` folder
+- Use `swift test` to run tests
+- Tests are part of SPM package, not Xcode project
+
 ### Test Structure
 
 ```swift
@@ -341,7 +359,7 @@ final class SoundManagerTests: XCTestCase {
 ### Running Tests
 
 ```bash
-# All tests
+# All tests (SPM)
 swift test
 
 # Specific test
@@ -387,6 +405,9 @@ swift test --enable-code-coverage
 - Push broken builds
 - Ignore tests
 - Add TODO comments (use Issues instead)
+- Create test targets in Xcode project (BabySoundsApp.xcodeproj)
+- Create simplified/demo versions of the app
+- Add any test folders (BabySoundsAppTests, BabySoundsAppUITests, etc.)
 
 ### Security
 
