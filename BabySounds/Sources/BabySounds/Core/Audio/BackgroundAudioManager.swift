@@ -194,15 +194,13 @@ extension AudioEngineManager {
     /// Handle remote play command
     private func handleRemotePlayCommand() {
         print("BackgroundAudioManager: Remote play command received")
-        
+
         Task { @MainActor in
             // Resume all paused tracks
             for track in tracks.values {
-                if !track.playerNode.isPlaying {
-                    track.playerNode.play()
-                }
+                track.playerNode.play()
             }
-            
+
             updateCurrentlyPlaying()
             updateNowPlayingInfo()
         }
@@ -496,7 +494,7 @@ extension AudioEngineManager {
 // MARK: - Private Extensions
 
 private extension AVAudioPlayerNode {
-    var isPlaying: Bool {
+    var isCurrentlyPlaying: Bool {
         return self.isPlaying
     }
 } 
