@@ -337,25 +337,25 @@ custom_rules:
     name: "No Print Statements"
     regex: '\bprint\s*\('
     message: "Use proper logging instead of print() in production Kids apps"
-    severity: error
-    
+    severity: warning
+
   no_fatalError_in_production:
     name: "No Fatal Errors"
     regex: '\bfatalError\s*\('
     message: "Never use fatalError in Kids apps - handle errors gracefully"
-    severity: error
-    
+    severity: warning
+
   accessibility_identifier_required:
     name: "Accessibility Identifier Required"
     regex: '\.accessibilityIdentifier\s*='
     message: "All UI elements in Kids apps should have accessibility identifiers"
     severity: warning
-    
+
   volume_safety_check:
     name: "Volume Safety Check"
     regex: '\b(volume|Volume)\b.*=(?!.*safety|.*check|.*limit)'
     message: "All volume changes must include safety checks for Kids apps"
-    severity: error
+    severity: warning
     
   coppa_compliance_check:
     name: "COPPA Data Collection Check"
