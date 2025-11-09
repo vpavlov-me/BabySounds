@@ -1,5 +1,5 @@
-@testable import BabySounds
 import XCTest
+@testable import BabySounds
 
 @MainActor
 final class SleepScheduleTests: XCTestCase {
@@ -58,7 +58,7 @@ final class SleepScheduleTests: XCTestCase {
         if let next = nextBedTime {
             let components = calendar.dateComponents([.hour], from: next)
             XCTAssertEqual(components.hour, bedtimeHour,
-                          "Next bedtime should be at scheduled hour")
+                           "Next bedtime should be at scheduled hour")
         }
     }
 
@@ -72,7 +72,7 @@ final class SleepScheduleTests: XCTestCase {
 
         // Then
         XCTAssertNil(nextBedTime,
-                    "Disabled schedule should have no next bedtime")
+                     "Disabled schedule should have no next bedtime")
     }
 
     func testEmptyDaysHasNoNextBedtime() {
@@ -84,7 +84,7 @@ final class SleepScheduleTests: XCTestCase {
 
         // Then
         XCTAssertNil(nextBedTime,
-                    "Schedule with no days should have no next bedtime")
+                     "Schedule with no days should have no next bedtime")
     }
 
     // MARK: - Formatted Time Tests
@@ -101,7 +101,7 @@ final class SleepScheduleTests: XCTestCase {
         // Then
         XCTAssertFalse(formatted.isEmpty, "Should format bedtime")
         XCTAssertTrue(formatted.contains("20") || formatted.contains("8"),
-                     "Should contain hour")
+                      "Should contain hour")
     }
 
     func testFormattedWakeTime() {
@@ -116,7 +116,7 @@ final class SleepScheduleTests: XCTestCase {
         // Then
         XCTAssertFalse(formatted.isEmpty, "Should format wake time")
         XCTAssertTrue(formatted.contains("7"),
-                     "Should contain hour")
+                      "Should contain hour")
     }
 
     // MARK: - Selected Days Text Tests
@@ -179,12 +179,12 @@ final class SleepScheduleTests: XCTestCase {
 
         // Then
         XCTAssertNotEqual(schedule1.reminderNotificationId,
-                         schedule2.reminderNotificationId,
-                         "Different schedules should have unique reminder IDs")
+                          schedule2.reminderNotificationId,
+                          "Different schedules should have unique reminder IDs")
 
         XCTAssertNotEqual(schedule1.bedtimeNotificationId,
-                         schedule2.bedtimeNotificationId,
-                         "Different schedules should have unique bedtime IDs")
+                          schedule2.bedtimeNotificationId,
+                          "Different schedules should have unique bedtime IDs")
     }
 
     func testNotificationIdFormat() {
@@ -193,9 +193,9 @@ final class SleepScheduleTests: XCTestCase {
 
         // Then
         XCTAssertTrue(schedule.reminderNotificationId.contains("reminder"),
-                     "Reminder ID should contain 'reminder'")
+                      "Reminder ID should contain 'reminder'")
         XCTAssertTrue(schedule.bedtimeNotificationId.contains("bedtime"),
-                     "Bedtime ID should contain 'bedtime'")
+                      "Bedtime ID should contain 'bedtime'")
     }
 
     // MARK: - Weekday Tests
@@ -219,9 +219,9 @@ final class SleepScheduleTests: XCTestCase {
 
         // Then
         XCTAssertEqual(sorted.first, .monday,
-                      "Monday should be first when sorted")
+                       "Monday should be first when sorted")
         XCTAssertEqual(sorted.last, .sunday,
-                      "Sunday should be last when sorted")
+                       "Sunday should be last when sorted")
     }
 
     // MARK: - Error Tests

@@ -1,18 +1,20 @@
 import SwiftUI
 
+// MARK: - ContentView
+
 struct ContentView: View {
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var soundCatalog: SoundCatalog
     @EnvironmentObject var premiumManager: PremiumManager
-    
+
     @State private var selectedTab = 0
     @State private var showParentGate = false
     @State private var showPaywall = false
     @State private var showNowPlaying = false
     @AppStorage("hasPassedParentGate") private var hasPassedParentGate = false
     @AppStorage("parentGateTimeout") private var parentGateTimeout: Double = 0
-    
+
     var body: some View {
         ZStack(alignment: .bottom) {
             // Main TabView
@@ -26,7 +28,7 @@ struct ContentView: View {
                     Text("Sleep")
                 }
                 .tag(0)
-                
+
                 // Playroom Tab
                 PlayroomView()
                     .tabItem {
@@ -34,7 +36,7 @@ struct ContentView: View {
                         Text("Playroom")
                     }
                     .tag(1)
-                
+
                 // Favorites Tab
                 NavigationView {
                     FavoritesListView()
@@ -44,7 +46,7 @@ struct ContentView: View {
                     Text("Favorites")
                 }
                 .tag(2)
-                
+
                 // Schedules Tab
                 NavigationView {
                     SchedulesListView()
@@ -54,7 +56,7 @@ struct ContentView: View {
                     Text("Schedules")
                 }
                 .tag(3)
-                
+
                 // Settings Tab
                 NavigationView {
                     AppleMusicSettingsView()
@@ -64,19 +66,19 @@ struct ContentView: View {
                     Text("Settings")
                 }
                 .tag(4)
-                
+
                 #if DEBUG
-                DataDebugView()
-                    .tabItem {
-                        Image(systemName: "doc.text.magnifyingglass")
-                        Text("Debug")
-                    }
-                    .tag(5)
+                    DataDebugView()
+                        .tabItem {
+                            Image(systemName: "doc.text.magnifyingglass")
+                            Text("Debug")
+                        }
+                        .tag(5)
                 #endif
             }
             .tint(.pink) // iOS 17 accent color
             .appleMusicTabBar()
-            
+
             // Mini Player overlay
             MiniPlayerView(showNowPlaying: $showNowPlaying)
                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: audioManager.currentSound != nil)
@@ -93,11 +95,11 @@ struct ContentView: View {
             ParentGateView(
                 isPresented: $showParentGate,
                 context: .settings
-            )                {
-                    hasPassedParentGate = true
-                    parentGateTimeout = Date().timeIntervalSince1970 + 300 // 5 minutes
-                    selectedTab = 3 // Navigate to Settings
-                }
+            ) {
+                hasPassedParentGate = true
+                parentGateTimeout = Date().timeIntervalSince1970 + 300 // 5 minutes
+                selectedTab = 3 // Navigate to Settings
+            }
         }
         .sheet(isPresented: $showPaywall) {
             PaywallView(isPresented: $showPaywall)
@@ -109,22 +111,22 @@ struct ContentView: View {
                 .allowsHitTesting(false) // Allow touches to pass through to main content
         )
     }
-    
+
     private func isParentGateValid() -> Bool {
         hasPassedParentGate && Date().timeIntervalSince1970 < parentGateTimeout
     }
 }
 
-// MARK: - Sleep View
+// MARK: - SleepView
 
 struct SleepView: View {
     @EnvironmentObject var soundCatalog: SoundCatalog
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
-    
+
     private let columns = [
-        GridItem(.adaptive(minimum: 150), spacing: 16)
+        GridItem(.adaptive(minimum: 150), spacing: 16),
     ]
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
@@ -143,14 +145,16 @@ struct SleepView: View {
     }
 }
 
+// MARK: - CategoryCard
+
 struct CategoryCard: View {
     let category: SoundCategory
-    
+
     var body: some View {
         VStack(spacing: 12) {
             Text(category.emoji)
                 .font(.system(size: 48))
-            
+
             Text(category.localizedName)
                 .font(.headline)
                 .multilineTextAlignment(.center)
@@ -165,16 +169,18 @@ struct CategoryCard: View {
     }
 }
 
+// MARK: - CategorySoundsView
+
 struct CategorySoundsView: View {
     let category: SoundCategory
     @EnvironmentObject var soundCatalog: SoundCatalog
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var audioManager: AudioEngineManager
-    
+
     private var categorySounds: [Sound] {
         soundCatalog.sounds.filter { $0.category == category }
     }
-    
+
     var body: some View {
         Group {
             if categorySounds.isEmpty {
@@ -182,11 +188,11 @@ struct CategorySoundsView: View {
                 VStack(spacing: 20) {
                     ProgressView()
                         .scaleEffect(1.5)
-                    
+
                     Text("Loading sounds...")
                         .font(.headline)
                         .foregroundColor(.secondary)
-                    
+
                     Text("Total sounds available: \(soundCatalog.sounds.count)")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -223,28 +229,30 @@ struct CategorySoundsView: View {
     }
 }
 
+// MARK: - SoundListRow
+
 struct SoundListRow: View {
     let sound: Sound
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
-    
+
     var body: some View {
         HStack {
             Text(sound.displayEmoji)
                 .font(.title2)
-            
+
             VStack(alignment: .leading) {
                 Text(sound.titleKey)
                     .font(.headline)
-                
+
                 if sound.premium {
                     Text("Premium")
                         .font(.caption)
                         .foregroundColor(.orange)
                 }
             }
-            
+
             Spacer()
-            
+
             if sound.premium && !subscriptionService.isPremium {
                 Image(systemName: "lock.fill")
                     .foregroundColor(.orange)
@@ -254,21 +262,23 @@ struct SoundListRow: View {
     }
 }
 
+// MARK: - EnhancedSoundListRow
+
 struct EnhancedSoundListRow: View {
     let sound: Sound
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var premiumManager: PremiumManager
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var soundCatalog: SoundCatalog
-    
+
     private var isCurrentlyPlaying: Bool {
         audioManager.currentlyPlaying.values.contains { $0.soundId == sound.id }
     }
-    
+
     private var isFavorite: Bool {
         soundCatalog.isFavorite(sound.id)
     }
-    
+
     var body: some View {
         HStack(spacing: 16) {
             // Color indicator
@@ -279,24 +289,24 @@ struct EnhancedSoundListRow: View {
                     Circle()
                         .stroke(Color(.systemGray4), lineWidth: 1)
                 )
-            
+
             // Emoji and title
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(sound.displayEmoji)
                         .font(.title2)
-                    
+
                     Text(sound.titleKey)
                         .font(.headline)
                         .foregroundColor(.primary)
-                    
+
                     if isCurrentlyPlaying {
                         Image(systemName: "speaker.wave.2.fill")
                             .font(.caption)
                             .foregroundColor(.blue)
                     }
                 }
-                
+
                 HStack(spacing: 8) {
                     // Category badge
                     Text(sound.category.localizedName)
@@ -305,7 +315,7 @@ struct EnhancedSoundListRow: View {
                         .padding(.vertical, 2)
                         .background(Color(.systemGray5))
                         .cornerRadius(4)
-                    
+
                     // Premium badge
                     if sound.premium {
                         HStack(spacing: 2) {
@@ -320,7 +330,7 @@ struct EnhancedSoundListRow: View {
                         .background(Color.orange.opacity(0.1))
                         .cornerRadius(4)
                     }
-                    
+
                     // Loop indicator
                     if sound.loop {
                         Image(systemName: "repeat")
@@ -329,9 +339,9 @@ struct EnhancedSoundListRow: View {
                     }
                 }
             }
-            
+
             Spacer()
-            
+
             VStack(spacing: 8) {
                 // Favorite button
                 Button(action: {
@@ -342,12 +352,12 @@ struct EnhancedSoundListRow: View {
                         .font(.title3)
                 }
                 .buttonStyle(PlainButtonStyle())
-                
+
                 // Premium badge for premium content
                 if sound.premium {
                     PremiumBadge(isLocked: !premiumManager.canPlayPremiumSound())
                 }
-                
+
                 // File status indicator
                 Group {
                     if Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt) != nil {
@@ -365,7 +375,7 @@ struct EnhancedSoundListRow: View {
         .padding(.vertical, 8)
         .contentShape(Rectangle())
     }
-    
+
     private func toggleFavorite(sound: Sound) {
         if soundCatalog.isFavorite(sound.id) {
             soundCatalog.favorites.remove(sound.id)
@@ -380,7 +390,7 @@ struct EnhancedSoundListRow: View {
     }
 }
 
-// MARK: - Playroom View
+// MARK: - PlayroomView
 
 struct PlayroomView: View {
     @EnvironmentObject var soundCatalog: SoundCatalog
@@ -393,17 +403,17 @@ struct PlayroomView: View {
             // Include basic nature sounds and white noise
             let childFriendlyCategories: [SoundCategory] = [
                 .white, .pink, .brown,
-                .nature, .womb, .lullaby
+                .nature, .womb, .lullaby,
             ]
 
             // Exclude complex or potentially overstimulating sounds
             let excludedCategories: [SoundCategory] = [
-                .music, .household, .vehicle
+                .music, .household, .vehicle,
             ]
 
             return childFriendlyCategories.contains(sound.category) &&
-                   !excludedCategories.contains(sound.category) &&
-                   !sound.isPremium // Only free sounds in playroom
+                !excludedCategories.contains(sound.category) &&
+                !sound.isPremium // Only free sounds in playroom
         }
         .sorted { $0.name < $1.name }
         .prefix(8) // Limit to 8 sounds for simple interface
@@ -412,7 +422,7 @@ struct PlayroomView: View {
 
     private let columns = [
         GridItem(.flexible()),
-        GridItem(.flexible())
+        GridItem(.flexible()),
     ]
 
     var body: some View {
@@ -440,7 +450,7 @@ struct PlayroomView: View {
                     }
                     .padding()
                 }
-                
+
                 Spacer()
             }
             .navigationBarHidden(true)
@@ -451,10 +461,12 @@ struct PlayroomView: View {
     }
 }
 
+// MARK: - PlayroomSoundButton
+
 struct PlayroomSoundButton: View {
     let sound: Sound
     @EnvironmentObject var audioManager: AudioEngineManager
-    
+
     var body: some View {
         Button(action: {
             audioManager.playSound(sound)
@@ -462,7 +474,7 @@ struct PlayroomSoundButton: View {
             VStack(spacing: 16) {
                 Text(sound.displayEmoji)
                     .font(.system(size: 64))
-                
+
                 Text(sound.titleKey)
                     .font(.title2)
                     .fontWeight(.semibold)
@@ -484,6 +496,8 @@ struct PlayroomSoundButton: View {
     }
 }
 
+// MARK: - BounceButtonStyle
+
 struct BounceButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -492,7 +506,7 @@ struct BounceButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Favorites View
+// MARK: - FavoritesView
 
 struct FavoritesView: View {
     @EnvironmentObject var soundCatalog: SoundCatalog
@@ -500,11 +514,11 @@ struct FavoritesView: View {
     @EnvironmentObject var premiumManager: PremiumManager
     @EnvironmentObject var audioManager: AudioEngineManager
     @State private var showPaywall = false
-    
+
     private var favoriteSounds: [Sound] {
         soundCatalog.favoriteSounds
     }
-    
+
     var body: some View {
         NavigationView {
             Group {
@@ -513,23 +527,25 @@ struct FavoritesView: View {
                         Image(systemName: "heart")
                             .font(.system(size: 64))
                             .foregroundColor(.gray)
-                        
+
                         Text("No Favorite Sounds")
                             .font(.title2)
                             .fontWeight(.medium)
-                        
+
                         Text("Add sounds to favorites by tapping the heart icon in sound lists")
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
-                        
+
                         // Free user limitations info
                         if !subscriptionService.isPremium {
                             VStack(spacing: 8) {
-                                Text("Free Plan: \(favoriteSounds.count)/\(PremiumManager.Limits.maxFavoritesForFree) favorites")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                Text(
+                                    "Free Plan: \(favoriteSounds.count)/\(PremiumManager.Limits.maxFavoritesForFree) favorites"
+                                )
+                                .font(.caption)
+                                .foregroundColor(.secondary)
 
                                 if favoriteSounds.count >= PremiumManager.Limits.maxFavoritesForFree {
                                     Text("Upgrade to Premium for unlimited favorites")
@@ -549,9 +565,9 @@ struct FavoritesView: View {
                                     .foregroundColor(.red)
                                 Text("Favorites: \(favoriteSounds.count)/\(PremiumManager.Limits.maxFavoritesForFree)")
                                     .font(.caption)
-                                
+
                                 Spacer()
-                                
+
                                 if favoriteSounds.count >= PremiumManager.Limits.maxFavoritesForFree {
                                     Button("Upgrade for unlimited") {
                                         premiumManager.requestAccess(to: .unlimitedFavorites)
@@ -564,7 +580,7 @@ struct FavoritesView: View {
                             .padding(.vertical, 8)
                             .background(Color(.systemGray6))
                         }
-                        
+
                         List {
                             ForEach(favoriteSounds) { sound in
                                 NavigationLink(destination: SoundPlayerView(sound: sound)) {
@@ -590,7 +606,7 @@ struct FavoritesView: View {
             .premiumGateAlert(premiumManager: premiumManager, showPaywall: $showPaywall)
         }
     }
-    
+
     private func removeFavorites(at offsets: IndexSet) {
         for index in offsets {
             let sound = favoriteSounds[index]
@@ -599,17 +615,19 @@ struct FavoritesView: View {
     }
 }
 
+// MARK: - FavoriteSoundRow
+
 struct FavoriteSoundRow: View {
     let sound: Sound
     @EnvironmentObject var soundCatalog: SoundCatalog
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var premiumManager: PremiumManager
     @EnvironmentObject var audioManager: AudioEngineManager
-    
+
     var body: some View {
         HStack {
             EnhancedSoundListRow(sound: sound)
-            
+
             Button(action: {
                 soundCatalog.favorites.remove(sound.id) // Direct removal in favorites view
             }) {
@@ -622,14 +640,14 @@ struct FavoriteSoundRow: View {
     }
 }
 
-// MARK: - Settings View
+// MARK: - SettingsView
 
 struct SettingsView: View {
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var premiumManager: PremiumManager
     @State private var showPaywall = false
     @State private var showParentGateForRestore = false
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -649,7 +667,7 @@ struct SettingsView: View {
                         }
                         .foregroundColor(.orange)
                     }
-                    
+
                     Button("Restore Purchases") {
                         if ParentGateManager.isRecentlyPassed(for: .restore, within: 300) {
                             // Recently passed, proceed directly
@@ -662,7 +680,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-                
+
                 // Premium Features Status
                 if subscriptionService.isPremium {
                     Section("Premium Features") {
@@ -674,22 +692,22 @@ struct SettingsView: View {
                         }
                     }
                 }
-                
+
                 Section("Safety") {
                     NavigationLink("Child Safety", destination: SafetySettingsView())
                 }
-                
+
                 Section("App") {
                     NavigationLink("Theme", destination: ThemeSettingsView())
                     NavigationLink("Notifications", destination: NotificationSettingsView())
-                    
+
                     NavigationLink("Sleep Schedules", destination: SleepSchedulesView())
-                    
+
                     if premiumManager.hasAccess(to: .offlinePacks) {
                         NavigationLink("Offline Packs", destination: OfflinePacksView())
                     }
                 }
-                
+
                 Section("Support") {
                     NavigationLink("Help & FAQ", destination: EnhancedHelpView())
                     NavigationLink("Privacy Policy", destination: PrivacyPolicyView())
@@ -705,17 +723,17 @@ struct SettingsView: View {
             ParentGateView(
                 isPresented: $showParentGateForRestore,
                 context: .restore
-            )                {
-                    Task {
-                        try? await subscriptionService.restorePurchases()
-                    }
+            ) {
+                Task {
+                    try? await subscriptionService.restorePurchases()
                 }
+            }
         }
         .premiumGateAlert(premiumManager: premiumManager, showPaywall: $showPaywall)
     }
 }
 
-// MARK: - Placeholder Views
+// MARK: - ThemeSettingsView
 
 struct ThemeSettingsView: View {
     var body: some View {
@@ -726,6 +744,8 @@ struct ThemeSettingsView: View {
         .navigationTitle("Theme")
     }
 }
+
+// MARK: - ScheduleSettingsView
 
 // NotificationSettingsView is now implemented in NotificationPermissionManager.swift
 
@@ -739,6 +759,8 @@ struct ScheduleSettingsView: View {
     }
 }
 
+// MARK: - OfflinePacksView
+
 struct OfflinePacksView: View {
     var body: some View {
         List {
@@ -748,6 +770,8 @@ struct OfflinePacksView: View {
         .navigationTitle("Offline Packs")
     }
 }
+
+// MARK: - PrivacyPolicyView
 
 // HelpView is now implemented in SafeLinkWrapper.swift as EnhancedHelpView
 
@@ -760,6 +784,8 @@ struct PrivacyPolicyView: View {
         .navigationTitle("Privacy Policy")
     }
 }
+
+// MARK: - TermsOfServiceView
 
 struct TermsOfServiceView: View {
     var body: some View {

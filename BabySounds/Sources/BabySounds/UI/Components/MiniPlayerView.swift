@@ -1,17 +1,17 @@
 import AVFoundation
 import SwiftUI
 
-// MARK: - Mini Player View
+// MARK: - MiniPlayerView
 
 struct MiniPlayerView: View {
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var soundCatalog: SoundCatalog
-    
-    @State private var progress: Double = 0.0
+
+    @State private var progress = 0.0
     @Binding var showNowPlaying: Bool
-    
+
     private let timer = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
-    
+
     var body: some View {
         if let currentSound = audioManager.currentSound {
             VStack(spacing: 0) {
@@ -19,7 +19,7 @@ struct MiniPlayerView: View {
                 ProgressView(value: progress, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .accentColor))
                     .scaleEffect(y: 0.5)
-                
+
                 // Mini player content
                 HStack(spacing: 12) {
                     // Artwork
@@ -36,7 +36,7 @@ struct MiniPlayerView: View {
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ))
-                            
+
                             Text(currentSound.displayEmoji)
                                 .font(.title2)
                         }
@@ -45,14 +45,14 @@ struct MiniPlayerView: View {
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 // iPad pointer interaction - enlarge on hover
                                 #if os(iOS)
-                                if hovering {
-                                    // Scale effect for iPad pointer
-                                }
+                                    if hovering {
+                                        // Scale effect for iPad pointer
+                                    }
                                 #endif
                             }
                         }
                     }
-                    
+
                     // Sound info
                     Button {
                         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
@@ -66,16 +66,16 @@ struct MiniPlayerView: View {
                                 .fontWeight(.medium)
                                 .foregroundColor(.primary)
                                 .lineLimit(1)
-                            
+
                             Text(currentSound.category.displayName)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .lineLimit(1)
                         }
                     }
-                    
+
                     Spacer()
-                    
+
                     // Play/Pause button
                     Button {
                         togglePlayback()
@@ -118,9 +118,9 @@ struct MiniPlayerView: View {
             )
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func togglePlayback() {
         if audioManager.isPlaying {
             audioManager.pauseCurrentSound()
@@ -129,12 +129,12 @@ struct MiniPlayerView: View {
         }
         HapticManager.shared.impact(.light)
     }
-    
+
     private func stopPlayback() {
         audioManager.stopAllSounds()
         HapticManager.shared.impact(.medium)
     }
-    
+
     private func updateProgress() {
         // Update progress based on timer if applicable
         if let timer = audioManager.currentTimer {
@@ -148,7 +148,7 @@ struct MiniPlayerView: View {
     }
 }
 
-// MARK: - Scale Button Style
+// MARK: - ScaleButtonStyle
 
 struct ScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -158,23 +158,23 @@ struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Haptic Manager
+// MARK: - HapticManager
 
 class HapticManager {
     static let shared = HapticManager()
-    
+
     private init() {}
-    
+
     func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
     }
-    
+
     func notification(_ type: UINotificationFeedbackGenerator.FeedbackType) {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(type)
     }
-    
+
     func selection() {
         let generator = UISelectionFeedbackGenerator()
         generator.selectionChanged()

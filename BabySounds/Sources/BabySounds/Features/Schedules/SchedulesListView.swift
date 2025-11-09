@@ -1,16 +1,16 @@
 import SwiftUI
 
-// MARK: - Schedules List View
+// MARK: - SchedulesListView
 
 struct SchedulesListView: View {
     @EnvironmentObject var scheduleManager: SleepScheduleManager
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var premiumManager: PremiumManager
-    
+
     @State private var showingAddSheet = false
     @State private var showNowPlaying = false
     @State private var selectedSchedule: SleepSchedule?
-    
+
     var body: some View {
         GeometryReader { _ in
             ZStack(alignment: .bottom) {
@@ -21,7 +21,7 @@ struct SchedulesListView: View {
                         schedulesList
                     }
                 }
-                
+
                 // Mini Player
                 MiniPlayerView(showNowPlaying: $showNowPlaying)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -51,9 +51,9 @@ struct SchedulesListView: View {
             NowPlayingView(isPresented: $showNowPlaying)
         }
     }
-    
+
     // MARK: - Schedules List
-    
+
     private var schedulesList: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
@@ -68,7 +68,7 @@ struct SchedulesListView: View {
                         removal: .move(edge: .leading).combined(with: .opacity)
                     ))
                 }
-                
+
                 // Bottom spacing for mini player
                 Spacer()
                     .frame(height: 100)
@@ -77,9 +77,9 @@ struct SchedulesListView: View {
             .padding(.top, 8)
         }
     }
-    
+
     // MARK: - Empty State
-    
+
     private var emptyStateView: some View {
         VStack(spacing: 24) {
             // Illustration
@@ -88,18 +88,18 @@ struct SchedulesListView: View {
                     Circle()
                         .fill(.blue.opacity(0.1))
                         .frame(width: 120, height: 120)
-                    
+
                     Image(systemName: "calendar")
                         .font(.system(size: 40))
                         .foregroundColor(.blue.opacity(0.6))
                 }
-                
+
                 VStack(spacing: 8) {
                     Text("No Schedules Yet")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
-                    
+
                     Text("Create sleep schedules to automatically play sounds at specific times")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -107,7 +107,7 @@ struct SchedulesListView: View {
                         .padding(.horizontal, 32)
                 }
             }
-            
+
             // Quick action button
             Button {
                 showingAddSheet = true
@@ -133,15 +133,15 @@ struct SchedulesListView: View {
     }
 }
 
-// MARK: - Schedule Card
+// MARK: - ScheduleCard
 
 struct ScheduleCard: View {
     let schedule: SleepSchedule
     let onTap: () -> Void
     let onToggle: () -> Void
-    
+
     @EnvironmentObject var soundCatalog: SoundCatalog
-    
+
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 0) {
@@ -153,14 +153,14 @@ struct ScheduleCard: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
                             .lineLimit(1)
-                        
+
                         Text(timeDisplayText)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     Spacer()
-                    
+
                     // Toggle switch
                     Toggle("", isOn: .constant(schedule.isEnabled))
                         .labelsHidden()
@@ -173,7 +173,7 @@ struct ScheduleCard: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 12)
-                
+
                 // Days and Sound info
                 VStack(spacing: 12) {
                     // Days of week
@@ -190,10 +190,10 @@ struct ScheduleCard: View {
                                         .stroke(.secondary.opacity(0.3), lineWidth: 1)
                                 )
                         }
-                        
+
                         Spacer()
                     }
-                    
+
                     // Sound preview
                     if let sound = associatedSound {
                         HStack(spacing: 12) {
@@ -205,12 +205,12 @@ struct ScheduleCard: View {
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ))
-                                
+
                                 Text(sound.displayEmoji)
                                     .font(.caption)
                             }
                             .frame(width: 32, height: 32)
-                            
+
                             // Sound info
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(sound.titleKey)
@@ -218,14 +218,14 @@ struct ScheduleCard: View {
                                     .fontWeight(.medium)
                                     .foregroundColor(.primary)
                                     .lineLimit(1)
-                                
+
                                 Text("Duration: \(schedule.duration / 60) min")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
-                            
+
                             Spacer()
-                            
+
                             // Premium badge
                             if sound.premium {
                                 Image(systemName: "crown.fill")
@@ -251,19 +251,19 @@ struct ScheduleCard: View {
                 .stroke(schedule.isEnabled ? .pink : Color.clear, lineWidth: 2)
         )
     }
-    
+
     // MARK: - Computed Properties
-    
+
     private var timeDisplayText: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: schedule.startTime)
     }
-    
+
     private var daysOfWeek: [String] {
         ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     }
-    
+
     private var associatedSound: Sound? {
         soundCatalog.allSounds.first { $0.id == schedule.soundId }
     }

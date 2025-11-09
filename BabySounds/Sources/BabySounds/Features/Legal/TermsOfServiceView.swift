@@ -31,7 +31,9 @@ struct TermsOfServiceView: View {
 
             Group {
                 sectionTitle("1. Acceptance of Terms")
-                sectionText("By downloading or using Baby Sounds, you agree to these Terms of Service. If you do not agree, do not use the app.")
+                sectionText(
+                    "By downloading or using Baby Sounds, you agree to these Terms of Service. If you do not agree, do not use the app."
+                )
 
                 sectionTitle("2. Age Requirements")
                 bulletPoint("App is designed for babies and children under parental supervision")
@@ -68,7 +70,9 @@ struct TermsOfServiceView: View {
                 bulletPoint("Follow WHO hearing safety guidelines")
                 bulletPoint("Take breaks from audio usage as recommended")
                 bulletPoint("Use headphones/speakers appropriate for children")
-                sectionText("Baby Sounds implements safety features but cannot guarantee hearing protection. Parents must supervise usage.")
+                sectionText(
+                    "Baby Sounds implements safety features but cannot guarantee hearing protection. Parents must supervise usage."
+                )
 
                 sectionTitle("7. Prohibited Uses")
                 sectionText("You may not:")
@@ -142,15 +146,19 @@ struct TermsOfServiceView: View {
                 bulletPoint("GitHub: github.com/vpavlov-me/BabySounds")
 
                 sectionTitle("17. Governing Law")
-                sectionText("These Terms governed by laws of United States. Disputes resolved through binding arbitration.")
+                sectionText(
+                    "These Terms governed by laws of United States. Disputes resolved through binding arbitration."
+                )
             }
 
             Divider()
                 .padding(.vertical)
 
-            Text("By using Baby Sounds, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.")
-                .font(.callout)
-                .italic()
+            Text(
+                "By using Baby Sounds, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service."
+            )
+            .font(.callout)
+            .italic()
 
             Text("© 2025 Baby Sounds. All rights reserved.")
                 .font(.caption)

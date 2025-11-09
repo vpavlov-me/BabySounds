@@ -61,8 +61,8 @@ final class HapticManager {
 
     /// Trigger selection haptic feedback
     func selection() {
-        self.selection.selectionChanged()
-        self.selection.prepare()
+        selection.selectionChanged()
+        selection.prepare()
     }
 
     /// Trigger notification haptic feedback

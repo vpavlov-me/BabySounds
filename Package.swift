@@ -4,13 +4,13 @@ import PackageDescription
 let package = Package(
     name: "BabySounds",
     platforms: [
-        .iOS(.v17)
+        .iOS(.v17),
     ],
     products: [
         .library(
             name: "BabySounds",
             targets: ["BabySounds"]
-        )
+        ),
     ],
     dependencies: [
         // Add external dependencies here if needed
@@ -21,13 +21,13 @@ let package = Package(
             dependencies: [],
             path: "BabySounds/Sources/BabySounds",
             resources: [
-                .process("Resources")
+                .process("Resources"),
             ]
         ),
         .testTarget(
             name: "BabySoundsTests",
             dependencies: ["BabySounds"],
             path: "BabySounds/Tests"
-        )
+        ),
     ]
-) 
+)

@@ -1,50 +1,50 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Sound Catalog
+// MARK: - SoundCatalog
 
 /// Manages the catalog of available sounds, sound packs, and user favorites
 @MainActor
 public final class SoundCatalog: ObservableObject {
     // MARK: - Published Properties
-    
+
     @Published public private(set) var sounds: [Sound] = []
     @Published public private(set) var soundPacks: [SoundPack] = []
     @Published public var favorites: Set<UUID> = []
-    
+
     // MARK: - Private Properties
-    
+
     private var soundsById: [UUID: Sound] = [:]
-    
+
     // MARK: - Initialization
-    
+
     public init() {
         loadSounds()
         loadFavorites()
     }
-    
+
     // MARK: - Public API
-    
+
     /// Get sounds for a specific category
     public func sounds(for category: SoundCategory) -> [Sound] {
         sounds.filter { $0.category == category }
     }
-    
+
     /// Get all free sounds
     public var freeSounds: [Sound] {
         sounds.filter { !$0.premium }
     }
-    
+
     /// Get all premium sounds
     public var premiumSounds: [Sound] {
         sounds.filter { $0.premium }
     }
-    
+
     /// Get a sound by ID
     public func sound(by id: UUID) -> Sound? {
         soundsById[id]
     }
-    
+
     /// Toggle favorite status for a sound
     public func toggleFavorite(_ soundId: UUID) {
         if favorites.contains(soundId) {
@@ -56,11 +56,11 @@ public final class SoundCatalog: ObservableObject {
                 // Would need access to subscription service to check premium status
                 // For now, allow unlimited favorites in development
                 #if DEBUG
-                favorites.insert(soundId)
+                    favorites.insert(soundId)
                 #else
-                // In production, this should trigger premium upsell
-                print("SoundCatalog: Free user reached favorites limit")
-                return
+                    // In production, this should trigger premium upsell
+                    print("SoundCatalog: Free user reached favorites limit")
+                    return
                 #endif
             } else {
                 favorites.insert(soundId)
@@ -68,18 +68,18 @@ public final class SoundCatalog: ObservableObject {
         }
         saveFavorites()
     }
-    
+
     /// Check if user can add more favorites (considering premium status)
     public func canAddFavorite(isPremium: Bool) -> Bool {
         let maxFreeFavorites = 5
         return isPremium || favorites.count < maxFreeFavorites
     }
-    
+
     /// Check if a sound is favorited
     public func isFavorite(_ soundId: UUID) -> Bool {
         favorites.contains(soundId)
     }
-    
+
     /// Get all favorited sounds
     public var favoriteSounds: [Sound] {
         favorites.compactMap { soundsById[$0] }
@@ -98,11 +98,11 @@ public final class SoundCatalog: ObservableObject {
     }
 
     // MARK: - Private Implementation
-    
+
     /// Load sounds from bundle JSON
     private func loadSounds() {
         // TODO-DATA: Load sounds from bundle JSON
-        
+
         Task {
             do {
                 try await loadSoundsFromJSON()
@@ -117,27 +117,28 @@ public final class SoundCatalog: ObservableObject {
             }
         }
     }
-    
+
     /// Update the sounds by ID index
     private func updateSoundsIndex() {
         soundsById = Dictionary(uniqueKeysWithValues: sounds.map { ($0.id, $0) })
     }
-    
+
     /// Load user favorites from UserDefaults
     private func loadFavorites() {
         if let data = UserDefaults.standard.data(forKey: "BabySounds.Favorites"),
-           let decoded = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+           let decoded = try? JSONDecoder().decode(Set<UUID>.self, from: data)
+        {
             favorites = decoded
         }
     }
-    
+
     /// Save user favorites to UserDefaults
     private func saveFavorites() {
         if let data = try? JSONEncoder().encode(favorites) {
             UserDefaults.standard.set(data, forKey: "BabySounds.Favorites")
         }
     }
-    
+
     /// Create sample sounds for development
     private func createSampleSounds() -> [Sound] {
         [
@@ -260,7 +261,7 @@ public final class SoundCatalog: ObservableObject {
                 defaultGainDb: 0,
                 color: .cyan,
                 emoji: "❄️"
-            )
+            ),
         ]
     }
 }
@@ -271,24 +272,24 @@ extension SoundCatalog {
     /// Load sounds from the bundled JSON file
     public func loadSoundsFromJSON() async throws {
         // TODO-DATA: Implement complete JSON loading with color parsing
-        
+
         guard let url = Bundle.main.url(forResource: "sounds", withExtension: "json") else {
             throw SoundCatalogError.bundleFileNotFound("sounds.json")
         }
-        
+
         let data = try Data(contentsOf: url)
-        
+
         // Parse JSON structure
         let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         guard let soundsArray = jsonObject?["sounds"] as? [[String: Any]] else {
             throw SoundCatalogError.invalidJSONStructure
         }
-        
+
         print("SoundCatalog: Found \(soundsArray.count) sounds in JSON")
-        
+
         // Convert to our Sound models
         var loadedSounds: [Sound] = []
-        
+
         for (index, soundData) in soundsArray.enumerated() {
             do {
                 let sound = try parseSound(from: soundData)
@@ -299,47 +300,49 @@ extension SoundCatalog {
                 continue
             }
         }
-        
+
         print("SoundCatalog: Successfully parsed \(loadedSounds.count) sounds")
-        
+
         await MainActor.run {
             self.sounds = loadedSounds
             self.updateSoundsIndex()
             print("SoundCatalog: Updated UI with \(self.sounds.count) sounds")
         }
     }
-    
+
     /// Parse a single sound from JSON data
     private func parseSound(from soundData: [String: Any]) throws -> Sound {
         // Required fields
         guard let idString = soundData["id"] as? String,
-              let id = UUID(uuidString: idString) else {
+              let id = UUID(uuidString: idString)
+        else {
             throw SoundCatalogError.invalidJSONStructure
         }
-        
+
         guard let titleKey = soundData["titleKey"] as? String else {
             throw SoundCatalogError.invalidJSONStructure
         }
-        
+
         guard let categoryString = soundData["category"] as? String,
-              let category = SoundCategory(rawValue: categoryString) else {
+              let category = SoundCategory(rawValue: categoryString)
+        else {
             throw SoundCatalogError.invalidJSONStructure
         }
-        
+
         guard let fileName = soundData["fileName"] as? String else {
             throw SoundCatalogError.invalidJSONStructure
         }
-        
+
         // Optional fields with defaults
         let fileExt = soundData["fileExt"] as? String ?? "mp3"
         let loop = soundData["loop"] as? Bool ?? true
         let premium = soundData["premium"] as? Bool ?? false
         let defaultGainDb = soundData["defaultGainDb"] as? Float ?? 0.0
         let emoji = soundData["emoji"] as? String
-        
+
         // Parse color from JSON
         let color = parseColor(from: soundData["color"]) ?? defaultColor(for: category)
-        
+
         return Sound(
             id: id,
             titleKey: LocalizedStringKey(titleKey),
@@ -353,18 +356,19 @@ extension SoundCatalog {
             emoji: emoji
         )
     }
-    
+
     /// Parse color from JSON color object
     private func parseColor(from colorData: Any?) -> Color? {
         guard let colorDict = colorData as? [String: Any],
               let red = colorDict["red"] as? Double,
               let green = colorDict["green"] as? Double,
-              let blue = colorDict["blue"] as? Double else {
+              let blue = colorDict["blue"] as? Double
+        else {
             return nil
         }
-        
+
         let alpha = colorDict["alpha"] as? Double ?? 1.0
-        
+
         return Color(
             red: red,
             green: green,
@@ -372,7 +376,7 @@ extension SoundCatalog {
             opacity: alpha
         )
     }
-    
+
     /// Get default color for a category if not specified in JSON
     private func defaultColor(for category: SoundCategory) -> Color {
         switch category {
@@ -409,22 +413,22 @@ extension SoundCatalog {
     }
 }
 
-// MARK: - Errors
+// MARK: - SoundCatalogError
 
 public enum SoundCatalogError: Error, LocalizedError {
     case bundleFileNotFound(String)
     case invalidJSONStructure
     case decodingError(Error)
-    
+
     public var errorDescription: String? {
         switch self {
-        case .bundleFileNotFound(let fileName):
+        case let .bundleFileNotFound(fileName):
             return "Bundle file not found: \(fileName)"
 
         case .invalidJSONStructure:
             return "Invalid JSON structure in sounds catalog"
 
-        case .decodingError(let error):
+        case let .decodingError(error):
             return "Failed to decode sound catalog: \(error.localizedDescription)"
         }
     }

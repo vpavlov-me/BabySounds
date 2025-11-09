@@ -1,5 +1,5 @@
-@testable import BabySounds
 import XCTest
+@testable import BabySounds
 
 @MainActor
 final class PremiumManagerTests: XCTestCase {
@@ -23,7 +23,7 @@ final class PremiumManagerTests: XCTestCase {
 
         // Then
         XCTAssertFalse(canPlayPremium,
-                      "Free users should not access premium sounds")
+                       "Free users should not access premium sounds")
     }
 
     func testFreeUserHasLimitedFavorites() {
@@ -35,7 +35,7 @@ final class PremiumManagerTests: XCTestCase {
 
         // Then
         XCTAssertTrue(canAddMore,
-                     "Free users should be able to add favorites under limit")
+                      "Free users should be able to add favorites under limit")
     }
 
     func testFreeUserCannotExceedFavoriteLimit() {
@@ -47,7 +47,7 @@ final class PremiumManagerTests: XCTestCase {
 
         // Then
         XCTAssertFalse(canAddMore,
-                      "Free users should not exceed \(maxFreeCount) favorites")
+                       "Free users should not exceed \(maxFreeCount) favorites")
     }
 
     func testFreeUserHasTimerLimit() {
@@ -59,7 +59,7 @@ final class PremiumManagerTests: XCTestCase {
 
         // Then
         XCTAssertFalse(canUseExtended,
-                      "Free users should be limited to \(freeTimerMax) minutes")
+                       "Free users should be limited to \(freeTimerMax) minutes")
     }
 
     func testFreeUserCanUseBasicTimer() {
@@ -71,7 +71,7 @@ final class PremiumManagerTests: XCTestCase {
 
         // Then
         XCTAssertTrue(canUse,
-                     "Free users should use timers within limit")
+                      "Free users should use timers within limit")
     }
 
     // MARK: - Premium Gate Tests
@@ -114,9 +114,9 @@ final class PremiumManagerTests: XCTestCase {
         let action = sut.gateFeature(feature)
 
         // Then
-        if case .showMessage(let message) = action {
+        if case let .showMessage(message) = action {
             XCTAssertFalse(message.isEmpty,
-                          "Timer gate should show informative message")
+                           "Timer gate should show informative message")
         } else {
             XCTFail("Expected showMessage action")
         }
@@ -134,7 +134,7 @@ final class PremiumManagerTests: XCTestCase {
 
         // Then
         XCTAssertFalse(canAddMore,
-                      "Free users limited to \(maxFreeTracks) simultaneous track(s)")
+                       "Free users limited to \(maxFreeTracks) simultaneous track(s)")
     }
 
     func testFreeUserNoGainAdjustment() {
@@ -147,7 +147,7 @@ final class PremiumManagerTests: XCTestCase {
 
         // Then
         XCTAssertEqual(allowedGain, maxFreeGain,
-                      "Free users should have no gain adjustment")
+                       "Free users should have no gain adjustment")
     }
 
     func testFreeUserNoPanAdjustment() {
@@ -160,7 +160,7 @@ final class PremiumManagerTests: XCTestCase {
 
         // Then
         XCTAssertEqual(allowedPan, maxFreePan,
-                      "Free users should have no pan adjustment")
+                       "Free users should have no pan adjustment")
     }
 
     // MARK: - Feature Info Tests
@@ -169,7 +169,7 @@ final class PremiumManagerTests: XCTestCase {
         // When/Then
         for feature in PremiumManager.PremiumFeature.allCases {
             XCTAssertFalse(feature.localizedName.isEmpty,
-                          "\(feature) should have a localized name")
+                           "\(feature) should have a localized name")
         }
     }
 
@@ -177,7 +177,7 @@ final class PremiumManagerTests: XCTestCase {
         // When/Then
         for feature in PremiumManager.PremiumFeature.allCases {
             XCTAssertFalse(feature.description.isEmpty,
-                          "\(feature) should have a description")
+                           "\(feature) should have a description")
         }
     }
 
@@ -185,7 +185,7 @@ final class PremiumManagerTests: XCTestCase {
         // When/Then
         for feature in PremiumManager.PremiumFeature.allCases {
             XCTAssertFalse(feature.icon.isEmpty,
-                          "\(feature) should have an icon")
+                           "\(feature) should have an icon")
         }
     }
 }

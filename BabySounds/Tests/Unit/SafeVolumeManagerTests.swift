@@ -1,5 +1,5 @@
-@testable import BabySounds
 import XCTest
+@testable import BabySounds
 
 @MainActor
 final class SafeVolumeManagerTests: XCTestCase {
@@ -76,7 +76,7 @@ final class SafeVolumeManagerTests: XCTestCase {
 
         // Then
         XCTAssertGreaterThan(sut.currentSessionDuration, 0,
-                            "Session duration should be tracked")
+                             "Session duration should be tracked")
     }
 
     func testListeningSessionEnds() {
@@ -89,7 +89,7 @@ final class SafeVolumeManagerTests: XCTestCase {
 
         // Then
         XCTAssertEqual(sut.currentSessionDuration, 0,
-                      "Session duration should reset after ending")
+                       "Session duration should reset after ending")
     }
 
     // MARK: - Headphone Safety Tests
@@ -104,7 +104,7 @@ final class SafeVolumeManagerTests: XCTestCase {
 
         // Then
         XCTAssertLessThan(safeVolume, 0.75,
-                         "Headphone mode should reduce volume below speaker limit")
+                          "Headphone mode should reduce volume below speaker limit")
     }
 
     // MARK: - Volume Conversion Tests
@@ -118,7 +118,7 @@ final class SafeVolumeManagerTests: XCTestCase {
 
         // Then
         XCTAssertEqual(linear, 1.0, accuracy: 0.01,
-                      "0 dB should equal linear volume of 1.0")
+                       "0 dB should equal linear volume of 1.0")
     }
 
     func testLinearToDbConversion() {
@@ -130,7 +130,7 @@ final class SafeVolumeManagerTests: XCTestCase {
 
         // Then
         XCTAssertEqual(db, 0.0, accuracy: 0.01,
-                      "Linear 1.0 should equal 0 dB")
+                       "Linear 1.0 should equal 0 dB")
     }
 
     func testNegativeDbReducesVolume() {
@@ -142,8 +142,8 @@ final class SafeVolumeManagerTests: XCTestCase {
 
         // Then
         XCTAssertLessThan(linear, 1.0,
-                         "Negative dB should result in volume < 1.0")
+                          "Negative dB should result in volume < 1.0")
         XCTAssertGreaterThan(linear, 0.0,
-                            "Negative dB should still be audible")
+                             "Negative dB should still be audible")
     }
 }

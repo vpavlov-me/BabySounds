@@ -1,37 +1,39 @@
 import SwiftUI
 
+// MARK: - SoundPlayerView
+
 struct SoundPlayerView: View {
     let sound: Sound
-    
+
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var soundCatalog: SoundCatalog
     @EnvironmentObject var premiumManager: PremiumManager
-    
+
     @State private var selectedTimerMinutes = 0 // 0 = infinite
     @State private var showPaywall = false
     @State private var fadeOutEnabled = true
-    
+
     private let timerOptions = [0, 15, 30, 45, 60, 90, 120] // 0 = infinite
-    
+
     var body: some View {
         GeometryReader { _ in
             ScrollView {
                 VStack(spacing: 32) {
                     Spacer(minLength: 20)
-                    
+
                     // Sound Card
                     VStack(spacing: 24) {
                         // Sound Emoji/Icon
                         Text(sound.displayEmoji)
                             .font(.system(size: 120))
-                        
+
                         // Sound Title
                         Text(sound.titleKey)
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.center)
-                        
+
                         // Premium Badge
                         if sound.premium {
                             HStack {
@@ -59,7 +61,7 @@ struct SoundPlayerView: View {
                             )
                     )
                     .padding(.horizontal)
-                    
+
                     // Play Controls
                     VStack(spacing: 24) {
                         // Play/Pause Button
@@ -81,7 +83,7 @@ struct SoundPlayerView: View {
                         }
                         .disabled(sound.premium && !premiumManager.canPlayPremiumSound())
                         .opacity(sound.premium && !premiumManager.canPlayPremiumSound() ? 0.6 : 1.0)
-                        
+
                         // Premium Unlock Message
                         if sound.premium && !premiumManager.canPlayPremiumSound() {
                             Button("Unlock Premium to Play") {
@@ -92,7 +94,7 @@ struct SoundPlayerView: View {
                         }
                     }
                     .padding(.horizontal)
-                    
+
                     if subscriptionService.isPremium || !sound.premium {
                         // Volume Control
                         VStack(spacing: 16) {
@@ -104,20 +106,20 @@ struct SoundPlayerView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
-                            
+
                             HStack(spacing: 16) {
                                 Image(systemName: "speaker.fill")
                                     .foregroundColor(.secondary)
-                                
+
                                 Slider(
                                     value: Binding(
                                         get: { audioManager.currentVolume },
                                         set: { audioManager.setVolume($0) }
                                     ),
-                                    in: 0...1
+                                    in: 0 ... 1
                                 )
                                 .accentColor(sound.color.color)
-                                
+
                                 Image(systemName: "speaker.wave.3.fill")
                                     .foregroundColor(.secondary)
                             }
@@ -128,7 +130,7 @@ struct SoundPlayerView: View {
                                 .fill(Color(.systemGray6))
                         )
                         .padding(.horizontal)
-                        
+
                         // Timer Control
                         VStack(spacing: 16) {
                             HStack {
@@ -141,7 +143,7 @@ struct SoundPlayerView: View {
                                         .foregroundColor(.secondary)
                                 }
                             }
-                            
+
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
                                     ForEach(timerOptions, id: \.self) { minutes in
@@ -158,7 +160,7 @@ struct SoundPlayerView: View {
                                 }
                                 .padding(.horizontal)
                             }
-                            
+
                             // Fade Out Toggle
                             Toggle("Fade out when timer ends", isOn: $fadeOutEnabled)
                                 .font(.subheadline)
@@ -170,7 +172,7 @@ struct SoundPlayerView: View {
                         )
                         .padding(.horizontal)
                     }
-                    
+
                     Spacer(minLength: 40)
                 }
             }
@@ -194,17 +196,17 @@ struct SoundPlayerView: View {
             }
         }
     }
-    
+
     private var isFavorite: Bool {
         soundCatalog.favorites.contains(sound.id)
     }
-    
+
     private func togglePlayback() {
-        if sound.premium && !premiumManager.canPlayPremiumSound() {
+        if sound.premium, !premiumManager.canPlayPremiumSound() {
             premiumManager.requestAccess(to: .premiumSounds)
             return
         }
-        
+
         if audioManager.isPlaying {
             audioManager.stopSound(fadeOut: fadeOutEnabled)
         } else {
@@ -214,20 +216,20 @@ struct SoundPlayerView: View {
             }
         }
     }
-    
+
     private func selectTimer(_ minutes: Int) {
         if !premiumManager.canSetTimer(minutes: minutes) {
             premiumManager.requestAccess(to: .extendedTimer)
             return
         }
-        
+
         selectedTimerMinutes = minutes
-        
-        if audioManager.isPlaying && minutes > 0 {
+
+        if audioManager.isPlaying, minutes > 0 {
             audioManager.setTimer(minutes: minutes)
         }
     }
-    
+
     private func toggleFavorite() {
         if isFavorite {
             soundCatalog.favorites.remove(sound.id)
@@ -240,7 +242,7 @@ struct SoundPlayerView: View {
             soundCatalog.favorites.insert(sound.id)
         }
     }
-    
+
     private func formatTime(_ timeInterval: TimeInterval) -> String {
         let minutes = Int(timeInterval) / 60
         let seconds = Int(timeInterval) % 60
@@ -248,12 +250,14 @@ struct SoundPlayerView: View {
     }
 }
 
+// MARK: - TimerButton
+
 struct TimerButton: View {
     let minutes: Int
     let isSelected: Bool
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(timerText)
@@ -269,7 +273,7 @@ struct TimerButton: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
-    
+
     private var timerText: String {
         if minutes == 0 {
             return "∞"

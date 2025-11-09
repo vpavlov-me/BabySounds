@@ -1,16 +1,16 @@
 import SwiftUI
 
-// MARK: - Sleep List View
+// MARK: - SleepListView
 
 struct SleepListView: View {
     @EnvironmentObject var soundCatalog: SoundCatalog
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var premiumManager: PremiumManager
-    
+
     @State private var scrollOffset: CGFloat = 0
     @State private var showNowPlaying = false
     @State private var showSearch = false
-    
+
     var body: some View {
         GeometryReader { _ in
             ZStack(alignment: .bottom) {
@@ -20,11 +20,11 @@ struct SleepListView: View {
                         // Hero section
                         heroSection
                             .padding(.bottom, 24)
-                        
+
                         // Sound categories
                         ForEach(SoundCategory.allCases.filter { $0 != .all }, id: \.self) { category in
                             let sounds = soundCatalog.sounds(for: category)
-                            
+
                             if !sounds.isEmpty {
                                 Section {
                                     ForEach(sounds, id: \.id) { sound in
@@ -39,7 +39,7 @@ struct SleepListView: View {
                                 }
                             }
                         }
-                        
+
                         // Bottom spacing for mini player
                         Spacer()
                             .frame(height: 100)
@@ -52,14 +52,17 @@ struct SleepListView: View {
                     // Scroll offset tracking
                     GeometryReader { scrollGeometry in
                         Color.clear
-                            .preference(key: ScrollOffsetPreferenceKey.self, value: scrollGeometry.frame(in: .named("scroll")).minY)
+                            .preference(
+                                key: ScrollOffsetPreferenceKey.self,
+                                value: scrollGeometry.frame(in: .named("scroll")).minY
+                            )
                     }
                 )
                 .coordinateSpace(name: "scroll")
                 .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                     scrollOffset = value
                 }
-                
+
                 // Mini Player
                 MiniPlayerView(showNowPlaying: $showNowPlaying)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -79,7 +82,7 @@ struct SleepListView: View {
                             .font(.body)
                             .foregroundColor(.primary)
                     }
-                    
+
                     // AirPlay button
                     Button {
                         // Handle AirPlay
@@ -99,9 +102,9 @@ struct SleepListView: View {
             SearchView()
         }
     }
-    
+
     // MARK: - Hero Section
-    
+
     private var heroSection: some View {
         VStack(spacing: 20) {
             // Welcome message
@@ -110,7 +113,7 @@ struct SleepListView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
-                
+
                 Text("Peaceful sounds to help you relax and fall asleep")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -118,7 +121,7 @@ struct SleepListView: View {
                     .padding(.horizontal, 32)
             }
             .padding(.top, 16)
-            
+
             // Quick access buttons
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
@@ -130,17 +133,17 @@ struct SleepListView: View {
             }
         }
     }
-    
+
     // MARK: - Quick Access Sounds
-    
+
     private var quickAccessSounds: [Sound] {
         // Return popular/featured sounds for quick access
         let allSounds = soundCatalog.allSounds
         return Array(allSounds.prefix(5))
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func refreshSounds() async {
         // Simulate refresh
         try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -149,15 +152,15 @@ struct SleepListView: View {
     }
 }
 
-// MARK: - Quick Access Button
+// MARK: - QuickAccessButton
 
 struct QuickAccessButton: View {
     let sound: Sound
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var premiumManager: PremiumManager
-    
+
     @State private var isPressed = false
-    
+
     var body: some View {
         Button {
             playSound()
@@ -172,11 +175,11 @@ struct QuickAccessButton: View {
                         ))
                         .frame(width: 60, height: 60)
                         .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-                    
+
                     Text(sound.displayEmoji)
                         .font(.title2)
                 }
-                
+
                 Text(sound.titleKey)
                     .font(.caption)
                     .fontWeight(.medium)
@@ -193,14 +196,14 @@ struct QuickAccessButton: View {
             playSound()
         }
     }
-    
+
     private func playSound() {
-        if sound.premium && !premiumManager.isPremium {
+        if sound.premium, !premiumManager.isPremium {
             // Show premium alert
             HapticManager.shared.notification(.warning)
             return
         }
-        
+
         Task {
             do {
                 try await audioManager.playSound(sound)
@@ -213,11 +216,11 @@ struct QuickAccessButton: View {
     }
 }
 
-// MARK: - Scroll Offset Preference Key
+// MARK: - ScrollOffsetPreferenceKey
 
 struct ScrollOffsetPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
-    
+
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
     }
@@ -250,7 +253,7 @@ extension SoundCategory {
             return "Fan Sounds"
         }
     }
-    
+
     var icon: String {
         switch self {
         case .all:

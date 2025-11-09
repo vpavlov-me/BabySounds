@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Search View
+// MARK: - SearchView
 
 struct SearchView: View {
     @EnvironmentObject var soundCatalog: SoundCatalog
@@ -23,7 +23,7 @@ struct SearchView: View {
         if !searchText.isEmpty {
             sounds = sounds.filter { sound in
                 sound.name.localizedCaseInsensitiveContains(searchText) ||
-                sound.category.localizedName.description.localizedCaseInsensitiveContains(searchText)
+                    sound.category.localizedName.description.localizedCaseInsensitiveContains(searchText)
             }
         }
 
@@ -113,7 +113,7 @@ struct SearchView: View {
     }
 }
 
-// MARK: - Category Filter Chip
+// MARK: - CategoryFilterChip
 
 struct CategoryFilterChip: View {
     let category: SoundCategory

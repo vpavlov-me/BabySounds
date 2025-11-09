@@ -6,9 +6,9 @@ struct SleepScheduleEditView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var scheduleManager = SleepScheduleManager.shared
     @StateObject private var soundCatalog = SoundCatalog.shared
-    
+
     let originalSchedule: SleepSchedule?
-    
+
     @State private var name: String
     @State private var isEnabled: Bool
     @State private var bedTime: Date
@@ -17,17 +17,17 @@ struct SleepScheduleEditView: View {
     @State private var reminderMinutes: Int
     @State private var selectedSounds: [String]
     @State private var autoFadeMinutes: Int
-    
+
     @State private var showingSoundSelection = false
     @State private var isSaving = false
     @State private var showingError = false
     @State private var lastError: Error?
-    
+
     // MARK: - Initialization
-    
+
     init(schedule: SleepSchedule?) {
-        self.originalSchedule = schedule
-        
+        originalSchedule = schedule
+
         if let schedule = schedule {
             _name = State(initialValue: schedule.name)
             _isEnabled = State(initialValue: schedule.isEnabled)
@@ -40,17 +40,19 @@ struct SleepScheduleEditView: View {
         } else {
             _name = State(initialValue: "My Sleep Schedule")
             _isEnabled = State(initialValue: true)
-            _bedTime = State(initialValue: Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: Date()) ?? Date())
-            _wakeTime = State(initialValue: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date())
+            _bedTime = State(initialValue: Calendar.current
+                .date(bySettingHour: 20, minute: 0, second: 0, of: Date()) ?? Date())
+            _wakeTime = State(initialValue: Calendar.current
+                .date(bySettingHour: 7, minute: 0, second: 0, of: Date()) ?? Date())
             _selectedDays = State(initialValue: Set(Weekday.allCases))
             _reminderMinutes = State(initialValue: 30)
             _selectedSounds = State(initialValue: [])
             _autoFadeMinutes = State(initialValue: 45)
         }
     }
-    
+
     // MARK: - Body
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -80,7 +82,7 @@ struct SleepScheduleEditView: View {
                 SoundSelectionView(selectedSounds: $selectedSounds)
             }
             .alert("Error", isPresented: $showingError) {
-                Button("OK") { }
+                Button("OK") {}
             } message: {
                 if let error = lastError {
                     Text(error.localizedDescription)
@@ -88,9 +90,9 @@ struct SleepScheduleEditView: View {
             }
         }
     }
-    
+
     // MARK: - Basic Settings Section
-    
+
     private var basicSettingsSection: some View {
         Section("Basic Settings") {
             HStack {
@@ -103,10 +105,10 @@ struct SleepScheduleEditView: View {
             Toggle("Enabled", isOn: $isEnabled)
         }
     }
-    
+
     // MARK: - Time Settings Section
-    
-         private var timeSettingsSection: some View {
+
+    private var timeSettingsSection: some View {
         Section("Time") {
             DatePicker("Bedtime", selection: $bedTime, displayedComponents: .hourAndMinute)
                 .datePickerStyle(CompactDatePickerStyle())
@@ -131,9 +133,9 @@ struct SleepScheduleEditView: View {
             Text("A reminder notification will be sent before bedtime")
         }
     }
-    
+
     // MARK: - Days Section
-    
+
     private var daysSection: some View {
         Section("Weekdays") {
             VStack(spacing: 12) {
@@ -143,7 +145,7 @@ struct SleepScheduleEditView: View {
                     quickSelectButton("Weekdays", days: [.monday, .tuesday, .wednesday, .thursday, .friday])
                     quickSelectButton("Weekends", days: [.saturday, .sunday])
                 }
-                
+
                 // Individual day toggles
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
                     ForEach(Weekday.allCases.sorted(), id: \.self) { day in
@@ -166,9 +168,9 @@ struct SleepScheduleEditView: View {
             Text("Select the days when the schedule should be active")
         }
     }
-    
+
     // MARK: - Sounds Section
-    
+
     private var soundsSection: some View {
         Section("Sounds") {
             Button(action: { showingSoundSelection = true }) {
@@ -183,14 +185,14 @@ struct SleepScheduleEditView: View {
                         Text("\(selectedSounds.count) sound(s)")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     Image(systemName: "chevron.right")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
             .buttonStyle(PlainButtonStyle())
-            
+
             if !selectedSounds.isEmpty {
                 ForEach(selectedSounds.prefix(3), id: \.self) { soundId in
                     if let sound = soundCatalog.sounds.first(where: { $0.id == soundId }) {
@@ -198,17 +200,17 @@ struct SleepScheduleEditView: View {
                             Circle()
                                 .fill(Color(sound.color))
                                 .frame(width: 12, height: 12)
-                            
+
                             Text(sound.name)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            
+
                             Spacer()
                         }
                         .padding(.leading, 16)
                     }
                 }
-                
+
                 if selectedSounds.count > 3 {
                     Text("... and \(selectedSounds.count - 3) more")
                         .font(.caption)
@@ -220,9 +222,9 @@ struct SleepScheduleEditView: View {
             Text("Selected sounds will play automatically at the scheduled time")
         }
     }
-    
+
     // MARK: - Advanced Section
-    
+
     private var advancedSection: some View {
         Section("Advanced") {
             HStack {
@@ -242,9 +244,9 @@ struct SleepScheduleEditView: View {
             Text("Sounds will automatically fade out after the selected time")
         }
     }
-    
+
     // MARK: - Quick Select Button
-    
+
     private func quickSelectButton(_ title: String, days: Set<Weekday>) -> some View {
         Button(title) {
             selectedDays = days
@@ -253,12 +255,12 @@ struct SleepScheduleEditView: View {
         .controlSize(.small)
         .tint(selectedDays == days ? .blue : .gray)
     }
-    
+
     // MARK: - Save Action
-    
+
     private func saveSchedule() {
         isSaving = true
-        
+
         Task {
             do {
                 let schedule = SleepSchedule(
@@ -271,7 +273,7 @@ struct SleepScheduleEditView: View {
                     selectedSounds: selectedSounds,
                     autoFadeMinutes: autoFadeMinutes
                 )
-                
+
                 if let originalSchedule = originalSchedule {
                     // Create updated schedule preserving the original ID and creation date
                     let updatedSchedule = SleepSchedule(
@@ -286,12 +288,12 @@ struct SleepScheduleEditView: View {
                         autoFadeMinutes: schedule.autoFadeMinutes,
                         dateCreated: originalSchedule.dateCreated
                     )
-                    
+
                     try await scheduleManager.updateSchedule(updatedSchedule)
                 } else {
                     try await scheduleManager.addSchedule(schedule)
                 }
-                
+
                 await MainActor.run {
                     dismiss()
                 }
@@ -306,7 +308,7 @@ struct SleepScheduleEditView: View {
     }
 }
 
-// MARK: - Checkbox Toggle Style
+// MARK: - CheckboxToggleStyle
 
 struct CheckboxToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -316,27 +318,27 @@ struct CheckboxToggleStyle: ToggleStyle {
                 .onTapGesture {
                     configuration.isOn.toggle()
                 }
-            
+
             configuration.label
                 .onTapGesture {
                     configuration.isOn.toggle()
                 }
-            
+
             Spacer()
         }
     }
 }
 
-// MARK: - Sound Selection View
+// MARK: - SoundSelectionView
 
 struct SoundSelectionView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var soundCatalog = SoundCatalog.shared
     @StateObject private var premiumManager = PremiumManager.shared
-    
+
     @Binding var selectedSounds: [String]
     @State private var searchText = ""
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -344,13 +346,13 @@ struct SoundSelectionView: View {
                     SoundSelectionRow(
                         sound: sound,
                         isSelected: selectedSounds.contains(sound.id)
-                    )                        { isSelected in
-                            if isSelected {
-                                selectedSounds.append(sound.id)
-                            } else {
-                                selectedSounds.removeAll { $0 == sound.id }
-                            }
+                    ) { isSelected in
+                        if isSelected {
+                            selectedSounds.append(sound.id)
+                        } else {
+                            selectedSounds.removeAll { $0 == sound.id }
                         }
+                    }
                 }
             }
             .navigationTitle("Select Sounds")
@@ -372,56 +374,56 @@ struct SoundSelectionView: View {
             }
         }
     }
-    
+
     private var filteredSounds: [Sound] {
         let sounds = soundCatalog.sounds
-        
+
         if searchText.isEmpty {
             return sounds
         } else {
             return sounds.filter { sound in
                 sound.name.localizedCaseInsensitiveContains(searchText) ||
-                sound.category.rawValue.localizedCaseInsensitiveContains(searchText)
+                    sound.category.rawValue.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
 }
 
-// MARK: - Sound Selection Row
+// MARK: - SoundSelectionRow
 
 struct SoundSelectionRow: View {
     let sound: Sound
     let isSelected: Bool
     let onToggle: (Bool) -> Void
-    
+
     @StateObject private var premiumManager = PremiumManager.shared
-    
+
     var body: some View {
         HStack {
             // Color indicator
             Circle()
                 .fill(Color(sound.color))
                 .frame(width: 16, height: 16)
-            
+
             // Sound info
             VStack(alignment: .leading, spacing: 2) {
                 Text(sound.name)
                     .font(.headline)
-                
+
                 Text(sound.category.displayName)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
+
             // Premium badge
             if sound.isPremium && !premiumManager.hasSubscription {
                 Image(systemName: "crown.fill")
                     .foregroundColor(.orange)
                     .font(.caption)
             }
-            
+
             // Selection indicator
             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                 .foregroundColor(isSelected ? .blue : .gray)
@@ -434,14 +436,14 @@ struct SoundSelectionRow: View {
                 // TODO: Show premium gate
                 return
             }
-            
+
             onToggle(!isSelected)
         }
         .opacity(sound.isPremium && !premiumManager.hasSubscription ? 0.6 : 1.0)
     }
 }
 
-// MARK: - Preview
+// MARK: - SleepScheduleEditView_Previews
 
 struct SleepScheduleEditView_Previews: PreviewProvider {
     static var previews: some View {

@@ -1,12 +1,12 @@
 import SwiftUI
 
-// MARK: - Apple Music Style Settings View
+// MARK: - AppleMusicSettingsView
 
 struct AppleMusicSettingsView: View {
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var premiumManager: PremiumManager
     @EnvironmentObject var audioManager: AudioEngineManager
-    
+
     @State private var showPaywall = false
     @State private var showParentGate = false
     @State private var showNowPlaying = false
@@ -15,7 +15,7 @@ struct AppleMusicSettingsView: View {
     @AppStorage("offlineDownloadsEnabled") private var offlineDownloadsEnabled = false
     @AppStorage("hasPassedParentGate") private var hasPassedParentGate = false
     @AppStorage("parentGateTimeout") private var parentGateTimeout: Double = 0
-    
+
     var body: some View {
         GeometryReader { _ in
             ZStack(alignment: .bottom) {
@@ -31,7 +31,7 @@ struct AppleMusicSettingsView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
                     }
-                    
+
                     // Audio Section
                     Section {
                         audioSection
@@ -42,7 +42,7 @@ struct AppleMusicSettingsView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
                     }
-                    
+
                     // Downloads Section (Premium)
                     if premiumManager.isPremium {
                         Section {
@@ -55,7 +55,7 @@ struct AppleMusicSettingsView: View {
                                 .foregroundColor(.primary)
                         }
                     }
-                    
+
                     // Child Safety Section
                     Section {
                         safetySection
@@ -66,7 +66,7 @@ struct AppleMusicSettingsView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
                     }
-                    
+
                     // About Section
                     Section {
                         aboutSection
@@ -77,7 +77,7 @@ struct AppleMusicSettingsView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
                     }
-                    
+
                     // Bottom spacing for mini player
                     Color.clear
                         .frame(height: 100)
@@ -86,7 +86,7 @@ struct AppleMusicSettingsView: View {
                         .listRowBackground(Color.clear)
                 }
                 .listStyle(.insetGrouped)
-                
+
                 // Mini Player
                 MiniPlayerView(showNowPlaying: $showNowPlaying)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -101,20 +101,20 @@ struct AppleMusicSettingsView: View {
             ParentGateView(
                 isPresented: $showParentGate,
                 context: .settings
-            )                {
-                    hasPassedParentGate = true
-                    parentGateTimeout = Date().timeIntervalSince1970 + 300 // 5 minutes
-                    pendingAction?()
-                    pendingAction = nil
-                }
+            ) {
+                hasPassedParentGate = true
+                parentGateTimeout = Date().timeIntervalSince1970 + 300 // 5 minutes
+                pendingAction?()
+                pendingAction = nil
+            }
         }
         .fullScreenCover(isPresented: $showNowPlaying) {
             NowPlayingView(isPresented: $showNowPlaying)
         }
     }
-    
+
     // MARK: - Account Section
-    
+
     private var accountSection: some View {
         Group {
             if subscriptionService.isPremium {
@@ -124,10 +124,10 @@ struct AppleMusicSettingsView: View {
                     iconColor: .orange,
                     title: "Premium",
                     subtitle: "Active subscription"
-                )                    {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                    }
+                ) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                }
             } else {
                 // Upgrade to Premium
                 SettingsRow(
@@ -147,23 +147,23 @@ struct AppleMusicSettingsView: View {
                     }
                 )
             }
-            
+
             // Restore Purchases
             SettingsRow(
                 icon: "arrow.clockwise",
                 iconColor: .blue,
                 title: "Restore Purchases",
                 subtitle: "Restore previous purchases"
-            )                {
-                    requireParentGate {
-                        restorePurchases()
-                    }
+            ) {
+                requireParentGate {
+                    restorePurchases()
                 }
+            }
         }
     }
-    
+
     // MARK: - Audio Section
-    
+
     private var audioSection: some View {
         Group {
             // Safe Volume
@@ -172,15 +172,15 @@ struct AppleMusicSettingsView: View {
                 iconColor: .pink,
                 title: "Safe Volume",
                 subtitle: "WHO-compliant hearing protection"
-            )                {
-                    Toggle("", isOn: $safeVolumeEnabled)
-                        .labelsHidden()
-                        .onChange(of: safeVolumeEnabled) { enabled in
-                            audioManager.setSafeVolumeEnabled(enabled)
-                            HapticManager.shared.impact(.light)
-                        }
-                }
-            
+            ) {
+                Toggle("", isOn: $safeVolumeEnabled)
+                    .labelsHidden()
+                    .onChange(of: safeVolumeEnabled) { enabled in
+                        audioManager.setSafeVolumeEnabled(enabled)
+                        HapticManager.shared.impact(.light)
+                    }
+            }
+
             // Audio Quality (Premium feature)
             SettingsRow(
                 icon: "waveform",
@@ -191,29 +191,29 @@ struct AppleMusicSettingsView: View {
                     showPaywall = true
                     HapticManager.shared.impact(.light)
                 }
-            )                {
-                    if !premiumManager.isPremium {
-                        Image(systemName: "crown.fill")
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                    }
+            ) {
+                if !premiumManager.isPremium {
+                    Image(systemName: "crown.fill")
+                        .font(.caption)
+                        .foregroundColor(.orange)
                 }
-            
+            }
+
             // AirPlay
             SettingsRow(
                 icon: "airplayaudio",
                 iconColor: .blue,
                 title: "AirPlay",
                 subtitle: "Stream to speakers and headphones"
-            )                {
-                    // Handle AirPlay settings
-                    HapticManager.shared.impact(.light)
-                }
+            ) {
+                // Handle AirPlay settings
+                HapticManager.shared.impact(.light)
+            }
         }
     }
-    
+
     // MARK: - Downloads Section
-    
+
     private var downloadsSection: some View {
         Group {
             // Offline Downloads Toggle
@@ -222,14 +222,14 @@ struct AppleMusicSettingsView: View {
                 iconColor: .green,
                 title: "Automatic Downloads",
                 subtitle: "Download favorites for offline use"
-            )                {
-                    Toggle("", isOn: $offlineDownloadsEnabled)
-                        .labelsHidden()
-                        .onChange(of: offlineDownloadsEnabled) { _ in
-                            HapticManager.shared.impact(.light)
-                        }
-                }
-            
+            ) {
+                Toggle("", isOn: $offlineDownloadsEnabled)
+                    .labelsHidden()
+                    .onChange(of: offlineDownloadsEnabled) { _ in
+                        HapticManager.shared.impact(.light)
+                    }
+            }
+
             // Storage Usage
             SettingsRow(
                 icon: "externaldrive.fill",
@@ -245,7 +245,7 @@ struct AppleMusicSettingsView: View {
                         Text("2.3 GB") // Placeholder
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        
+
                         Image(systemName: "chevron.right")
                             .font(.caption)
                             .fontWeight(.medium)
@@ -255,9 +255,9 @@ struct AppleMusicSettingsView: View {
             )
         }
     }
-    
+
     // MARK: - Safety Section
-    
+
     private var safetySection: some View {
         Group {
             // Parental Controls
@@ -279,7 +279,7 @@ struct AppleMusicSettingsView: View {
                         .foregroundColor(.secondary)
                 }
             )
-            
+
             // Privacy
             SettingsRow(
                 icon: "lock.shield.fill",
@@ -299,9 +299,9 @@ struct AppleMusicSettingsView: View {
             )
         }
     }
-    
+
     // MARK: - About Section
-    
+
     private var aboutSection: some View {
         Group {
             // Help & Support
@@ -321,7 +321,7 @@ struct AppleMusicSettingsView: View {
                         .foregroundColor(.secondary)
                 }
             )
-            
+
             // App Version
             SettingsRow(
                 icon: "info.circle.fill",
@@ -331,12 +331,12 @@ struct AppleMusicSettingsView: View {
             ) // Placeholder
                 {
                     EmptyView()
-                }
+            }
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func requireParentGate(action: @escaping () -> Void) {
         if isParentGateValid() {
             action()
@@ -345,11 +345,11 @@ struct AppleMusicSettingsView: View {
             showParentGate = true
         }
     }
-    
+
     private func isParentGateValid() -> Bool {
         hasPassedParentGate && Date().timeIntervalSince1970 < parentGateTimeout
     }
-    
+
     private func restorePurchases() {
         Task {
             do {
@@ -363,7 +363,7 @@ struct AppleMusicSettingsView: View {
     }
 }
 
-// MARK: - Settings Row
+// MARK: - SettingsRow
 
 struct SettingsRow<Trailing: View>: View {
     let icon: String
@@ -372,7 +372,7 @@ struct SettingsRow<Trailing: View>: View {
     let subtitle: String?
     let action: (() -> Void)?
     let trailing: () -> Trailing
-    
+
     init(
         icon: String,
         iconColor: Color,
@@ -388,7 +388,7 @@ struct SettingsRow<Trailing: View>: View {
         self.action = action
         self.trailing = trailing
     }
-    
+
     var body: some View {
         Button(action: action ?? {}) {
             HStack(spacing: 12) {
@@ -397,13 +397,13 @@ struct SettingsRow<Trailing: View>: View {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(iconColor)
                         .frame(width: 28, height: 28)
-                    
+
                     Image(systemName: icon)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
                 }
-                
+
                 // Content
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
@@ -411,7 +411,7 @@ struct SettingsRow<Trailing: View>: View {
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
                         .lineLimit(1)
-                    
+
                     if let subtitle = subtitle {
                         Text(subtitle)
                             .font(.caption)
@@ -419,9 +419,9 @@ struct SettingsRow<Trailing: View>: View {
                             .lineLimit(2)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 // Trailing content
                 trailing()
             }

@@ -1,7 +1,7 @@
 import Foundation
 import OSLog
 
-// MARK: - Analytics Event
+// MARK: - AnalyticsEvent
 
 /// Privacy-compliant analytics event
 public struct AnalyticsEvent {
@@ -11,23 +11,23 @@ public struct AnalyticsEvent {
     let timestamp: Date
 
     enum EventCategory: String {
-        case app = "app"
-        case audio = "audio"
-        case premium = "premium"
-        case safety = "safety"
-        case schedule = "schedule"
-        case error = "error"
+        case app
+        case audio
+        case premium
+        case safety
+        case schedule
+        case error
     }
 
     init(name: String, category: EventCategory, properties: [String: String] = [:]) {
         self.name = name
         self.category = category
         self.properties = properties
-        self.timestamp = Date()
+        timestamp = Date()
     }
 }
 
-// MARK: - Analytics Service
+// MARK: - AnalyticsService
 
 /// Privacy-first analytics service
 /// No PII collected, COPPA compliant, uses local logging only for v1.0
@@ -53,7 +53,7 @@ public class AnalyticsService: ObservableObject {
         guard isEnabled else { return }
 
         // Log to OSLog (viewable in Console.app)
-        logger.info("[\(event.category.rawValue)] \(event.name) \(self.formatProperties(event.properties))")
+        logger.info("[\(event.category.rawValue)] \(event.name) \(formatProperties(event.properties))")
 
         // Future: Send to TelemetryDeck or Firebase
         // For v1.0, we only log locally (privacy-first approach)
@@ -84,20 +84,20 @@ public class AnalyticsService: ObservableObject {
     public func trackSoundPlayed(soundId: String, isLoop: Bool) {
         track("sound_played", category: .audio, properties: [
             "sound_id": soundId,
-            "loop": isLoop ? "true" : "false"
+            "loop": isLoop ? "true" : "false",
         ])
     }
 
     public func trackSoundStopped(soundId: String, duration: TimeInterval) {
         track("sound_stopped", category: .audio, properties: [
             "sound_id": soundId,
-            "duration_seconds": String(format: "%.0f", duration)
+            "duration_seconds": String(format: "%.0f", duration),
         ])
     }
 
     public func trackMultiTrackMixing(trackCount: Int) {
         track("multi_track_mixing", category: .audio, properties: [
-            "track_count": "\(trackCount)"
+            "track_count": "\(trackCount)",
         ])
     }
 
@@ -106,38 +106,38 @@ public class AnalyticsService: ObservableObject {
     public func trackPremiumFeatureAttempted(feature: String, userType: String) {
         track("premium_feature_attempted", category: .premium, properties: [
             "feature": feature,
-            "user_type": userType // "free" or "premium"
+            "user_type": userType, // "free" or "premium"
         ])
     }
 
     public func trackPaywallShown(feature: String) {
         track("paywall_shown", category: .premium, properties: [
-            "feature": feature
+            "feature": feature,
         ])
     }
 
     public func trackPurchaseInitiated(productId: String) {
         track("purchase_initiated", category: .premium, properties: [
-            "product_id": productId
+            "product_id": productId,
         ])
     }
 
     public func trackPurchaseCompleted(productId: String) {
         track("purchase_completed", category: .premium, properties: [
-            "product_id": productId
+            "product_id": productId,
         ])
     }
 
     public func trackPurchaseFailed(productId: String, reason: String) {
         track("purchase_failed", category: .premium, properties: [
             "product_id": productId,
-            "reason": reason
+            "reason": reason,
         ])
     }
 
     public func trackRestorePurchases(success: Bool) {
         track("restore_purchases", category: .premium, properties: [
-            "success": success ? "true" : "false"
+            "success": success ? "true" : "false",
         ])
     }
 
@@ -145,21 +145,21 @@ public class AnalyticsService: ObservableObject {
 
     public func trackParentGateShown(action: String) {
         track("parent_gate_shown", category: .safety, properties: [
-            "action": action
+            "action": action,
         ])
     }
 
     public func trackParentGatePassed(action: String, attempts: Int) {
         track("parent_gate_passed", category: .safety, properties: [
             "action": action,
-            "attempts": "\(attempts)"
+            "attempts": "\(attempts)",
         ])
     }
 
     public func trackParentGateFailed(action: String, attempts: Int) {
         track("parent_gate_failed", category: .safety, properties: [
             "action": action,
-            "attempts": "\(attempts)"
+            "attempts": "\(attempts)",
         ])
     }
 
@@ -167,19 +167,19 @@ public class AnalyticsService: ObservableObject {
         // Anonymize URL - only track domain
         let domain = URL(string: url)?.host ?? "unknown"
         track("external_link_opened", category: .safety, properties: [
-            "domain": domain
+            "domain": domain,
         ])
     }
 
     public func trackVolumeWarning(level: Float) {
         track("volume_warning", category: .safety, properties: [
-            "level": String(format: "%.2f", level)
+            "level": String(format: "%.2f", level),
         ])
     }
 
     public func trackListeningTimeWarning(minutes: Int) {
         track("listening_time_warning", category: .safety, properties: [
-            "minutes": "\(minutes)"
+            "minutes": "\(minutes)",
         ])
     }
 
@@ -188,14 +188,14 @@ public class AnalyticsService: ObservableObject {
     public func trackScheduleCreated(daysCount: Int, hasSounds: Bool) {
         track("schedule_created", category: .schedule, properties: [
             "days_count": "\(daysCount)",
-            "has_sounds": hasSounds ? "true" : "false"
+            "has_sounds": hasSounds ? "true" : "false",
         ])
     }
 
-    public func trackScheduleTriggered(scheduleId: String, soundsCount: Int) {
+    public func trackScheduleTriggered(scheduleId _: String, soundsCount: Int) {
         // Anonymize schedule ID
         track("schedule_triggered", category: .schedule, properties: [
-            "sounds_count": "\(soundsCount)"
+            "sounds_count": "\(soundsCount)",
         ])
     }
 
@@ -205,7 +205,7 @@ public class AnalyticsService: ObservableObject {
 
     public func trackNotificationPermissionGranted(granted: Bool) {
         track("notification_permission_granted", category: .schedule, properties: [
-            "granted": granted ? "true" : "false"
+            "granted": granted ? "true" : "false",
         ])
     }
 
@@ -214,14 +214,14 @@ public class AnalyticsService: ObservableObject {
     public func trackError(error: Error, context: String) {
         track("error_occurred", category: .error, properties: [
             "context": context,
-            "error_type": String(describing: type(of: error))
+            "error_type": String(describing: type(of: error)),
         ])
     }
 
     public func trackAudioError(soundId: String, error: String) {
         track("audio_error", category: .error, properties: [
             "sound_id": soundId,
-            "error": error
+            "error": error,
         ])
     }
 
@@ -240,7 +240,7 @@ public class AnalyticsService: ObservableObject {
         [
             "platform": "iOS",
             "os_version": UIDevice.current.systemVersion,
-            "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+            "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
         ]
     }
 }

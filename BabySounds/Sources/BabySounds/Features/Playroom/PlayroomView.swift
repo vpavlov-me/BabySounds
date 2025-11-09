@@ -1,24 +1,24 @@
 import SwiftUI
 
-// MARK: - Playroom View
+// MARK: - PlayroomView
 
 struct PlayroomView: View {
     @EnvironmentObject var soundCatalog: SoundCatalog
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var premiumManager: PremiumManager
     @EnvironmentObject var parentGateManager: ParentGateManager
-    
+
     @State private var showNowPlaying = false
     @State private var showParentGate = false
     @State private var pendingAction: (() -> Void)?
     @AppStorage("hasPassedParentGate") private var hasPassedParentGate = false
     @AppStorage("parentGateTimeout") private var parentGateTimeout: Double = 0
-    
+
     private let columns = [
         GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
+        GridItem(.flexible(), spacing: 16),
     ]
-    
+
     var body: some View {
         GeometryReader { _ in
             ZStack(alignment: .bottom) {
@@ -29,13 +29,13 @@ struct PlayroomView: View {
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 // Main content
                 ScrollView {
                     VStack(spacing: 24) {
                         // Header
                         headerSection
-                        
+
                         // Sound tiles grid
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(playroomSounds, id: \.id) { sound in
@@ -48,7 +48,7 @@ struct PlayroomView: View {
                             }
                         }
                         .padding(.horizontal, 16)
-                        
+
                         // Bottom spacing for mini player
                         Spacer()
                             .frame(height: 100)
@@ -57,7 +57,7 @@ struct PlayroomView: View {
                 .refreshable {
                     await refreshContent()
                 }
-                
+
                 // Mini Player
                 MiniPlayerView(showNowPlaying: $showNowPlaying)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -68,12 +68,12 @@ struct PlayroomView: View {
             ParentGateView(
                 isPresented: $showParentGate,
                 context: .playroom
-            )                {
-                    hasPassedParentGate = true
-                    parentGateTimeout = Date().timeIntervalSince1970 + 300 // 5 minutes
-                    pendingAction?()
-                    pendingAction = nil
-                }
+            ) {
+                hasPassedParentGate = true
+                parentGateTimeout = Date().timeIntervalSince1970 + 300 // 5 minutes
+                pendingAction?()
+                pendingAction = nil
+            }
         }
         .fullScreenCover(isPresented: $showNowPlaying) {
             NowPlayingView(isPresented: $showNowPlaying)
@@ -82,28 +82,28 @@ struct PlayroomView: View {
             setupPlayroom()
         }
     }
-    
+
     // MARK: - Header Section
-    
+
     private var headerSection: some View {
         VStack(spacing: 16) {
             // Welcome message
             VStack(spacing: 8) {
                 Text("🎪")
                     .font(.system(size: 60))
-                
+
                 Text("Playroom")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
-                
+
                 Text("Fun sounds for little ones")
                     .font(.headline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
             .padding(.top, 40)
-            
+
             // Exit button (requires parent gate)
             Button {
                 requireParentGate {
@@ -127,9 +127,9 @@ struct PlayroomView: View {
             .buttonStyle(ScaleButtonStyle())
         }
     }
-    
+
     // MARK: - Computed Properties
-    
+
     private var playroomSounds: [Sound] {
         // Filter sounds suitable for playroom (fun, engaging sounds)
         soundCatalog.allSounds.filter { sound in
@@ -138,16 +138,16 @@ struct PlayroomView: View {
             case .nature, .womb:
                 return true
 
-            case .white, .pink, .brown, .fan:
+            case .brown, .fan, .pink, .white:
                 return false // These are more for sleep
             case .all:
                 return false
             }
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func requireParentGate(action: @escaping () -> Void) {
         if isParentGateValid() {
             action()
@@ -156,18 +156,18 @@ struct PlayroomView: View {
             showParentGate = true
         }
     }
-    
+
     private func isParentGateValid() -> Bool {
         hasPassedParentGate && Date().timeIntervalSince1970 < parentGateTimeout
     }
-    
+
     private func playSound(_ sound: Sound) {
-        if sound.premium && !premiumManager.isPremium {
+        if sound.premium, !premiumManager.isPremium {
             // Show premium alert with child-friendly messaging
             HapticManager.shared.notification(.warning)
             return
         }
-        
+
         Task {
             do {
                 try await audioManager.playSound(sound)
@@ -178,16 +178,16 @@ struct PlayroomView: View {
             }
         }
     }
-    
+
     private func exitPlayroom() {
         // Handle exit logic - could navigate back or show different view
         HapticManager.shared.notification(.success)
     }
-    
+
     private func setupPlayroom() {
         // Setup any needed configurations for playroom
     }
-    
+
     private func refreshContent() async {
         // Simulate refresh
         try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -196,16 +196,16 @@ struct PlayroomView: View {
     }
 }
 
-// MARK: - Playroom Tile
+// MARK: - PlayroomTile
 
 struct PlayroomTile: View {
     let sound: Sound
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var premiumManager: PremiumManager
-    
+
     @State private var isPressed = false
     @State private var isAnimating = false
-    
+
     var body: some View {
         ZStack {
             // Background gradient
@@ -216,7 +216,7 @@ struct PlayroomTile: View {
                     endPoint: .bottomTrailing
                 ))
                 .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
-            
+
             // Content
             VStack(spacing: 16) {
                 // Large emoji/icon
@@ -225,10 +225,10 @@ struct PlayroomTile: View {
                     .scaleEffect(isAnimating ? 1.1 : 1.0)
                     .animation(
                         .easeInOut(duration: 0.6)
-                        .repeatForever(autoreverses: true),
+                            .repeatForever(autoreverses: true),
                         value: isAnimating
                     )
-                
+
                 // Title
                 Text(sound.titleKey)
                     .font(.title3)
@@ -237,14 +237,14 @@ struct PlayroomTile: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
-                
+
                 // Premium indicator
                 if sound.premium && !premiumManager.isPremium {
                     HStack(spacing: 4) {
                         Image(systemName: "crown.fill")
                             .font(.caption)
                             .foregroundColor(.yellow)
-                        
+
                         Text("Premium")
                             .font(.caption)
                             .fontWeight(.medium)
@@ -257,7 +257,7 @@ struct PlayroomTile: View {
                             .fill(.ultraThinMaterial)
                     )
                 }
-                
+
                 // Playing indicator
                 if audioManager.currentSound?.id == sound.id && audioManager.isPlaying {
                     playingIndicator
@@ -270,27 +270,27 @@ struct PlayroomTile: View {
         .animation(.easeInOut(duration: 0.1), value: isPressed)
         .onLongPressGesture(minimumDuration: 0) { pressing in
             isPressed = pressing
-        } perform: { }
+        } perform: {}
         .onAppear {
             // Start animation for visual appeal
-            withAnimation(.easeInOut(duration: 0.6).delay(Double.random(in: 0...2))) {
+            withAnimation(.easeInOut(duration: 0.6).delay(Double.random(in: 0 ... 2))) {
                 isAnimating = true
             }
         }
     }
-    
+
     // MARK: - Playing Indicator
-    
+
     private var playingIndicator: some View {
         HStack(spacing: 3) {
-            ForEach(0..<4) { index in
+            ForEach(0 ..< 4) { index in
                 RoundedRectangle(cornerRadius: 2)
                     .fill(.white)
-                    .frame(width: 4, height: CGFloat.random(in: 12...20))
+                    .frame(width: 4, height: CGFloat.random(in: 12 ... 20))
                     .animation(
                         .easeInOut(duration: 0.4)
-                        .repeatForever()
-                        .delay(Double(index) * 0.1),
+                            .repeatForever()
+                            .delay(Double(index) * 0.1),
                         value: audioManager.isPlaying
                     )
                     .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)

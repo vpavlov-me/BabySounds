@@ -7,30 +7,30 @@ import UserNotifications
 @MainActor
 class SleepScheduleManager: ObservableObject {
     static let shared = SleepScheduleManager()
-    
+
     // MARK: - Published Properties
-    
+
     @Published var schedules: [SleepSchedule] = []
-    @Published var isNotificationPermissionGranted: Bool = false
-    @Published var isLoadingSchedules: Bool = false
+    @Published var isNotificationPermissionGranted = false
+    @Published var isLoadingSchedules = false
     @Published var lastError: Error?
-    
+
     // MARK: - Constants
-    
+
     private let maxFreeSchedules = 1 // Free tier allows only 1 schedule
     private let userDefaultsKey = "SavedSleepSchedules"
-    
+
     // MARK: - Dependencies
-    
+
     private let premiumManager = PremiumManager.shared
     private let notificationCenter = UNUserNotificationCenter.current()
-    
+
     // MARK: - Initialization
-    
+
     private init() {
         loadSchedules()
         checkNotificationPermission()
-        
+
         // Listen to premium status changes
         NotificationCenter.default.addObserver(
             self,
@@ -39,80 +39,80 @@ class SleepScheduleManager: ObservableObject {
             object: nil
         )
     }
-    
+
     // MARK: - Schedule Management
-    
+
     func addSchedule(_ schedule: SleepSchedule) async throws {
         // Check premium limits
-        if !premiumManager.hasFeature(.sleepSchedules) && schedules.count >= maxFreeSchedules {
+        if !premiumManager.hasFeature(.sleepSchedules), schedules.count >= maxFreeSchedules {
             throw SleepScheduleError.maxSchedulesReached
         }
-        
+
         var newSchedule = schedule
         newSchedule.lastModified = Date()
-        
+
         schedules.append(newSchedule)
         saveSchedules()
-        
+
         if newSchedule.isEnabled {
             try await scheduleNotifications(for: newSchedule)
         }
-        
+
         print("✅ [SleepScheduleManager] Added schedule: \(newSchedule.name)")
     }
-    
+
     func updateSchedule(_ schedule: SleepSchedule) async throws {
         guard let index = schedules.firstIndex(where: { $0.id == schedule.id }) else {
             throw SleepScheduleError.scheduleNotFound
         }
-        
+
         var updatedSchedule = schedule
         updatedSchedule.lastModified = Date()
-        
+
         // Remove old notifications
         await removeNotifications(for: schedules[index])
-        
+
         schedules[index] = updatedSchedule
         saveSchedules()
-        
+
         if updatedSchedule.isEnabled {
             try await scheduleNotifications(for: updatedSchedule)
         }
-        
+
         print("✅ [SleepScheduleManager] Updated schedule: \(updatedSchedule.name)")
     }
-    
+
     func deleteSchedule(_ schedule: SleepSchedule) async {
         await removeNotifications(for: schedule)
         schedules.removeAll { $0.id == schedule.id }
         saveSchedules()
-        
+
         print("🗑️ [SleepScheduleManager] Deleted schedule: \(schedule.name)")
     }
-    
+
     func toggleSchedule(_ schedule: SleepSchedule) async throws {
         var updatedSchedule = schedule
         updatedSchedule.isEnabled.toggle()
         updatedSchedule.lastModified = Date()
-        
+
         if updatedSchedule.isEnabled {
             try await scheduleNotifications(for: updatedSchedule)
         } else {
             await removeNotifications(for: updatedSchedule)
         }
-        
+
         try await updateSchedule(updatedSchedule)
     }
-    
+
     // MARK: - Notification Management
-    
+
     func requestNotificationPermission() async -> Bool {
         do {
             let granted = try await notificationCenter.requestAuthorization(options: [.alert, .sound, .badge])
             await MainActor.run {
                 self.isNotificationPermissionGranted = granted
             }
-            
+
             if granted {
                 print("✅ [SleepScheduleManager] Notification permission granted")
                 // Reschedule all active schedules
@@ -122,14 +122,14 @@ class SleepScheduleManager: ObservableObject {
             } else {
                 print("❌ [SleepScheduleManager] Notification permission denied")
             }
-            
+
             return granted
         } catch {
             print("❌ [SleepScheduleManager] Error requesting permissions: \(error)")
             return false
         }
     }
-    
+
     private func checkNotificationPermission() {
         Task {
             let settings = await notificationCenter.notificationSettings()
@@ -138,57 +138,62 @@ class SleepScheduleManager: ObservableObject {
             }
         }
     }
-    
+
     private func scheduleNotifications(for schedule: SleepSchedule) async throws {
         guard isNotificationPermissionGranted else {
             throw SleepScheduleError.notificationPermissionDenied
         }
-        
+
         // Remove existing notifications for this schedule
         await removeNotifications(for: schedule)
-        
+
         let calendar = Calendar.current
         let now = Date()
-        
+
         // Schedule notifications for next 30 days
-        for dayOffset in 0..<30 {
+        for dayOffset in 0 ..< 30 {
             guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else { continue }
             let weekday = Weekday(from: calendar.component(.weekday, from: targetDate))
-            
+
             guard schedule.selectedDays.contains(weekday) else { continue }
-            
+
             let bedTimeComponents = calendar.dateComponents([.hour, .minute], from: schedule.bedTime)
             guard let scheduledBedTime = calendar.date(bySettingHour: bedTimeComponents.hour ?? 20,
-                                                      minute: bedTimeComponents.minute ?? 0,
-                                                      second: 0,
-                                                      of: targetDate) else { continue }
-            
+                                                       minute: bedTimeComponents.minute ?? 0,
+                                                       second: 0,
+                                                       of: targetDate) else { continue }
+
             // Reminder notification
-            if let reminderTime = calendar.date(byAdding: .minute, value: -schedule.reminderMinutes, to: scheduledBedTime),
-               reminderTime > now {
+            if let reminderTime = calendar.date(
+                byAdding: .minute,
+                value: -schedule.reminderMinutes,
+                to: scheduledBedTime
+            ),
+                reminderTime > now
+            {
                 let reminderContent = UNMutableNotificationContent()
                 reminderContent.title = "Bedtime soon"
                 reminderContent.body = "Через \(schedule.reminderMinutes) мин. schedule starts \"\(schedule.name)\""
                 reminderContent.sound = .default
                 reminderContent.userInfo = [
                     "scheduleId": schedule.id.uuidString,
-                    "type": "reminder"
+                    "type": "reminder",
                 ]
-                
+
                 let reminderTrigger = UNCalendarNotificationTrigger(
                     dateMatching: calendar.dateComponents([.year, .month, .day, .hour, .minute], from: reminderTime),
                     repeats: false
                 )
-                
+
                 let reminderRequest = UNNotificationRequest(
                     identifier: "\(schedule.reminderNotificationId)_\(dayOffset)",
                     content: reminderContent,
                     trigger: reminderTrigger
                 )
-                
+
                 try await notificationCenter.add(reminderRequest)
             }
-            
+
             // Bedtime notification
             if scheduledBedTime > now {
                 let bedtimeContent = UNMutableNotificationContent()
@@ -198,42 +203,45 @@ class SleepScheduleManager: ObservableObject {
                 bedtimeContent.userInfo = [
                     "scheduleId": schedule.id.uuidString,
                     "type": "bedtime",
-                    "selectedSounds": schedule.selectedSounds
+                    "selectedSounds": schedule.selectedSounds,
                 ]
-                
+
                 let bedtimeTrigger = UNCalendarNotificationTrigger(
-                    dateMatching: calendar.dateComponents([.year, .month, .day, .hour, .minute], from: scheduledBedTime),
+                    dateMatching: calendar.dateComponents(
+                        [.year, .month, .day, .hour, .minute],
+                        from: scheduledBedTime
+                    ),
                     repeats: false
                 )
-                
+
                 let bedtimeRequest = UNNotificationRequest(
                     identifier: "\(schedule.bedtimeNotificationId)_\(dayOffset)",
                     content: bedtimeContent,
                     trigger: bedtimeTrigger
                 )
-                
+
                 try await notificationCenter.add(bedtimeRequest)
             }
         }
-        
+
         print("📅 [SleepScheduleManager] Scheduled notifications for: \(schedule.name)")
     }
-    
+
     private func removeNotifications(for schedule: SleepSchedule) async {
         var identifiersToRemove: [String] = []
-        
+
         // Collect all identifiers for this schedule
-        for dayOffset in 0..<30 {
+        for dayOffset in 0 ..< 30 {
             identifiersToRemove.append("\(schedule.reminderNotificationId)_\(dayOffset)")
             identifiersToRemove.append("\(schedule.bedtimeNotificationId)_\(dayOffset)")
         }
-        
+
         notificationCenter.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
         print("🗑️ [SleepScheduleManager] Removed notifications for: \(schedule.name)")
     }
-    
+
     // MARK: - Persistence
-    
+
     private func saveSchedules() {
         do {
             let data = try JSONEncoder().encode(schedules)
@@ -244,19 +252,19 @@ class SleepScheduleManager: ObservableObject {
             lastError = error
         }
     }
-    
+
     private func loadSchedules() {
         isLoadingSchedules = true
-        
+
         defer {
             isLoadingSchedules = false
         }
-        
+
         guard let data = UserDefaults.standard.data(forKey: userDefaultsKey) else {
             print("📱 [SleepScheduleManager] No saved schedules")
             return
         }
-        
+
         do {
             schedules = try JSONDecoder().decode([SleepSchedule].self, from: data)
             print("📖 [SleepScheduleManager] Loaded \(schedules.count) schedules")
@@ -265,12 +273,13 @@ class SleepScheduleManager: ObservableObject {
             lastError = error
         }
     }
-    
+
     // MARK: - Premium Integration
-    
-    @objc private func premiumStatusChanged() {
+
+    @objc
+    private func premiumStatusChanged() {
         // If user lost premium and has more than the limit - deactivate excess
-        if !premiumManager.hasFeature(.sleepSchedules) && schedules.count > maxFreeSchedules {
+        if !premiumManager.hasFeature(.sleepSchedules), schedules.count > maxFreeSchedules {
             Task {
                 let schedulesToDisable = Array(schedules.suffix(schedules.count - maxFreeSchedules))
                 for schedule in schedulesToDisable {
@@ -281,46 +290,46 @@ class SleepScheduleManager: ObservableObject {
             }
         }
     }
-    
+
     // MARK: - Computed Properties
-    
+
     var activeSchedules: [SleepSchedule] {
         schedules.filter { $0.isEnabled }
     }
-    
+
     var nextScheduledEvent: (schedule: SleepSchedule, time: Date, type: String)? {
         let now = Date()
         var nextEvent: (schedule: SleepSchedule, time: Date, type: String)?
-        
+
         for schedule in activeSchedules {
             if let reminderTime = schedule.nextReminderTime, reminderTime > now {
                 if nextEvent == nil || reminderTime < nextEvent!.time {
                     nextEvent = (schedule, reminderTime, "reminder")
                 }
             }
-            
+
             if let bedTime = schedule.nextBedTime, bedTime > now {
                 if nextEvent == nil || bedTime < nextEvent!.time {
                     nextEvent = (schedule, bedTime, "bedtime")
                 }
             }
         }
-        
+
         return nextEvent
     }
-    
+
     var canAddMoreSchedules: Bool {
         premiumManager.hasFeature(.sleepSchedules) || schedules.count < maxFreeSchedules
     }
-    
+
     // MARK: - Action Handlers
-    
+
     func handleBedtimeNotification(scheduleId: String, selectedSounds: [String]) {
         // This method will be called from AppDelegate when notification received
         guard let schedule = schedules.first(where: { $0.id.uuidString == scheduleId }) else { return }
-        
+
         print("🌙 [SleepScheduleManager] Processing bedtime notification: \(schedule.name)")
-        
+
         // Automatically start selected sounds
         Task {
             await AudioEngineManager.shared.startSleepSchedule(

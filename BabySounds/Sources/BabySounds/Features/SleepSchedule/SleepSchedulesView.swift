@@ -6,19 +6,19 @@ struct SleepSchedulesView: View {
     @StateObject private var scheduleManager = SleepScheduleManager.shared
     @StateObject private var premiumManager = PremiumManager.shared
     @StateObject private var parentGateManager = ParentGateManager.shared
-    
+
     @State private var showingAddSchedule = false
     @State private var editingSchedule: SleepSchedule?
     @State private var showingPermissionAlert = false
     @State private var showingError = false
     @State private var showPaywall = false
-    
+
     var body: some View {
         NavigationView {
             ZStack {
                 Color(UIColor.systemGroupedBackground)
                     .ignoresSafeArea()
-                
+
                 if scheduleManager.isLoadingSchedules {
                     ProgressView("Loading schedules...")
                 } else {
@@ -44,12 +44,14 @@ struct SleepSchedulesView: View {
                         UIApplication.shared.open(url)
                     }
                 }
-                Button("Cancel", role: .cancel) { }
+                Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Sleep schedules require notification permission. Go to Settings → BabySounds → Notifications and enable them.")
+                Text(
+                    "Sleep schedules require notification permission. Go to Settings → BabySounds → Notifications and enable them."
+                )
             }
             .alert("Error", isPresented: $showingError) {
-                Button("OK") { }
+                Button("OK") {}
             } message: {
                 if let error = scheduleManager.lastError {
                     Text(error.localizedDescription)
@@ -61,26 +63,25 @@ struct SleepSchedulesView: View {
             .premiumGateAlert(premiumManager: premiumManager, showPaywall: $showPaywall)
         }
     }
-    
+
     // MARK: - Main Content
-    
-    @ViewBuilder
-    private var mainContent: some View {
+
+    @ViewBuilder private var mainContent: some View {
         if scheduleManager.schedules.isEmpty {
             emptyState
         } else {
             schedulesList
         }
     }
-    
+
     // MARK: - Empty State
-    
+
     private var emptyState: View {
         VStack(spacing: 24) {
             Image(systemName: "moon.zzz")
                 .font(.system(size: 80))
                 .foregroundColor(.secondary)
-            
+
             VStack(spacing: 8) {
                 Text("No Sleep Schedules")
                     .font(.title2)
@@ -109,9 +110,9 @@ struct SleepSchedulesView: View {
         }
         .padding()
     }
-    
+
     // MARK: - Schedules List
-    
+
     private var schedulesList: View {
         List {
             // Notifications section
@@ -134,16 +135,16 @@ struct SleepSchedulesView: View {
         }
         .listStyle(InsetGroupedListStyle())
     }
-    
+
     // MARK: - Notification Permission Section
-    
+
     private var notificationPermissionSection: some View {
         Section {
             HStack {
                 Image(systemName: "bell.slash")
                     .foregroundColor(.orange)
                     .frame(width: 24)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Notifications Disabled")
                         .font(.headline)
@@ -169,9 +170,9 @@ struct SleepSchedulesView: View {
             .padding(.vertical, 4)
         }
     }
-    
+
     // MARK: - Next Event Section
-    
+
     private func nextEventSection(_ event: (schedule: SleepSchedule, time: Date, type: String)) -> some View {
         Section("Next Event") {
             HStack {
@@ -187,18 +188,18 @@ struct SleepSchedulesView: View {
                         Text(event.type == "reminder" ? "Reminder" : "Bedtime")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
+
                         Text("•")
                             .foregroundColor(.secondary)
-                        
+
                         Text(formatRelativeTime(event.time))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Text(formatTime(event.time))
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -206,9 +207,9 @@ struct SleepSchedulesView: View {
             .padding(.vertical, 4)
         }
     }
-    
+
     // MARK: - Premium Section
-    
+
     private var premiumSection: some View {
         Section {
             PremiumGateView(
@@ -216,14 +217,14 @@ struct SleepSchedulesView: View {
                 title: "Unlimited Schedules",
                 description: "Create unlimited sleep schedules with flexible settings",
                 icon: "moon.zzz"
-            )                {
-                    premiumManager.requestAccess(to: .sleepSchedules)
-                }
+            ) {
+                premiumManager.requestAccess(to: .sleepSchedules)
+            }
         }
     }
-    
+
     // MARK: - Schedules Section
-    
+
     private var schedulesSection: some View {
         Section("My Schedules") {
             ForEach(scheduleManager.schedules) { schedule in
@@ -249,9 +250,9 @@ struct SleepSchedulesView: View {
             }
         }
     }
-    
+
     // MARK: - Add Button
-    
+
     private var addButton: some View {
         Button(action: addScheduleAction) {
             Image(systemName: "plus")
@@ -260,9 +261,9 @@ struct SleepSchedulesView: View {
         .opacity(scheduleManager.canAddMoreSchedules ? 1.0 : 0.3)
         .disabled(!scheduleManager.canAddMoreSchedules)
     }
-    
+
     // MARK: - Actions
-    
+
     private func addScheduleAction() {
         guard scheduleManager.canAddMoreSchedules else {
             // Show premium gate
@@ -272,15 +273,15 @@ struct SleepSchedulesView: View {
 
         showingAddSchedule = true
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
-    
+
     private func formatRelativeTime(_ date: Date) -> String {
         let now = Date()
         let timeInterval = date.timeIntervalSince(now)
@@ -290,11 +291,11 @@ struct SleepSchedulesView: View {
         } else if timeInterval < 3600 {
             let minutes = Int(timeInterval / 60)
             return "in \(minutes) min"
-        } else if timeInterval < 86_400 {
+        } else if timeInterval < 86400 {
             let hours = Int(timeInterval / 3600)
             return "in \(hours) h"
         } else {
-            let days = Int(timeInterval / 86_400)
+            let days = Int(timeInterval / 86400)
             return "in \(days) d"
         }
     }
@@ -307,59 +308,59 @@ struct SleepScheduleRow: View {
     let onEdit: () -> Void
     let onToggle: () -> Void
     let onDelete: () -> Void
-    
+
     var body: some View {
         HStack {
             // Status indicator
             Circle()
                 .fill(schedule.isEnabled ? Color.green : Color.gray)
                 .frame(width: 8, height: 8)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(schedule.name)
                     .font(.headline)
                     .foregroundColor(schedule.isEnabled ? .primary : .secondary)
-                
+
                 HStack {
                     Image(systemName: "moon.zzz")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text(schedule.formattedBedTime)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text("•")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text(schedule.selectedDaysText)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 if !schedule.selectedSounds.isEmpty {
                     HStack {
                         Image(systemName: "speaker.wave.2")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
+
                         Text("\(schedule.selectedSounds.count) sound(s)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
             }
-            
+
             Spacer()
-            
+
             VStack {
                 Toggle("", isOn: .constant(schedule.isEnabled))
                     .labelsHidden()
                     .onChange(of: schedule.isEnabled) { _ in
                         onToggle()
                     }
-                
+
                 if let nextBedTime = schedule.nextBedTime {
                     Text(formatRelativeTime(nextBedTime))
                         .font(.caption2)
@@ -383,7 +384,7 @@ struct SleepScheduleRow: View {
             .tint(.blue)
         }
     }
-    
+
     private func formatRelativeTime(_ date: Date) -> String {
         let now = Date()
         let timeInterval = date.timeIntervalSince(now)
@@ -393,17 +394,17 @@ struct SleepScheduleRow: View {
         } else if timeInterval < 3600 {
             let minutes = Int(timeInterval / 60)
             return "\(minutes)m"
-        } else if timeInterval < 86_400 {
+        } else if timeInterval < 86400 {
             let hours = Int(timeInterval / 3600)
             return "\(hours)h"
         } else {
-            let days = Int(timeInterval / 86_400)
+            let days = Int(timeInterval / 86400)
             return "\(days)d"
         }
     }
 }
 
-// MARK: - Preview
+// MARK: - SleepSchedulesView_Previews
 
 struct SleepSchedulesView_Previews: PreviewProvider {
     static var previews: some View {

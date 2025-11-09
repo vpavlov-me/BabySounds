@@ -1,15 +1,15 @@
 import SwiftUI
 
-// MARK: - Premium Gate View
+// MARK: - PremiumGateView
 
 /// Displays premium content gates with appropriate UI feedback
 struct PremiumGateView: View {
     let feature: PremiumManager.PremiumFeature
     let onUnlock: () -> Void
-    
+
     @EnvironmentObject private var premiumManager: PremiumManager
     @State private var pulseAnimation = false
-    
+
     var body: some View {
         VStack(spacing: 16) {
             // Premium Lock Icon with Animation
@@ -26,7 +26,7 @@ struct PremiumGateView: View {
                         Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true),
                         value: pulseAnimation
                     )
-                
+
                 Image(systemName: "crown.fill")
                     .font(.system(size: 32))
                     .foregroundColor(.orange)
@@ -34,27 +34,27 @@ struct PremiumGateView: View {
             .onAppear {
                 pulseAnimation = true
             }
-            
+
             // Feature Info
             VStack(spacing: 8) {
                 Text(feature.localizedName)
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
-                
+
                 Text(feature.description)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
             }
-            
+
             // Unlock Button
             Button(action: onUnlock) {
                 HStack(spacing: 8) {
                     Image(systemName: "lock.open.fill")
                         .font(.callout)
-                    
+
                     Text("Unlock Premium")
                         .font(.callout)
                         .fontWeight(.semibold)
@@ -83,17 +83,17 @@ struct PremiumGateView: View {
     }
 }
 
-// MARK: - Premium Badge
+// MARK: - PremiumBadge
 
 /// Shows premium badge on content
 struct PremiumBadge: View {
     let isLocked: Bool
-    
+
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: isLocked ? "lock.fill" : "crown.fill")
                 .font(.caption2)
-            
+
             Text("Premium")
                 .font(.caption2)
                 .fontWeight(.medium)
@@ -112,29 +112,29 @@ struct PremiumBadge: View {
     }
 }
 
-// MARK: - Premium Content Overlay
+// MARK: - PremiumContentOverlay
 
 /// Overlay for premium-locked content
 struct PremiumContentOverlay: View {
     let feature: PremiumManager.PremiumFeature
     let onUnlock: () -> Void
-    
+
     var body: some View {
         ZStack {
             // Background blur
             Rectangle()
                 .fill(.ultraThinMaterial)
-            
+
             // Lock content
             VStack(spacing: 12) {
                 Image(systemName: "lock.fill")
                     .font(.title2)
                     .foregroundColor(.orange)
-                
+
                 Text("Premium Feature")
                     .font(.headline)
                     .fontWeight(.medium)
-                
+
                 Button("Unlock") {
                     onUnlock()
                 }
@@ -146,27 +146,27 @@ struct PremiumContentOverlay: View {
     }
 }
 
-// MARK: - Premium Alert Modifier
+// MARK: - PremiumAlertModifier
 
 struct PremiumAlertModifier: ViewModifier {
     @ObservedObject var premiumManager: PremiumManager
     @Binding var showPaywall: Bool
     @State private var alertMessage: String?
-    
+
     func body(content: Content) -> some View {
         content
             .onChange(of: premiumManager.gateActionTrigger) { _ in
                 guard let action = premiumManager.pendingGateAction else { return }
-                
+
                 switch action {
                 case .showPaywall:
                     showPaywall = true
                     premiumManager.clearPendingAction()
-                    
-                case .showMessage(let message):
+
+                case let .showMessage(message):
                     alertMessage = message
                     premiumManager.clearPendingAction()
-                    
+
                 case .allow:
                     break // No action needed
                 }
@@ -176,7 +176,7 @@ struct PremiumAlertModifier: ViewModifier {
                     showPaywall = true
                     alertMessage = nil
                 }
-                
+
                 Button("Maybe Later", role: .cancel) {
                     alertMessage = nil
                 }
@@ -188,7 +188,7 @@ struct PremiumAlertModifier: ViewModifier {
     }
 }
 
-// MARK: - Scale Button Style
+// MARK: - ScaleButtonStyle
 
 struct ScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -198,13 +198,13 @@ struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Premium Feature Card
+// MARK: - PremiumFeatureCard
 
 /// Card showing premium feature benefits
 struct PremiumFeatureCard: View {
     let feature: PremiumManager.PremiumFeature
     let isUnlocked: Bool
-    
+
     var body: some View {
         HStack(spacing: 16) {
             // Feature Icon
@@ -212,12 +212,12 @@ struct PremiumFeatureCard: View {
                 Circle()
                     .fill(isUnlocked ? .green.opacity(0.2) : .orange.opacity(0.2))
                     .frame(width: 44, height: 44)
-                
+
                 Image(systemName: feature.icon)
                     .font(.title3)
                     .foregroundColor(isUnlocked ? .green : .orange)
             }
-            
+
             // Feature Details
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
@@ -225,9 +225,9 @@ struct PremiumFeatureCard: View {
                         .font(.headline)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
-                    
+
                     Spacer()
-                    
+
                     if isUnlocked {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
@@ -236,13 +236,13 @@ struct PremiumFeatureCard: View {
                             .foregroundColor(.orange)
                     }
                 }
-                
+
                 Text(feature.description)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
             }
-            
+
             Spacer()
         }
         .padding()
@@ -264,14 +264,13 @@ extension View {
     ) -> some View {
         modifier(PremiumAlertModifier(premiumManager: premiumManager, showPaywall: showPaywall))
     }
-    
+
     /// Apply premium content styling
     func premiumContent(
         feature: PremiumManager.PremiumFeature,
         premiumManager: PremiumManager
     ) -> some View {
-        self
-            .opacity(premiumManager.premiumContentOpacity(for: feature))
+        opacity(premiumManager.premiumContentOpacity(for: feature))
             .disabled(premiumManager.isPremiumContentDisabled(for: feature))
     }
 }
@@ -283,9 +282,9 @@ extension View {
         PremiumGateView(feature: .premiumSounds) {
             print("Unlock tapped")
         }
-        
+
         PremiumFeatureCard(feature: .multiTrackMixing, isUnlocked: false)
-        
+
         PremiumFeatureCard(feature: .extendedTimer, isUnlocked: true)
     }
     .padding()

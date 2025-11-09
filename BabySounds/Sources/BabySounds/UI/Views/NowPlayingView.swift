@@ -1,7 +1,7 @@
 import AVFoundation
 import SwiftUI
 
-// MARK: - Now Playing View
+// MARK: - NowPlayingView
 
 struct NowPlayingView: View {
     @Binding var isPresented: Bool
@@ -9,16 +9,16 @@ struct NowPlayingView: View {
     @EnvironmentObject var subscriptionService: SubscriptionServiceSK2
     @EnvironmentObject var premiumManager: PremiumManager
     @EnvironmentObject var soundCatalog: SoundCatalog
-    
+
     @State private var selectedTimerMinutes = 0 // 0 = infinite
-    @State private var volume: Double = 0.7
+    @State private var volume = 0.7
     @State private var showTimerPicker = false
     @State private var showVolumeControl = false
     @State private var dragOffset: CGSize = .zero
     @State private var isFavorite = false
-    
+
     private let timerOptions = [0, 15, 30, 45, 60, 90, 120] // 0 = infinite
-    
+
     var body: some View {
         if let currentSound = audioManager.currentSound {
             GeometryReader { geometry in
@@ -30,22 +30,22 @@ struct NowPlayingView: View {
                         endPoint: .bottomTrailing
                     )
                     .ignoresSafeArea()
-                    
+
                     // Main content
                     VStack(spacing: 0) {
                         // Header
                         header
-                        
+
                         Spacer()
-                        
+
                         // Artwork
                         artworkSection(geometry: geometry)
-                        
+
                         Spacer()
-                        
+
                         // Controls
                         controlsSection
-                        
+
                         Spacer(minLength: 32)
                     }
                     .padding(.horizontal, 24)
@@ -82,9 +82,9 @@ struct NowPlayingView: View {
             }
         }
     }
-    
+
     // MARK: - Header
-    
+
     private var header: some View {
         HStack {
             Button {
@@ -97,9 +97,9 @@ struct NowPlayingView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
             }
-            
+
             Spacer()
-            
+
             // AirPlay button
             Button {
                 // Handle AirPlay
@@ -109,7 +109,7 @@ struct NowPlayingView: View {
                     .font(.title2)
                     .foregroundColor(.white)
             }
-            
+
             // More options
             Button {
                 // Handle more options
@@ -122,9 +122,9 @@ struct NowPlayingView: View {
         }
         .padding(.top, 8)
     }
-    
+
     // MARK: - Artwork Section
-    
+
     private func artworkSection(geometry: GeometryProxy) -> some View {
         VStack(spacing: 24) {
             // Artwork with parallax effect
@@ -136,7 +136,7 @@ struct NowPlayingView: View {
                         endPoint: .bottomTrailing
                     ))
                     .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
-                
+
                 if let currentSound = currentSound {
                     Text(currentSound.displayEmoji)
                         .font(.system(size: min(geometry.size.width * 0.3, 120)))
@@ -148,7 +148,7 @@ struct NowPlayingView: View {
                 .degrees(dragOffset.height / 20),
                 axis: (x: 1, y: 0, z: 0)
             )
-            
+
             // Sound info
             VStack(spacing: 8) {
                 Text(currentSound?.titleKey ?? "")
@@ -156,16 +156,16 @@ struct NowPlayingView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                
+
                 Text(currentSound?.category.displayName ?? "")
                     .font(.headline)
                     .foregroundColor(.white.opacity(0.8))
             }
         }
     }
-    
+
     // MARK: - Controls Section
-    
+
     private var controlsSection: some View {
         VStack(spacing: 32) {
             // Main play controls
@@ -180,7 +180,7 @@ struct NowPlayingView: View {
                         .frame(width: 44, height: 44)
                 }
                 .buttonStyle(ScaleButtonStyle())
-                
+
                 // Play/Pause button
                 Button {
                     togglePlayback()
@@ -192,7 +192,7 @@ struct NowPlayingView: View {
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .buttonStyle(ScaleButtonStyle())
-                
+
                 // Timer button
                 Button {
                     showTimerPicker = true
@@ -201,7 +201,7 @@ struct NowPlayingView: View {
                         Image(systemName: "timer")
                             .font(.title)
                             .foregroundColor(.white)
-                        
+
                         Text(timerDisplayText)
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.8))
@@ -210,22 +210,22 @@ struct NowPlayingView: View {
                 }
                 .buttonStyle(ScaleButtonStyle())
             }
-            
+
             // Volume control
             VStack(spacing: 16) {
                 HStack {
                     Image(systemName: "speaker.fill")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.6))
-                    
-                    Slider(value: $volume, in: 0...1) { editing in
+
+                    Slider(value: $volume, in: 0 ... 1) { editing in
                         if !editing {
                             audioManager.setVolume(volume)
                             HapticManager.shared.impact(.light)
                         }
                     }
                     .accentColor(.white)
-                    
+
                     Image(systemName: "speaker.wave.3.fill")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.6))
@@ -234,9 +234,9 @@ struct NowPlayingView: View {
             }
         }
     }
-    
+
     // MARK: - Timer Action Sheet
-    
+
     private var timerActionSheet: ActionSheet {
         ActionSheet(
             title: Text("Sleep Timer"),
@@ -250,13 +250,13 @@ struct NowPlayingView: View {
             } + [.cancel()]
         )
     }
-    
+
     // MARK: - Computed Properties
-    
+
     private var currentSound: Sound? {
         audioManager.currentSound
     }
-    
+
     private var timerDisplayText: String {
         if selectedTimerMinutes == 0 {
             return "∞"
@@ -264,9 +264,9 @@ struct NowPlayingView: View {
             return "\(selectedTimerMinutes)m"
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func setupView() {
         volume = audioManager.currentVolume
         // Load favorite status
@@ -274,7 +274,7 @@ struct NowPlayingView: View {
             isFavorite = FavoritesManager.shared.isFavorite(sound.id)
         }
     }
-    
+
     private func togglePlayback() {
         if audioManager.isPlaying {
             audioManager.pauseCurrentSound()
@@ -283,20 +283,20 @@ struct NowPlayingView: View {
         }
         HapticManager.shared.impact(.medium)
     }
-    
+
     private func toggleFavorite() {
         guard let sound = currentSound else { return }
-        
+
         if isFavorite {
             FavoritesManager.shared.removeFavorite(sound.id)
         } else {
             FavoritesManager.shared.addFavorite(sound)
         }
-        
+
         isFavorite.toggle()
         HapticManager.shared.impact(.soft)
     }
-    
+
     private func setTimer(minutes: Int) {
         if minutes == 0 {
             audioManager.clearTimer()
@@ -306,38 +306,39 @@ struct NowPlayingView: View {
     }
 }
 
-// MARK: - Favorites Manager (placeholder)
+// MARK: - FavoritesManager
 
 class FavoritesManager: ObservableObject {
     static let shared = FavoritesManager()
-    
+
     @Published var favorites: Set<String> = []
-    
+
     private init() {
         loadFavorites()
     }
-    
+
     func isFavorite(_ soundId: String) -> Bool {
         favorites.contains(soundId)
     }
-    
+
     func addFavorite(_ sound: Sound) {
         favorites.insert(sound.id)
         saveFavorites()
     }
-    
+
     func removeFavorite(_ soundId: String) {
         favorites.remove(soundId)
         saveFavorites()
     }
-    
+
     private func loadFavorites() {
         if let data = UserDefaults.standard.data(forKey: "favorites"),
-           let decoded = try? JSONDecoder().decode(Set<String>.self, from: data) {
+           let decoded = try? JSONDecoder().decode(Set<String>.self, from: data)
+        {
             favorites = decoded
         }
     }
-    
+
     private func saveFavorites() {
         if let encoded = try? JSONEncoder().encode(favorites) {
             UserDefaults.standard.set(encoded, forKey: "favorites")

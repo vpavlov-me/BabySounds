@@ -31,7 +31,9 @@ struct PrivacyPolicyView: View {
 
             Group {
                 sectionTitle("Our Commitment to Children's Privacy")
-                sectionText("Baby Sounds is designed specifically for babies and young children. We take children's privacy extremely seriously and comply with the Children's Online Privacy Protection Act (COPPA), GDPR, and CCPA.")
+                sectionText(
+                    "Baby Sounds is designed specifically for babies and young children. We take children's privacy extremely seriously and comply with the Children's Online Privacy Protection Act (COPPA), GDPR, and CCPA."
+                )
 
                 sectionTitle("Information We Collect")
                 sectionText("**We do not knowingly collect personal information from children under 13.**")
@@ -85,7 +87,9 @@ struct PrivacyPolicyView: View {
 
             Group {
                 sectionTitle("Changes to Privacy Policy")
-                sectionText("We will notify users of material changes via in-app notification. Continued use constitutes acceptance of changes.")
+                sectionText(
+                    "We will notify users of material changes via in-app notification. Continued use constitutes acceptance of changes."
+                )
 
                 sectionTitle("Contact Us")
                 sectionText("Questions about privacy:")

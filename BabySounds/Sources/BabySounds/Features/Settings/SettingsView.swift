@@ -51,7 +51,7 @@ struct SettingsView: View {
                     Slider(value: Binding(
                         get: { safeVolumeManager.currentVolumeLimit },
                         set: { safeVolumeManager.setVolumeLimit($0) }
-                    ), in: 0.3...0.75)
+                    ), in: 0.3 ... 0.75)
 
                     Image(systemName: "speaker.wave.3")
                         .foregroundColor(.secondary)

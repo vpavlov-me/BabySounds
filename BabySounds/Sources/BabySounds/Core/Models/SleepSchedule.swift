@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - SleepSchedule Model
+// MARK: - SleepSchedule
 
 struct SleepSchedule: Identifiable, Codable, Equatable {
     let id = UUID()
@@ -14,7 +14,7 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
     var isEnabled: Bool
     var createdAt: Date
     var updatedAt: Date
-    
+
     init(
         id: UUID = UUID(),
         name: String = "My Sleep Schedule",
@@ -37,19 +37,19 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
         self.selectedSounds = selectedSounds
         self.autoFadeMinutes = autoFadeMinutes
         self.dateCreated = dateCreated
-        self.lastModified = Date()
+        lastModified = Date()
     }
-    
+
     // MARK: - Computed Properties
-    
+
     var nextBedTime: Date? {
-        guard isEnabled && !selectedDays.isEmpty else { return nil }
-        
+        guard isEnabled, !selectedDays.isEmpty else { return nil }
+
         let calendar = Calendar.current
         let now = Date()
-        
+
         // Check each weekday starting from today
-        for dayOffset in 0..<7 {
+        for dayOffset in 0 ..< 7 {
             guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else { continue }
             let weekday = Weekday(from: calendar.component(.weekday, from: targetDate))
 
@@ -58,40 +58,46 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
             // Create bedtime for this day
             let bedTimeComponents = calendar.dateComponents([.hour, .minute], from: bedTime)
             guard let scheduledBedTime = calendar.date(bySettingHour: bedTimeComponents.hour ?? 20,
-                                                      minute: bedTimeComponents.minute ?? 0,
-                                                      second: 0,
-                                                      of: targetDate) else { continue }
+                                                       minute: bedTimeComponents.minute ?? 0,
+                                                       second: 0,
+                                                       of: targetDate) else { continue }
 
             // If it's today and time hasn't passed, or it's a future day
             if scheduledBedTime > now {
                 return scheduledBedTime
             }
         }
-        
+
         return nil
     }
-    
+
     var nextReminderTime: Date? {
         guard let bedTime = nextBedTime else { return nil }
         return Calendar.current.date(byAdding: .minute, value: -reminderMinutes, to: bedTime)
     }
-    
+
     var formattedBedTime: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: bedTime)
     }
-    
+
     var formattedWakeTime: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: wakeTime)
     }
-    
+
     var selectedDaysText: String {
         if selectedDays.count == 7 {
             return "Every day"
-        } else if selectedDays.count == 5 && selectedDays.isSuperset(of: [.monday, .tuesday, .wednesday, .thursday, .friday]) {
+        } else if selectedDays.count == 5 && selectedDays.isSuperset(of: [
+            .monday,
+            .tuesday,
+            .wednesday,
+            .thursday,
+            .friday,
+        ]) {
             return "Weekdays"
         } else if selectedDays.count == 2 && selectedDays.isSuperset(of: [.saturday, .sunday]) {
             return "Weekends"
@@ -99,27 +105,27 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
             return selectedDays.sorted().map { $0.shortName }.joined(separator: ", ")
         }
     }
-    
+
     // MARK: - Notification Identifiers
-    
+
     var reminderNotificationId: String {
         "sleep_reminder_\(id.uuidString)"
     }
-    
+
     var bedtimeNotificationId: String {
         "sleep_bedtime_\(id.uuidString)"
     }
 }
 
-// MARK: - Weekday Enum
+// MARK: - Weekday
 
 enum Weekday: Int, CaseIterable, Codable, Comparable {
     case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
-    
+
     init(from weekdayComponent: Int) {
         self = Weekday(rawValue: weekdayComponent) ?? .sunday
     }
-    
+
     var name: String {
         switch self {
         case .sunday: return "Sunday"
@@ -143,7 +149,7 @@ enum Weekday: Int, CaseIterable, Codable, Comparable {
         case .saturday: return "Sat"
         }
     }
-    
+
     static func < (lhs: Weekday, rhs: Weekday) -> Bool {
         // Sort: Monday first, Sunday last
         let lhsOrder = lhs == .sunday ? 7 : lhs.rawValue
@@ -159,7 +165,7 @@ enum SleepScheduleError: LocalizedError {
     case invalidTimeConfiguration
     case scheduleNotFound
     case maxSchedulesReached
-    
+
     var errorDescription: String? {
         switch self {
         case .notificationPermissionDenied:

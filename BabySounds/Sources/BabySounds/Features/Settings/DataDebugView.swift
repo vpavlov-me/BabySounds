@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Data Debug View
+// MARK: - DataDebugView
 
 /// Debug view to demonstrate JSON data loading and binding to UI
 struct DataDebugView: View {
@@ -10,10 +10,10 @@ struct DataDebugView: View {
     @EnvironmentObject var audioManager: AudioEngineManager
     @StateObject var safeVolumeManager = SafeVolumeManager.shared
     @StateObject var sleepScheduleManager = SleepScheduleManager.shared
-    
+
     @State private var isLoading = false
     @State private var selectedCategory: SoundCategory = .white
-    
+
     private var subscriptionStatusText: String {
         switch subscriptionService.subscriptionStatus {
         case .notSubscribed:
@@ -35,7 +35,7 @@ struct DataDebugView: View {
             return "Grace Period"
         }
     }
-    
+
     private var warningLevelText: String {
         switch safeVolumeManager.volumeWarningLevel {
         case .safe:
@@ -51,13 +51,13 @@ struct DataDebugView: View {
             return "DANGER"
         }
     }
-    
+
     private func formatDuration(_ duration: TimeInterval) -> String {
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
         return "\(minutes):\(String(format: "%02d", seconds))"
     }
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -66,13 +66,13 @@ struct DataDebugView: View {
                     Text("Data Wiring Demo")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                    
+
                     Text("Demonstrating JSON → UI data flow")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 .padding(.top)
-                
+
                 // Stats cards
                 HStack(spacing: 16) {
                     StatCard(
@@ -81,14 +81,14 @@ struct DataDebugView: View {
                         icon: "music.note.list",
                         color: .blue
                     )
-                    
+
                     StatCard(
                         title: "Favorites",
                         value: "\(soundCatalog.favorites.count)",
                         icon: "heart.fill",
                         color: .red
                     )
-                    
+
                     StatCard(
                         title: "Playing",
                         value: "\(audioManager.currentlyPlaying.count)",
@@ -97,26 +97,26 @@ struct DataDebugView: View {
                     )
                 }
                 .padding(.horizontal)
-                
+
                 // Premium Stats Section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Premium Status")
                         .font(.headline)
                         .padding(.horizontal)
-                    
+
                     HStack(spacing: 16) {
                         PremiumStatsCard(
                             title: "Subscription",
                             value: subscriptionStatusText,
                             color: subscriptionService.hasActiveSubscription ? .green : .orange
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Favorites",
                             value: "\(soundCatalog.favorites.count)/\(premiumManager.hasAccess(to: .unlimitedFavorites) ? "∞" : "\(PremiumManager.Limits.maxFavoritesForFree)")",
                             color: .blue
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Features",
                             value: "\(PremiumManager.PremiumFeature.allCases.filter { premiumManager.hasAccess(to: $0) }.count)/\(PremiumManager.PremiumFeature.allCases.count)",
@@ -125,26 +125,27 @@ struct DataDebugView: View {
                     }
                     .padding(.horizontal)
                 }
-                
+
                 // Safe Volume Stats Section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Safe Volume Status")
                         .font(.headline)
                         .padding(.horizontal)
-                    
+
                     HStack(spacing: 16) {
                         PremiumStatsCard(
                             title: "Safe Volume",
                             value: safeVolumeManager.isSafeVolumeEnabled ? "ON" : "OFF",
                             color: safeVolumeManager.isSafeVolumeEnabled ? .green : .red
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Max Volume",
                             value: "\(Int(safeVolumeManager.safeVolumeMultiplier * 100))%",
-                            color: safeVolumeManager.safeVolumeMultiplier <= 0.5 ? .green : safeVolumeManager.safeVolumeMultiplier <= 0.7 ? .orange : .red
+                            color: safeVolumeManager.safeVolumeMultiplier <= 0.5 ? .green : safeVolumeManager
+                                .safeVolumeMultiplier <= 0.7 ? .orange : .red
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Warning Level",
                             value: warningLevelText,
@@ -152,20 +153,21 @@ struct DataDebugView: View {
                         )
                     }
                     .padding(.horizontal)
-                    
+
                     HStack(spacing: 16) {
                         PremiumStatsCard(
                             title: "Session Time",
                             value: formatDuration(safeVolumeManager.currentListeningDuration),
-                            color: safeVolumeManager.currentListeningDuration > SafeVolumeManager.SafetyLimits.breakReminderInterval ? .orange : .green
+                            color: safeVolumeManager.currentListeningDuration > SafeVolumeManager.SafetyLimits
+                                .breakReminderInterval ? .orange : .green
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Parent Override",
                             value: safeVolumeManager.isParentalOverrideActive ? "ACTIVE" : "OFF",
                             color: safeVolumeManager.isParentalOverrideActive ? .orange : .gray
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Break Needed",
                             value: safeVolumeManager.needsBreakReminder ? "YES" : "NO",
@@ -174,26 +176,26 @@ struct DataDebugView: View {
                     }
                     .padding(.horizontal)
                 }
-                
+
                 // Parent Gate Stats Section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Parent Gate Status")
                         .font(.headline)
                         .padding(.horizontal)
-                    
+
                     HStack(spacing: 16) {
                         PremiumStatsCard(
                             title: "Settings",
                             value: ParentGateManager.isRecentlyPassed(for: .settings, within: 300) ? "✓" : "⏳",
                             color: ParentGateManager.isRecentlyPassed(for: .settings, within: 300) ? .green : .orange
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Paywall",
                             value: ParentGateManager.isRecentlyPassed(for: .paywall, within: 300) ? "✓" : "⏳",
                             color: ParentGateManager.isRecentlyPassed(for: .paywall, within: 300) ? .green : .orange
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Failed",
                             value: "\(ParentGateManager.getFailedAttemptCount(for: .settings) + ParentGateManager.getFailedAttemptCount(for: .paywall))",
@@ -202,32 +204,32 @@ struct DataDebugView: View {
                     }
                     .padding(.horizontal)
                 }
-                
+
                 // Sleep Schedules Stats Section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Sleep Schedules Status")
                         .font(.headline)
                         .padding(.horizontal)
-                    
+
                     HStack(spacing: 16) {
                         PremiumStatsCard(
                             title: "Total",
                             value: "\(sleepScheduleManager.schedules.count)",
                             color: .blue
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Active",
                             value: "\(sleepScheduleManager.activeSchedules.count)",
                             color: .green
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Notifications",
                             value: sleepScheduleManager.isNotificationPermissionGranted ? "✓" : "✗",
                             color: sleepScheduleManager.isNotificationPermissionGranted ? .green : .red
                         )
-                        
+
                         PremiumStatsCard(
                             title: "Can Add More",
                             value: sleepScheduleManager.canAddMoreSchedules ? "YES" : "NO",
@@ -235,22 +237,24 @@ struct DataDebugView: View {
                         )
                     }
                     .padding(.horizontal)
-                    
+
                     // Next event info
                     if let nextEvent = sleepScheduleManager.nextScheduledEvent {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Next Event: \(nextEvent.schedule.name)")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
-                            
-                            Text("\(nextEvent.type == "reminder" ? "Reminder" : "Bedtime") at \(formatTime(nextEvent.time))")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+
+                            Text(
+                                "\(nextEvent.type == "reminder" ? "Reminder" : "Bedtime") at \(formatTime(nextEvent.time))"
+                            )
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         }
                         .padding(.horizontal)
                         .padding(.top, 8)
                     }
-                    
+
                     // Test buttons
                     HStack(spacing: 12) {
                         Button("Test Reminder") {
@@ -258,13 +262,13 @@ struct DataDebugView: View {
                         }
                         .buttonStyle(BorderedButtonStyle())
                         .controlSize(.small)
-                        
+
                         Button("Test Bedtime") {
                             testScheduleBedtime()
                         }
                         .buttonStyle(BorderedButtonStyle())
                         .controlSize(.small)
-                        
+
                         Button("Add Test Schedule") {
                             addTestSchedule()
                         }
@@ -274,13 +278,13 @@ struct DataDebugView: View {
                     .padding(.horizontal)
                     .padding(.top, 8)
                 }
-                
+
                 // Category breakdown
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Sounds by Category")
                         .font(.headline)
                         .padding(.horizontal)
-                    
+
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
                             ForEach(SoundCategory.allCases, id: \.self) { category in
@@ -297,30 +301,30 @@ struct DataDebugView: View {
                         .padding(.horizontal)
                     }
                 }
-                
+
                 // Selected category sounds
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("\(selectedCategory.localizedName) Sounds")
                             .font(.headline)
-                        
+
                         Spacer()
-                        
+
                         Text("\(soundCatalog.sounds(for: selectedCategory).count) sounds")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal)
-                    
+
                     List(soundCatalog.sounds(for: selectedCategory)) { sound in
                         CompactSoundRow(sound: sound)
                     }
                     .frame(height: 200)
                     .listStyle(PlainListStyle())
                 }
-                
+
                 Spacer()
-                
+
                 // Action buttons
                 VStack(spacing: 12) {
                     Button(action: {
@@ -342,7 +346,7 @@ struct DataDebugView: View {
                         .cornerRadius(12)
                     }
                     .disabled(isLoading)
-                    
+
                     Button(action: {
                         testAudioLoading()
                     }) {
@@ -357,7 +361,7 @@ struct DataDebugView: View {
                         .cornerRadius(12)
                     }
                     .disabled(isLoading)
-                    
+
                     // Safe Volume Test Buttons
                     HStack(spacing: 12) {
                         Button(action: {
@@ -374,7 +378,7 @@ struct DataDebugView: View {
                         .background(Color.orange)
                         .foregroundColor(.white)
                         .cornerRadius(12)
-                        
+
                         Button(action: {
                             testBreakReminder()
                         }) {
@@ -390,7 +394,7 @@ struct DataDebugView: View {
                         .foregroundColor(.white)
                         .cornerRadius(12)
                     }
-                    
+
                     HStack(spacing: 12) {
                         Button(action: {
                             safeVolumeManager.resetToChildSafeDefaults()
@@ -406,13 +410,15 @@ struct DataDebugView: View {
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(12)
-                        
+
                         Button(action: {
                             toggleSafeVolume()
                         }) {
                             VStack {
-                                Image(systemName: safeVolumeManager.isSafeVolumeEnabled ? "speaker.slash" : "speaker.wave.2")
-                                Text(safeVolumeManager.isSafeVolumeEnabled ? "Disable Safe Volume" : "Enable Safe Volume")
+                                Image(systemName: safeVolumeManager
+                                    .isSafeVolumeEnabled ? "speaker.slash" : "speaker.wave.2")
+                                Text(safeVolumeManager
+                                    .isSafeVolumeEnabled ? "Disable Safe Volume" : "Enable Safe Volume")
                                     .font(.caption)
                             }
                         }
@@ -429,7 +435,7 @@ struct DataDebugView: View {
             .navigationBarHidden(true)
         }
     }
-    
+
     private func reloadData() {
         isLoading = true
         Task {
@@ -444,18 +450,18 @@ struct DataDebugView: View {
             }
         }
     }
-    
+
     func testAudioLoading() {
         guard let firstSound = soundCatalog.sounds.first else { return }
-        
+
         Task {
             do {
                 try await audioManager.preload(sound: firstSound)
                 print("DataDebugView: Successfully preloaded \(firstSound.fileName)")
-                
+
                 let handle = try await audioManager.play(sound: firstSound, loop: true)
                 print("DataDebugView: Started playing \(firstSound.fileName) with handle \(handle.id)")
-                
+
                 // Stop after 3 seconds
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                     audioManager.stop(id: handle.id, fade: 1.0)
@@ -466,7 +472,7 @@ struct DataDebugView: View {
             }
         }
     }
-    
+
     func testVolumeWarning() {
         // Simulate a volume warning by posting notification
         NotificationCenter.default.post(
@@ -474,48 +480,48 @@ struct DataDebugView: View {
             object: nil,
             userInfo: [
                 "volume": Float(0.8),
-                "level": SafeVolumeManager.VolumeWarningLevel.warning
+                "level": SafeVolumeManager.VolumeWarningLevel.warning,
             ]
         )
         print("DataDebugView: Triggered test volume warning")
     }
-    
+
     func testBreakReminder() {
         // Simulate a break reminder by posting notification
         NotificationCenter.default.post(
             name: .breakRecommendationTriggered,
             object: nil,
             userInfo: [
-                "duration": TimeInterval(2700) // 45 minutes
+                "duration": TimeInterval(2700), // 45 minutes
             ]
         )
         print("DataDebugView: Triggered test break reminder")
     }
-    
+
     private func toggleSafeVolume() {
         safeVolumeManager.setSafeVolumeEnabled(!safeVolumeManager.isSafeVolumeEnabled)
         print("DataDebugView: Toggled safe volume to \(safeVolumeManager.isSafeVolumeEnabled)")
     }
 }
 
-// MARK: - Supporting Views
+// MARK: - StatCard
 
 struct StatCard: View {
     let title: String
     let value: String
     let icon: String
     let color: Color
-    
+
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(color)
-            
+
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-            
+
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -527,26 +533,29 @@ struct StatCard: View {
     }
 }
 
+// MARK: - CategoryStatsCard
+
 struct CategoryStatsCard: View {
     let category: SoundCategory
     let soundCount: Int
     let isSelected: Bool
-    
+
     var body: some View {
         VStack(spacing: 8) {
             Text(category.emoji)
                 .font(.title)
-            
+
             Text("\(soundCount)")
                 .font(.headline)
                 .fontWeight(.bold)
-            
+
             Text(String(describing: category).capitalized)
                 .font(.caption2)
                 .lineLimit(1)
         }
         .frame(width: 80, height: 80)
-        .background(isSelected ? category.emoji.isEmpty ? Color.blue.opacity(0.2) : Color.blue.opacity(0.1) : Color(.systemGray6))
+        .background(isSelected ? category.emoji.isEmpty ? Color.blue.opacity(0.2) : Color.blue
+            .opacity(0.1) : Color(.systemGray6))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -555,19 +564,21 @@ struct CategoryStatsCard: View {
     }
 }
 
+// MARK: - CompactSoundRow
+
 struct CompactSoundRow: View {
     let sound: Sound
     @EnvironmentObject var soundCatalog: SoundCatalog
     @EnvironmentObject var audioManager: AudioEngineManager
-    
+
     private var isCurrentlyPlaying: Bool {
         audioManager.currentlyPlaying.values.contains { $0.soundId == sound.id }
     }
-    
+
     private var audioFileExists: Bool {
         Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt) != nil
     }
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Status indicators
@@ -575,42 +586,42 @@ struct CompactSoundRow: View {
                 Circle()
                     .fill(sound.color.color)
                     .frame(width: 8, height: 8)
-                
+
                 if isCurrentlyPlaying {
                     Image(systemName: "speaker.wave.1.fill")
                         .font(.caption2)
                         .foregroundColor(.blue)
                 }
-                
+
                 if !audioFileExists {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.caption2)
                         .foregroundColor(.orange)
                 }
             }
-            
+
             // Sound info
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     Text(sound.displayEmoji)
                         .font(.body)
-                    
+
                     Text(sound.titleKey)
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
-                
+
                 HStack(spacing: 8) {
                     Text(sound.fileName)
                         .font(.caption2)
                         .foregroundColor(.secondary)
-                    
+
                     if sound.premium {
                         Text("Premium")
                             .font(.caption2)
                             .foregroundColor(.orange)
                     }
-                    
+
                     if sound.loop {
                         Image(systemName: "repeat")
                             .font(.caption2)
@@ -618,9 +629,9 @@ struct CompactSoundRow: View {
                     }
                 }
             }
-            
+
             Spacer()
-            
+
             // Quick play button
             Button(action: {
                 if isCurrentlyPlaying {
@@ -642,44 +653,44 @@ struct CompactSoundRow: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     // MARK: - Sleep Schedule Test Functions
-    
+
     private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
-    
+
     func testScheduleReminder() {
         print("🧪 [DataDebugView] Тестирование напоминания расписания сна")
-        
+
         // Simulate reminder notification
         let testSchedule = SleepSchedule(
             name: "Тестовое расписание",
             selectedSounds: ["white_noise_ocean", "lullaby_brahms"]
         )
-        
+
         sleepScheduleManager.handleBedtimeNotification(
             scheduleId: testSchedule.id.uuidString,
             selectedSounds: testSchedule.selectedSounds
         )
     }
-    
+
     func testScheduleBedtime() {
         print("🧪 [DataDebugView] Тестирование времени сна")
-        
+
         // Test bedtime with sample sounds
         let testSounds = ["white_noise_rain", "nature_forest_birds"]
-        
+
         Task {
             await audioManager.startSleepSchedule(sounds: testSounds, fadeMinutes: 2)
         }
     }
-    
+
     private func addTestSchedule() {
         print("🧪 [DataDebugView] Добавление тестового расписания")
-        
+
         let testSchedule = SleepSchedule(
             name: "Тестовое расписание \(Date().timeIntervalSince1970)",
             isEnabled: true,
@@ -689,7 +700,7 @@ struct CompactSoundRow: View {
             selectedSounds: ["white_noise_ocean", "lullaby_twinkle"],
             autoFadeMinutes: 30
         )
-        
+
         Task {
             do {
                 try await sleepScheduleManager.addSchedule(testSchedule)
@@ -701,7 +712,7 @@ struct CompactSoundRow: View {
     }
 }
 
-// MARK: - Preview
+// MARK: - DataDebugView_Previews
 
 struct DataDebugView_Previews: PreviewProvider {
     static var previews: some View {
@@ -713,19 +724,19 @@ struct DataDebugView_Previews: PreviewProvider {
     }
 }
 
-// MARK: - Premium Stats Card
+// MARK: - PremiumStatsCard
 
 struct PremiumStatsCard: View {
     let title: String
     let value: String
     let color: Color
-    
+
     var body: some View {
         VStack(spacing: 6) {
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
-            
+
             Text(value)
                 .font(.headline)
                 .fontWeight(.semibold)

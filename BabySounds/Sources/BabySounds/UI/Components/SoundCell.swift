@@ -1,21 +1,21 @@
 import SwiftUI
 
-// MARK: - Sound Cell
+// MARK: - SoundCell
 
 struct SoundCell: View {
     let sound: Sound
     @EnvironmentObject var audioManager: AudioEngineManager
     @EnvironmentObject var premiumManager: PremiumManager
     @ObservedObject var favoritesManager = FavoritesManager.shared
-    
+
     @State private var dragOffset: CGSize = .zero
     @State private var showPremiumAlert = false
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Artwork
             artworkView
-            
+
             // Content
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
@@ -25,14 +25,14 @@ struct SoundCell: View {
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
                         .lineLimit(1)
-                    
+
                     Spacer()
-                    
+
                     // Premium badge
                     if sound.premium && !premiumManager.isPremium {
                         premiumBadge
                     }
-                    
+
                     // More options button
                     Button {
                         // Handle more options
@@ -44,14 +44,14 @@ struct SoundCell: View {
                             .frame(width: 24, height: 24)
                     }
                 }
-                
+
                 // Category
                 Text(sound.category.displayName)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
-            
+
             // Playing indicator
             if audioManager.currentSound?.id == sound.id && audioManager.isPlaying {
                 playingIndicator
@@ -80,7 +80,7 @@ struct SoundCell: View {
                         toggleFavorite()
                         HapticManager.shared.impact(.medium)
                     }
-                    
+
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         dragOffset = .zero
                     }
@@ -90,7 +90,7 @@ struct SoundCell: View {
             playSound()
         }
         .alert("Premium Required", isPresented: $showPremiumAlert) {
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {}
             Button("Upgrade") {
                 // Show paywall
             }
@@ -98,9 +98,9 @@ struct SoundCell: View {
             Text("This sound requires a premium subscription to play.")
         }
     }
-    
+
     // MARK: - Artwork View
-    
+
     private var artworkView: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 8)
@@ -109,22 +109,22 @@ struct SoundCell: View {
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 ))
-            
+
             Text(sound.displayEmoji)
                 .font(.title2)
         }
         .frame(width: 44, height: 44)
         .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
     }
-    
+
     // MARK: - Premium Badge
-    
+
     private var premiumBadge: some View {
         HStack(spacing: 4) {
             Image(systemName: "crown.fill")
                 .font(.caption2)
                 .foregroundColor(.orange)
-            
+
             Text("Premium")
                 .font(.caption2)
                 .fontWeight(.medium)
@@ -137,28 +137,28 @@ struct SoundCell: View {
                 .fill(Color.orange.opacity(0.15))
         )
     }
-    
+
     // MARK: - Playing Indicator
-    
+
     private var playingIndicator: some View {
         HStack(spacing: 2) {
-            ForEach(0..<3) { index in
+            ForEach(0 ..< 3) { index in
                 RoundedRectangle(cornerRadius: 1)
                     .fill(.pink)
-                    .frame(width: 3, height: CGFloat.random(in: 8...16))
+                    .frame(width: 3, height: CGFloat.random(in: 8 ... 16))
                     .animation(
                         .easeInOut(duration: 0.5)
-                        .repeatForever()
-                        .delay(Double(index) * 0.1),
+                            .repeatForever()
+                            .delay(Double(index) * 0.1),
                         value: audioManager.isPlaying
                     )
             }
         }
         .frame(width: 16, height: 16)
     }
-    
+
     // MARK: - Swipe Action Background
-    
+
     private var swipeActionBackground: some View {
         HStack {
             if dragOffset.width > 0 {
@@ -168,32 +168,32 @@ struct SoundCell: View {
                         .font(.title3)
                         .foregroundColor(.pink)
                         .padding(.leading, 16)
-                    
+
                     Spacer()
                 }
                 .background(Color.pink.opacity(0.1))
             }
-            
+
             Spacer()
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func playSound() {
-        if sound.premium && !premiumManager.isPremium {
+        if sound.premium, !premiumManager.isPremium {
             showPremiumAlert = true
             HapticManager.shared.notification(.warning)
             return
         }
-        
+
         // Stop current sound if playing a different one
         if audioManager.currentSound?.id != sound.id {
             audioManager.stopAllSounds()
         }
-        
+
         // Toggle playback
-        if audioManager.currentSound?.id == sound.id && audioManager.isPlaying {
+        if audioManager.currentSound?.id == sound.id, audioManager.isPlaying {
             audioManager.pauseCurrentSound()
         } else {
             Task {
@@ -207,7 +207,7 @@ struct SoundCell: View {
             }
         }
     }
-    
+
     private func toggleFavorite() {
         if favoritesManager.isFavorite(sound.id) {
             favoritesManager.removeFavorite(sound.id)
@@ -218,19 +218,19 @@ struct SoundCell: View {
     }
 }
 
-// MARK: - Section Header
+// MARK: - SectionHeaderView
 
 struct SectionHeaderView: View {
     let title: String
-    let isSticky: Bool = true
-    
+    let isSticky = true
+
     var body: some View {
         HStack {
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
-            
+
             Spacer()
         }
         .padding(.horizontal, 16)
@@ -244,7 +244,7 @@ struct SectionHeaderView: View {
 #Preview {
     VStack {
         SectionHeaderView(title: "White Noise")
-        
+
         SoundCell(sound: Sound(
             id: "white_noise",
             filename: "white_noise.mp3",
@@ -253,7 +253,7 @@ struct SectionHeaderView: View {
             premium: false,
             duration: 0
         ))
-        
+
         SoundCell(sound: Sound(
             id: "forest_rain",
             filename: "forest_rain.mp3",

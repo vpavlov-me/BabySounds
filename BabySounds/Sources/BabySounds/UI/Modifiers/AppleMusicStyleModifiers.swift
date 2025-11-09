@@ -5,32 +5,32 @@ import SwiftUI
 extension View {
     /// Applies Apple Music-style press animation
     func appleMusicPressEffect() -> some View {
-        self.modifier(AppleMusicPressEffect())
+        modifier(AppleMusicPressEffect())
     }
-    
+
     /// Applies Apple Music-style card styling
     func appleMusicCard(padding: CGFloat = 16) -> some View {
-        self.modifier(AppleMusicCard(padding: padding))
+        modifier(AppleMusicCard(padding: padding))
     }
-    
+
     /// Applies Apple Music-style blur background
     func appleMusicBlur() -> some View {
-        self.modifier(AppleMusicBlur())
+        modifier(AppleMusicBlur())
     }
-    
+
     /// Adds Apple Music-style haptic feedback
     func appleMusicHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) -> some View {
-        self.onTapGesture {
+        onTapGesture {
             HapticManager.shared.impact(style)
         }
     }
 }
 
-// MARK: - Apple Music Press Effect
+// MARK: - AppleMusicPressEffect
 
 struct AppleMusicPressEffect: ViewModifier {
     @State private var isPressed = false
-    
+
     func body(content: Content) -> some View {
         content
             .scaleEffect(isPressed ? 0.95 : 1.0)
@@ -38,15 +38,15 @@ struct AppleMusicPressEffect: ViewModifier {
             .animation(.easeInOut(duration: 0.1), value: isPressed)
             .onLongPressGesture(minimumDuration: 0) { pressing in
                 isPressed = pressing
-            } perform: { }
+            } perform: {}
     }
 }
 
-// MARK: - Apple Music Card
+// MARK: - AppleMusicCard
 
 struct AppleMusicCard: ViewModifier {
     let padding: CGFloat
-    
+
     func body(content: Content) -> some View {
         content
             .padding(padding)
@@ -58,7 +58,7 @@ struct AppleMusicCard: ViewModifier {
     }
 }
 
-// MARK: - Apple Music Blur
+// MARK: - AppleMusicBlur
 
 struct AppleMusicBlur: ViewModifier {
     func body(content: Content) -> some View {
@@ -71,8 +71,7 @@ struct AppleMusicBlur: ViewModifier {
 
 extension Image {
     func appleMusicSymbolEffect() -> some View {
-        self
-            .contentTransition(.symbolEffect(.replace.downUp))
+        contentTransition(.symbolEffect(.replace.downUp))
             .animation(.easeInOut(duration: 0.3), value: UUID())
     }
 }
@@ -81,8 +80,7 @@ extension Image {
 
 extension View {
     func appleMusicNavigationBar() -> some View {
-        self
-            .navigationBarTitleDisplayMode(.large)
+        navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(.regularMaterial, for: .navigationBar)
     }
@@ -92,18 +90,17 @@ extension View {
 
 extension View {
     func appleMusicTabBar() -> some View {
-        self
-            .toolbarBackground(.visible, for: .tabBar)
+        toolbarBackground(.visible, for: .tabBar)
             .toolbarBackground(.regularMaterial, for: .tabBar)
     }
 }
 
-// MARK: - Scrolling Effects
+// MARK: - ScrollOffsetModifier
 
 struct ScrollOffsetModifier: ViewModifier {
     @Binding var offset: CGFloat
     let coordinateSpace: String
-    
+
     func body(content: Content) -> some View {
         content
             .background(
@@ -123,16 +120,16 @@ struct ScrollOffsetModifier: ViewModifier {
 
 extension View {
     func trackScrollOffset(_ offset: Binding<CGFloat>, in coordinateSpace: String = "scroll") -> some View {
-        self.modifier(ScrollOffsetModifier(offset: offset, coordinateSpace: coordinateSpace))
+        modifier(ScrollOffsetModifier(offset: offset, coordinateSpace: coordinateSpace))
     }
 }
 
-// MARK: - Animated Gradient Background
+// MARK: - AnimatedGradientBackground
 
 struct AnimatedGradientBackground: View {
     @State private var animateGradient = false
     let colors: [Color]
-    
+
     var body: some View {
         LinearGradient(
             colors: colors,
@@ -147,12 +144,12 @@ struct AnimatedGradientBackground: View {
     }
 }
 
-// MARK: - Floating Action Button
+// MARK: - FloatingActionButton
 
 struct FloatingActionButton: View {
     let icon: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
@@ -173,29 +170,29 @@ struct FloatingActionButton: View {
     }
 }
 
-// MARK: - Wave Animation
+// MARK: - WaveAnimation
 
 struct WaveAnimation: View {
     @State private var isAnimating = false
     let color: Color
     let count: Int
-    
+
     init(color: Color = .pink, count: Int = 3) {
         self.color = color
         self.count = count
     }
-    
+
     var body: some View {
         HStack(spacing: 2) {
-            ForEach(0..<count, id: \.self) { index in
+            ForEach(0 ..< count, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 1)
                     .fill(color)
                     .frame(width: 3)
-                    .frame(height: isAnimating ? CGFloat.random(in: 8...20) : 8)
+                    .frame(height: isAnimating ? CGFloat.random(in: 8 ... 20) : 8)
                     .animation(
                         .easeInOut(duration: 0.5)
-                        .repeatForever()
-                        .delay(Double(index) * 0.1),
+                            .repeatForever()
+                            .delay(Double(index) * 0.1),
                         value: isAnimating
                     )
             }
@@ -206,24 +203,24 @@ struct WaveAnimation: View {
     }
 }
 
-// MARK: - Breathing Animation
+// MARK: - BreathingAnimation
 
 struct BreathingAnimation: ViewModifier {
     @State private var isBreathing = false
     let duration: Double
     let scaleRange: ClosedRange<CGFloat>
-    
-    init(duration: Double = 2.0, scaleRange: ClosedRange<CGFloat> = 0.95...1.05) {
+
+    init(duration: Double = 2.0, scaleRange: ClosedRange<CGFloat> = 0.95 ... 1.05) {
         self.duration = duration
         self.scaleRange = scaleRange
     }
-    
+
     func body(content: Content) -> some View {
         content
             .scaleEffect(isBreathing ? scaleRange.upperBound : scaleRange.lowerBound)
             .animation(
                 .easeInOut(duration: duration)
-                .repeatForever(autoreverses: true),
+                    .repeatForever(autoreverses: true),
                 value: isBreathing
             )
             .onAppear {
@@ -233,25 +230,25 @@ struct BreathingAnimation: ViewModifier {
 }
 
 extension View {
-    func breathingAnimation(duration: Double = 2.0, scaleRange: ClosedRange<CGFloat> = 0.95...1.05) -> some View {
-        self.modifier(BreathingAnimation(duration: duration, scaleRange: scaleRange))
+    func breathingAnimation(duration: Double = 2.0, scaleRange: ClosedRange<CGFloat> = 0.95 ... 1.05) -> some View {
+        modifier(BreathingAnimation(duration: duration, scaleRange: scaleRange))
     }
 }
 
-// MARK: - Smart Refresh Control
+// MARK: - SmartRefreshControl
 
 struct SmartRefreshControl: View {
     let onRefresh: () async -> Void
     @State private var isRefreshing = false
-    
+
     var body: some View {
         RefreshControl(
             coordinateSpace: "pullToRefresh"
-        )            {
-                await performRefresh()
-            }
+        ) {
+            await performRefresh()
+        }
     }
-    
+
     private func performRefresh() async {
         isRefreshing = true
         HapticManager.shared.impact(.light)
@@ -260,10 +257,12 @@ struct SmartRefreshControl: View {
     }
 }
 
+// MARK: - RefreshControl
+
 struct RefreshControl: View {
     let coordinateSpace: String
     let onRefresh: () async -> Void
-    
+
     var body: some View {
         GeometryReader { geometry in
             if geometry.frame(in: .named(coordinateSpace)).midY > 50 {
@@ -289,7 +288,7 @@ extension View {
     func appleMusicContextMenu<MenuItems: View>(
         @ViewBuilder menuItems: () -> MenuItems
     ) -> some View {
-        self.contextMenu {
+        contextMenu {
             menuItems()
         } preview: {
             self
@@ -299,21 +298,21 @@ extension View {
     }
 }
 
-// MARK: - Loading States
+// MARK: - LoadingView
 
 struct LoadingView: View {
     let text: String
-    
+
     init(_ text: String = "Loading...") {
         self.text = text
     }
-    
+
     var body: some View {
         VStack(spacing: 16) {
             ProgressView()
                 .tint(.pink)
                 .scaleEffect(1.2)
-            
+
             Text(text)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -323,33 +322,33 @@ struct LoadingView: View {
     }
 }
 
-// MARK: - Error States
+// MARK: - ErrorView
 
 struct ErrorView: View {
     let message: String
     let retryAction: (() -> Void)?
-    
+
     init(_ message: String, retryAction: (() -> Void)? = nil) {
         self.message = message
         self.retryAction = retryAction
     }
-    
+
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 40))
                 .foregroundColor(.orange)
-            
+
             Text("Something went wrong")
                 .font(.headline)
                 .fontWeight(.semibold)
-            
+
             Text(message)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-            
+
             if let retryAction = retryAction {
                 Button("Try Again") {
                     retryAction()

@@ -1,66 +1,66 @@
-import SwiftUI
 import AVFoundation
 import MediaPlayer
 import StoreKit
+import SwiftUI
 @preconcurrency import UserNotifications
 
-// MARK: - Haptic Feedback Manager
+// MARK: - HapticManager
 
 @MainActor
 class HapticManager {
     static let shared = HapticManager()
-    
+
     private init() {}
-    
+
     func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
     }
-    
+
     func notification(_ type: UINotificationFeedbackGenerator.FeedbackType) {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(type)
     }
-    
+
     func selection() {
         let generator = UISelectionFeedbackGenerator()
         generator.selectionChanged()
     }
-    
+
     // Specific feedback for baby app
     func playSound() {
         impact(.light)
     }
-    
+
     func stopSound() {
         impact(.medium)
     }
-    
+
     func favoriteToggle() {
         impact(.light)
     }
-    
+
     func volumeChange() {
         selection()
     }
-    
+
     func timerStart() {
         notification(.success)
     }
-    
+
     func fadeStart() {
         impact(.soft)
     }
 }
 
-// MARK: - Main App View
+// MARK: - ContentView
 
 struct ContentView: View {
     @StateObject private var soundManager = RealSoundManager()
     @StateObject private var premiumManager = PremiumManager.shared
     @StateObject private var parentGateManager = ParentGateManager.shared
     @StateObject private var favoritesManager = FavoritesManager.shared
-    
+
     var body: some View {
         TabView {
             SoundsView()
@@ -70,7 +70,7 @@ struct ContentView: View {
                     Image(systemName: "music.note")
                     Text("Sounds")
                 }
-            
+
             SleepSchedulesView()
                 .environmentObject(soundManager)
                 .environmentObject(premiumManager)
@@ -79,7 +79,7 @@ struct ContentView: View {
                     Image(systemName: "moon.zzz")
                     Text("Schedule")
                 }
-            
+
             FavoritesView()
                 .environmentObject(soundManager)
                 .environmentObject(premiumManager)
@@ -88,7 +88,7 @@ struct ContentView: View {
                     Image(systemName: "heart.fill")
                     Text("Favorites")
                 }
-            
+
             MoreView()
                 .environmentObject(soundManager)
                 .environmentObject(premiumManager)
@@ -105,7 +105,7 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Sounds View
+// MARK: - SoundsView
 
 struct SoundsView: View {
     @EnvironmentObject var soundManager: RealSoundManager
@@ -115,14 +115,14 @@ struct SoundsView: View {
     @State private var selectedSound: RealSound?
     @State private var showingPlayer = false
     @State private var showingPremiumSheet = false
-    
+
     private let categories: [SoundCategory] = [.all, .nature, .white, .pink, .brown, .womb, .fan]
-    
+
     private let columns = [
         GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
+        GridItem(.flexible(), spacing: 16),
     ]
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -133,9 +133,9 @@ struct SoundsView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.pink)
-                        
+
                         Spacer()
-                        
+
                         Button(action: {}) {
                             Image(systemName: "airplayaudio")
                                 .font(.title2)
@@ -145,7 +145,7 @@ struct SoundsView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
                 }
-                
+
                 // Category Tabs (только если не "All")
                 if selectedCategory != .all {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -162,7 +162,7 @@ struct SoundsView: View {
                     }
                     .padding(.vertical, 12)
                 }
-                
+
                 // Sounds Grid
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 16) {
@@ -173,7 +173,7 @@ struct SoundsView: View {
                                 isFavorite: favoritesManager.isFavorite(sound),
                                 onTap: {
                                     HapticManager.shared.playSound()
-                                    if sound.premium && !premiumManager.isPremium {
+                                    if sound.premium, !premiumManager.isPremium {
                                         showingPremiumSheet = true
                                     } else {
                                         selectedSound = sound
@@ -186,7 +186,10 @@ struct SoundsView: View {
                                 }
                             )
                             .transition(.asymmetric(
-                                insertion: .scale(scale: 0.8).combined(with: .opacity).animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.05)),
+                                insertion: .scale(scale: 0.8).combined(with: .opacity).animation(.spring(
+                                    response: 0.6,
+                                    dampingFraction: 0.8
+                                ).delay(Double(index) * 0.05)),
                                 removal: .scale(scale: 0.8).combined(with: .opacity).animation(.easeOut(duration: 0.3))
                             ))
                         }
@@ -194,7 +197,7 @@ struct SoundsView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 100) // Space for now playing
                 }
-                
+
                 Spacer()
             }
             .background(Color(UIColor.systemGroupedBackground))
@@ -220,7 +223,7 @@ struct SoundsView: View {
             }
         }
     }
-    
+
     private var filteredSounds: [RealSound] {
         if selectedCategory == .all {
             return soundManager.allSounds
@@ -230,19 +233,19 @@ struct SoundsView: View {
     }
 }
 
-// MARK: - Category Tab
+// MARK: - CategoryTab
 
 struct CategoryTab: View {
     let category: SoundCategory
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 Text(category.emoji)
                     .font(.caption)
-                
+
                 Text(category.localizedName)
                     .font(.system(size: 14, weight: .medium))
             }
@@ -258,18 +261,18 @@ struct CategoryTab: View {
     }
 }
 
-// MARK: - Modern Sound Card
+// MARK: - SoundCardModern
 
 struct SoundCardModern: View {
     let sound: RealSound
     let isPlaying: Bool
-    var isFavorite: Bool = false
+    var isFavorite = false
     let onTap: () -> Void
     var onFavoriteTap: (() -> Void)? = nil
-    
+
     @State private var isPressed = false
     @State private var pulseScale: CGFloat = 1.0
-    
+
     private var cardContent: some View {
         VStack(spacing: 0) {
             // Image
@@ -287,9 +290,9 @@ struct SoundCardModern: View {
                         .font(.system(size: 40))
                         .scaleEffect(isPlaying ? pulseScale : 1.0)
                         .animation(
-                            isPlaying ? 
-                            Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true) :
-                            .easeOut(duration: 0.3),
+                            isPlaying ?
+                                Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true) :
+                                .easeOut(duration: 0.3),
                             value: isPlaying
                         )
                 }
@@ -309,7 +312,7 @@ struct SoundCardModern: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        
+
                         if sound.premium {
                             Image(systemName: "crown.fill")
                                 .font(.caption)
@@ -323,7 +326,7 @@ struct SoundCardModern: View {
                     }
                     .padding(8)
                 }
-            
+
             // Title
             VStack(spacing: 4) {
                 Text(sound.title)
@@ -331,7 +334,7 @@ struct SoundCardModern: View {
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                
+
                 if isPlaying {
                     Text("Playing")
                         .font(.caption)
@@ -348,7 +351,7 @@ struct SoundCardModern: View {
                 .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
         )
     }
-    
+
     var body: some View {
         Button(action: onTap) {
             cardContent
@@ -372,50 +375,50 @@ struct SoundCardModern: View {
             onFavoriteTap?()
         }
     }
-    
+
     private var currentScale: CGFloat {
         isPressed ? 0.95 : (isPlaying ? 1.05 : 1.0)
     }
-    
+
     private var accessibilityHintText: String {
         isPlaying ? "Currently playing. Tap to open player controls." : "Tap to play this sound."
     }
-    
+
     private var favoriteActionName: String {
         isFavorite ? "Remove from favorites" : "Add to favorites"
     }
-    
+
     private func handlePress(_ pressing: Bool) {
         withAnimation(.easeInOut(duration: 0.1)) {
             isPressed = pressing
         }
     }
-    
+
     private func handleAppear() {
         if isPlaying {
             pulseScale = 1.1
         }
     }
-    
-    private func handlePlayingChange(_ oldValue: Bool, _ newValue: Bool) {
+
+    private func handlePlayingChange(_: Bool, _ newValue: Bool) {
         withAnimation {
             pulseScale = newValue ? 1.1 : 1.0
         }
     }
 }
 
-// MARK: - Loading View
+// MARK: - LoadingView
 
 struct LoadingView: View {
     @State private var rotationAngle: Double = 0
-    
+
     var body: some View {
         VStack(spacing: 20) {
             ZStack {
                 Circle()
                     .stroke(Color.pink.opacity(0.3), lineWidth: 4)
                     .frame(width: 50, height: 50)
-                
+
                 Circle()
                     .trim(from: 0, to: 0.8)
                     .stroke(Color.pink, style: StrokeStyle(lineWidth: 4, lineCap: .round))
@@ -423,7 +426,7 @@ struct LoadingView: View {
                     .rotationEffect(Angle(degrees: rotationAngle))
                     .animation(.linear(duration: 1.0).repeatForever(autoreverses: false), value: rotationAngle)
             }
-            
+
             Text("Loading...")
                 .font(.system(.body, design: .rounded))
                 .foregroundColor(.secondary)
@@ -434,29 +437,29 @@ struct LoadingView: View {
     }
 }
 
-// MARK: - Error View
+// MARK: - ErrorView
 
 struct ErrorView: View {
     let message: String
     let onRetry: (() -> Void)?
-    
+
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.circle.fill")
                 .font(.system(size: 50))
                 .foregroundColor(.red)
-            
+
             Text("Oops!")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
-            
+
             Text(message)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
-            
+
             if let onRetry = onRetry {
                 Button(action: {
                     HapticManager.shared.impact(.medium)
@@ -478,7 +481,7 @@ struct ErrorView: View {
     }
 }
 
-// MARK: - Player View
+// MARK: - PlayerView
 
 struct PlayerView: View {
     let sound: RealSound
@@ -491,15 +494,15 @@ struct PlayerView: View {
     @State private var showingMixer = false
     @State private var timerHours = 0
     @State private var timerMinutes = 10
-    
+
     private var isPlaying: Bool {
         soundManager.isPlaying(sound.id)
     }
-    
+
     private var volume: Double {
         soundManager.getVolume(for: sound.id)
     }
-    
+
     var body: some View {
         ZStack {
             // Background
@@ -509,7 +512,7 @@ struct PlayerView: View {
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-            
+
             VStack(spacing: 20) {
                 // Header
                 HStack {
@@ -517,9 +520,9 @@ struct PlayerView: View {
                         dismiss()
                     }
                     .foregroundColor(.primary)
-                    
+
                     Spacer()
-                    
+
                     // Chevron down
                     Image(systemName: "chevron.down")
                         .font(.title2)
@@ -527,9 +530,9 @@ struct PlayerView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
-                
+
                 Spacer()
-                
+
                 // Sound Card
                 VStack(spacing: 24) {
                     // Large sound visualization
@@ -547,15 +550,15 @@ struct PlayerView: View {
                                 .font(.system(size: 80))
                         }
                         .shadow(color: sound.color.opacity(0.3), radius: 20, x: 0, y: 10)
-                    
+
                     // Title and favorite
                     HStack {
                         Text(sound.title)
                             .font(.title2)
                             .fontWeight(.semibold)
-                        
+
                         Spacer()
-                        
+
                         Button(action: {
                             HapticManager.shared.favoriteToggle()
                             favoritesManager.toggleFavorite(sound)
@@ -566,30 +569,30 @@ struct PlayerView: View {
                         }
                     }
                     .padding(.horizontal, 40)
-                    
+
                     // Volume Control
                     VStack(spacing: 8) {
                         HStack {
                             Image(systemName: "speaker.fill")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            
+
                             Slider(
                                 value: Binding(
                                     get: { volume },
                                     set: { soundManager.setVolume($0, for: sound.id) }
                                 ),
-                                in: 0...1
+                                in: 0 ... 1
                             )
                             .accentColor(.pink)
-                            
+
                             Image(systemName: "speaker.wave.2.fill")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                         .padding(.horizontal, 40)
                     }
-                    
+
                     // Timer Display
                     VStack(spacing: 12) {
                         if sleepTimer.isActive {
@@ -597,18 +600,18 @@ struct PlayerView: View {
                                 Text("Sleep Timer")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                
+
                                 HStack(spacing: 4) {
                                     Image(systemName: "clock.fill")
                                         .font(.caption)
                                         .foregroundColor(.orange)
-                                    
+
                                     Text(sleepTimer.formattedTimeRemaining)
                                         .font(.title3)
                                         .fontWeight(.medium)
                                         .foregroundColor(.orange)
                                 }
-                                
+
                                 // Progress bar
                                 ProgressView(value: sleepTimer.progressPercentage)
                                     .progressViewStyle(LinearProgressViewStyle(tint: .orange))
@@ -620,24 +623,24 @@ struct PlayerView: View {
                                     .fill(Color.orange.opacity(0.1))
                             )
                         }
-                        
+
                         if fadeOutManager.isActiveFade {
                             VStack(spacing: 8) {
                                 Text("Fade Out")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                
+
                                 HStack(spacing: 4) {
                                     Image(systemName: "minus.magnifyingglass")
                                         .font(.caption)
                                         .foregroundColor(.blue)
-                                    
+
                                     Text(fadeOutManager.formattedTimeRemaining)
                                         .font(.title3)
                                         .fontWeight(.medium)
                                         .foregroundColor(.blue)
                                 }
-                                
+
                                 // Progress bar
                                 ProgressView(value: fadeOutManager.fadeProgress)
                                     .progressViewStyle(LinearProgressViewStyle(tint: .blue))
@@ -650,7 +653,7 @@ struct PlayerView: View {
                             )
                         }
                     }
-                    
+
                     // Control Buttons
                     HStack(spacing: 60) {
                         // Play/Pause
@@ -661,7 +664,7 @@ struct PlayerView: View {
                                 .font(.system(size: 32))
                                 .foregroundColor(.pink)
                         }
-                        
+
                         // Stop
                         Button(action: {
                             if isPlaying {
@@ -674,16 +677,16 @@ struct PlayerView: View {
                         }
                     }
                     .padding(.top, 20)
-                    
+
                     // Bottom Controls
                     HStack(spacing: 80) {
                         // Timer
                         VStack(spacing: 4) {
-                            Button(action: { 
+                            Button(action: {
                                 if sleepTimer.isActive {
                                     sleepTimer.stopTimer()
                                 } else {
-                                    showingTimer = true 
+                                    showingTimer = true
                                 }
                             }) {
                                 Image(systemName: sleepTimer.isActive ? "timer.circle.fill" : "timer")
@@ -694,7 +697,7 @@ struct PlayerView: View {
                                 .font(.caption)
                                 .foregroundColor(sleepTimer.isActive ? .orange : .secondary)
                         }
-                        
+
                         // Fade out
                         VStack(spacing: 4) {
                             Button(action: {
@@ -704,7 +707,8 @@ struct PlayerView: View {
                                     soundManager.fadeOutAllSounds(duration: 10.0)
                                 }
                             }) {
-                                Image(systemName: fadeOutManager.isActiveFade ? "pause.circle.fill" : "minus.magnifyingglass")
+                                Image(systemName: fadeOutManager
+                                    .isActiveFade ? "pause.circle.fill" : "minus.magnifyingglass")
                                     .font(.title2)
                                     .foregroundColor(fadeOutManager.isActiveFade ? .orange : .blue)
                             }
@@ -712,7 +716,7 @@ struct PlayerView: View {
                                 .font(.caption)
                                 .foregroundColor(fadeOutManager.isActiveFade ? .orange : .blue)
                         }
-                        
+
                         // Mixer
                         VStack(spacing: 4) {
                             Button(action: { showingMixer = true }) {
@@ -724,7 +728,7 @@ struct PlayerView: View {
                                 .font(.caption)
                                 .foregroundColor(.purple)
                         }
-                        
+
                         // AirPlay
                         VStack(spacing: 4) {
                             Button(action: {}) {
@@ -739,7 +743,7 @@ struct PlayerView: View {
                     }
                     .padding(.top, 40)
                 }
-                
+
                 Spacer()
             }
         }
@@ -758,7 +762,7 @@ struct PlayerView: View {
     }
 }
 
-// MARK: - Timer Picker
+// MARK: - TimerPickerView
 
 struct TimerPickerView: View {
     @Binding var hours: Int
@@ -766,7 +770,7 @@ struct TimerPickerView: View {
     @Binding var isPresented: Bool
     @EnvironmentObject var soundManager: RealSoundManager
     @StateObject private var sleepTimer = SleepTimerManager.shared
-    
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -777,20 +781,20 @@ struct TimerPickerView: View {
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 VStack(spacing: 40) {
                     Text("Choose how long the player should play")
                         .font(.title2)
                         .fontWeight(.medium)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
-                    
+
                     // Picker
                     HStack(spacing: 20) {
                         // Hours
                         VStack {
                             Picker("Hours", selection: $hours) {
-                                ForEach(0...6, id: \.self) { hour in
+                                ForEach(0 ... 6, id: \.self) { hour in
                                     Text("\(hour)")
                                         .tag(hour)
                                 }
@@ -799,11 +803,11 @@ struct TimerPickerView: View {
                             .frame(width: 60, height: 120)
                             .clipped()
                         }
-                        
+
                         Text("hours")
                             .font(.title3)
                             .fontWeight(.medium)
-                        
+
                         // Minutes
                         VStack {
                             Picker("Minutes", selection: $minutes) {
@@ -816,16 +820,16 @@ struct TimerPickerView: View {
                             .frame(width: 60, height: 120)
                             .clipped()
                         }
-                        
+
                         Text("min")
                             .font(.title3)
                             .fontWeight(.medium)
                     }
-                    
+
                     Button("Start Timer") {
                         let totalMinutes = hours * 60 + minutes
                         let duration = TimeInterval(totalMinutes * 60)
-                        
+
                         sleepTimer.startTimer(duration: duration) {
                             // Stop all playing sounds when timer completes
                             Task { @MainActor in
@@ -833,7 +837,7 @@ struct TimerPickerView: View {
                                 print("⏰ Sleep timer completed - all sounds stopped")
                             }
                         }
-                        
+
                         isPresented = false
                     }
                     .disabled(hours == 0 && minutes == 0)
@@ -847,7 +851,7 @@ struct TimerPickerView: View {
                             .fill((hours == 0 && minutes == 0) ? Color.gray.opacity(0.3) : Color.white)
                     )
                     .padding(.horizontal, 40)
-                    
+
                     Spacer()
                 }
                 .padding(.top, 40)
@@ -866,14 +870,14 @@ struct TimerPickerView: View {
     }
 }
 
-// MARK: - Now Playing Bar
+// MARK: - NowPlayingBar
 
 struct NowPlayingBar: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @StateObject private var sleepTimer = SleepTimerManager.shared
     @StateObject private var fadeOutManager = FadeOutManager.shared
     @State private var showingMixer = false
-    
+
     var body: some View {
         if let firstPlayingSound = soundManager.allSounds.first(where: { soundManager.isPlaying($0.id) }) {
             HStack(spacing: 12) {
@@ -885,13 +889,13 @@ struct NowPlayingBar: View {
                         Text(firstPlayingSound.emoji)
                             .font(.title3)
                     }
-                
+
                 // Info
                 VStack(alignment: .leading, spacing: 2) {
                     Text(firstPlayingSound.title)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.primary)
-                    
+
                     if sleepTimer.isActive || fadeOutManager.isActiveFade {
                         HStack(spacing: 8) {
                             if sleepTimer.isActive {
@@ -904,7 +908,7 @@ struct NowPlayingBar: View {
                                         .foregroundColor(.orange)
                                 }
                             }
-                            
+
                             if fadeOutManager.isActiveFade {
                                 HStack(spacing: 4) {
                                     Image(systemName: "minus.magnifyingglass")
@@ -922,9 +926,9 @@ struct NowPlayingBar: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 // Controls
                 HStack(spacing: 16) {
                     Button(action: {}) {
@@ -932,7 +936,7 @@ struct NowPlayingBar: View {
                             .font(.title3)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack(spacing: 12) {
                         // Mixer button (if multiple sounds playing)
                         if soundManager.playingTracks.count > 1 {
@@ -942,7 +946,7 @@ struct NowPlayingBar: View {
                                     .foregroundColor(.purple)
                             }
                         }
-                        
+
                         // Play/Pause button
                         Button(action: {
                             soundManager.toggleSound(firstPlayingSound)
@@ -969,20 +973,20 @@ struct NowPlayingBar: View {
     }
 }
 
-// MARK: - Favorites Manager
+// MARK: - FavoritesManager
 
 @MainActor
 class FavoritesManager: ObservableObject {
     static let shared = FavoritesManager()
-    
+
     @Published var favoriteIds: Set<UUID> = []
-    
+
     private let userDefaultsKey = "FavoriteSounds"
-    
+
     private init() {
         loadFavorites()
     }
-    
+
     func toggleFavorite(_ sound: RealSound) {
         if favoriteIds.contains(sound.id) {
             favoriteIds.remove(sound.id)
@@ -993,17 +997,17 @@ class FavoritesManager: ObservableObject {
         }
         saveFavorites()
     }
-    
+
     func isFavorite(_ sound: RealSound) -> Bool {
         return favoriteIds.contains(sound.id)
     }
-    
+
     private func saveFavorites() {
         let idStrings = favoriteIds.map { $0.uuidString }
         UserDefaults.standard.set(idStrings, forKey: userDefaultsKey)
         print("💾 Saved \(favoriteIds.count) favorites")
     }
-    
+
     private func loadFavorites() {
         if let idStrings = UserDefaults.standard.array(forKey: userDefaultsKey) as? [String] {
             favoriteIds = Set(idStrings.compactMap { UUID(uuidString: $0) })
@@ -1012,31 +1016,31 @@ class FavoritesManager: ObservableObject {
     }
 }
 
-// MARK: - Favorites View
+// MARK: - FavoritesView
 
 struct FavoritesView: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @StateObject private var favoritesManager = FavoritesManager.shared
     @State private var selectedSound: RealSound?
     @State private var showingPlayer = false
-    
+
     var favoriteSounds: [RealSound] {
         soundManager.allSounds.filter { favoritesManager.isFavorite($0) }
     }
-    
+
     var body: some View {
         NavigationView {
             ZStack {
                 Color(UIColor.systemGroupedBackground)
                     .ignoresSafeArea()
-                
+
                 if favoriteSounds.isEmpty {
                     EmptyFavoritesView()
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [
                             GridItem(.flexible(), spacing: 12),
-                            GridItem(.flexible(), spacing: 12)
+                            GridItem(.flexible(), spacing: 12),
                         ], spacing: 16) {
                             ForEach(favoriteSounds) { sound in
                                 SoundCardModern(
@@ -1071,19 +1075,21 @@ struct FavoritesView: View {
     }
 }
 
+// MARK: - EmptyFavoritesView
+
 struct EmptyFavoritesView: View {
     var body: some View {
         VStack(spacing: 24) {
             Image(systemName: "heart")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
-            
+
             VStack(spacing: 8) {
                 Text("No Favorite Sounds")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
-                
+
                 Text("Tap the heart icon on any sound to add it to your favorites")
                     .font(.body)
                     .foregroundColor(.secondary)
@@ -1095,12 +1101,12 @@ struct EmptyFavoritesView: View {
     }
 }
 
-// MARK: - Premium Upgrade View
+// MARK: - PremiumUpgradeView
 
 struct PremiumUpgradeView: View {
     @EnvironmentObject var premiumManager: PremiumManager
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -1111,40 +1117,56 @@ struct PremiumUpgradeView: View {
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 ScrollView {
                     VStack(spacing: 32) {
                         Spacer(minLength: 40)
-                        
+
                         // Premium Icon
                         Image(systemName: "crown.fill")
                             .font(.system(size: 80))
                             .foregroundColor(.orange)
                             .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
-                        
+
                         // Title
                         VStack(spacing: 16) {
                             Text("Unlock Premium Sounds")
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .multilineTextAlignment(.center)
-                            
+
                             Text("Get access to all premium sounds, unlimited mixing, and advanced features")
                                 .font(.body)
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal, 20)
                         }
-                        
+
                         // Features
                         VStack(spacing: 16) {
-                            FeatureRow(icon: "music.note.list", title: "50+ Premium Sounds", subtitle: "Exclusive high-quality audio")
-                            FeatureRow(icon: "slider.horizontal.3", title: "Advanced Mixing", subtitle: "Up to 4 sounds simultaneously")
-                            FeatureRow(icon: "timer", title: "Extended Sleep Timer", subtitle: "Custom timer up to 8 hours")
-                            FeatureRow(icon: "heart.fill", title: "Unlimited Favorites", subtitle: "Save your perfect sound mix")
+                            FeatureRow(
+                                icon: "music.note.list",
+                                title: "50+ Premium Sounds",
+                                subtitle: "Exclusive high-quality audio"
+                            )
+                            FeatureRow(
+                                icon: "slider.horizontal.3",
+                                title: "Advanced Mixing",
+                                subtitle: "Up to 4 sounds simultaneously"
+                            )
+                            FeatureRow(
+                                icon: "timer",
+                                title: "Extended Sleep Timer",
+                                subtitle: "Custom timer up to 8 hours"
+                            )
+                            FeatureRow(
+                                icon: "heart.fill",
+                                title: "Unlimited Favorites",
+                                subtitle: "Save your perfect sound mix"
+                            )
                         }
                         .padding(.horizontal, 20)
-                        
+
                         // Pricing
                         VStack(spacing: 16) {
                             if premiumManager.availableProducts.isEmpty {
@@ -1162,7 +1184,7 @@ struct PremiumUpgradeView: View {
                                     ProductCard(product: product, premiumManager: premiumManager, dismiss: dismiss)
                                 }
                             }
-                            
+
                             Button("Restore Purchases") {
                                 Task {
                                     await premiumManager.restorePurchases()
@@ -1172,7 +1194,7 @@ struct PremiumUpgradeView: View {
                             .foregroundColor(.blue)
                         }
                         .padding(.horizontal, 20)
-                        
+
                         Spacer(minLength: 40)
                     }
                 }
@@ -1190,30 +1212,32 @@ struct PremiumUpgradeView: View {
     }
 }
 
+// MARK: - FeatureRow
+
 struct FeatureRow: View {
     let icon: String
     let title: String
     let subtitle: String
-    
+
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(.blue)
                 .frame(width: 32)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
                     .foregroundColor(.primary)
-                
+
                 Text(subtitle)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(.green)
         }
@@ -1221,13 +1245,15 @@ struct FeatureRow: View {
     }
 }
 
+// MARK: - ProductCard
+
 struct ProductCard: View {
     let product: Product
     let premiumManager: PremiumManager
     let dismiss: DismissAction
-    
+
     @State private var isLoading = false
-    
+
     var body: some View {
         VStack(spacing: 12) {
             HStack {
@@ -1235,20 +1261,20 @@ struct ProductCard: View {
                     Text(product.displayName)
                         .font(.headline)
                         .fontWeight(.semibold)
-                    
+
                     Text(product.description)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(product.displayPrice)
                         .font(.title2)
                         .fontWeight(.bold)
-                    
+
                     if product.id == "baby.annual" {
                         Text("Save 50%")
                             .font(.caption)
@@ -1257,7 +1283,7 @@ struct ProductCard: View {
                     }
                 }
             }
-            
+
             Button(action: {
                 // Require parent gate for purchases
                 let parentGate = ParentGateManager.shared
@@ -1267,7 +1293,7 @@ struct ProductCard: View {
                             isLoading = true
                             await premiumManager.purchaseProduct(product)
                             isLoading = false
-                            
+
                             if premiumManager.isPremium {
                                 dismiss()
                             }
@@ -1301,13 +1327,16 @@ struct ProductCard: View {
                 .fill(.regularMaterial)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(product.id == "baby.annual" ? Color.green : Color.blue, lineWidth: product.id == "baby.annual" ? 2 : 1)
+                        .stroke(
+                            product.id == "baby.annual" ? Color.green : Color.blue,
+                            lineWidth: product.id == "baby.annual" ? 2 : 1
+                        )
                 )
         )
     }
 }
 
-// MARK: - Parent Gate View
+// MARK: - ParentGateView
 
 struct ParentGateView: View {
     @EnvironmentObject var parentGate: ParentGateManager
@@ -1315,7 +1344,7 @@ struct ParentGateView: View {
     @State private var selectedAnswer: Int?
     @State private var showError = false
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -1325,7 +1354,7 @@ struct ParentGateView: View {
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
-                
+
                 VStack(spacing: 40) {
                     // Header
                     VStack(spacing: 16) {
@@ -1333,24 +1362,24 @@ struct ParentGateView: View {
                             .font(.system(size: 80))
                             .foregroundColor(.orange)
                             .symbolEffect(.pulse)
-                        
+
                         Text("Parental Verification")
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                        
+
                         Text("This action requires adult supervision. Please solve the math problem below.")
                             .font(.body)
                             .multilineTextAlignment(.center)
                             .foregroundColor(.secondary)
                             .padding(.horizontal, 20)
                     }
-                    
+
                     // Math Challenge
                     VStack(spacing: 24) {
                         Text(challenge.question)
                             .font(.system(size: 36, weight: .bold, design: .monospaced))
                             .foregroundColor(.primary)
-                        
+
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
                             ForEach(challenge.options, id: \.self) { option in
                                 Button(action: {
@@ -1365,22 +1394,23 @@ struct ParentGateView: View {
                                         .frame(height: 60)
                                         .background(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .fill(selectedAnswer == option ? Color.blue : Color(.tertiarySystemFill))
+                                                .fill(selectedAnswer == option ? Color
+                                                    .blue : Color(.tertiarySystemFill))
                                         )
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
-                        
+
                         if showError {
                             Text("Incorrect answer. Please try again.")
                                 .foregroundColor(.red)
                                 .font(.caption)
                         }
-                        
+
                         Button("Submit Answer") {
                             guard let answer = selectedAnswer else { return }
-                            
+
                             if parentGate.verifyAnswer(answer, for: challenge) {
                                 dismiss()
                             } else {
@@ -1400,7 +1430,7 @@ struct ParentGateView: View {
                             .fill(.regularMaterial)
                     )
                     .padding(.horizontal)
-                    
+
                     Spacer()
                 }
                 .padding()
@@ -1418,31 +1448,31 @@ struct ParentGateView: View {
     }
 }
 
-// MARK: - Sleep Schedules View
+// MARK: - SleepSchedulesView
 
 struct SleepSchedulesView: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @EnvironmentObject var premiumManager: PremiumManager
     @EnvironmentObject var parentGateManager: ParentGateManager
     @StateObject private var scheduleManager = SleepScheduleManager.shared
-    
+
     @State private var showingAddSchedule = false
     @State private var showingPermissionAlert = false
     @State private var showingPremiumUpgrade = false
-    
+
     var body: some View {
         NavigationView {
             ZStack {
                 Color(UIColor.systemGroupedBackground)
                     .ignoresSafeArea()
-                
+
                 ScrollView {
                     LazyVStack(spacing: 16) {
                         // Header с информацией о следующем событии
                         if let nextEvent = scheduleManager.nextScheduledEvent {
                             NextEventCard(event: nextEvent)
                         }
-                        
+
                         // Список расписаний
                         ForEach(scheduleManager.schedules) { schedule in
                             ScheduleCard(
@@ -1462,13 +1492,13 @@ struct SleepSchedulesView: View {
                                 }
                             )
                         }
-                        
+
                         if scheduleManager.schedules.isEmpty {
                             EmptySchedulesView {
                                 addNewSchedule()
                             }
                         }
-                        
+
                         Spacer(minLength: 100)
                     }
                     .padding()
@@ -1493,7 +1523,7 @@ struct SleepSchedulesView: View {
                         UIApplication.shared.open(url)
                     }
                 }
-                Button("Cancel", role: .cancel) { }
+                Button("Cancel", role: .cancel) {}
             } message: {
                 Text("Sleep schedules need notification permission to remind you about bedtime.")
             }
@@ -1504,14 +1534,14 @@ struct SleepSchedulesView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
-    
+
     private func addNewSchedule() {
         // Проверяем premium лимиты
-        if !premiumManager.isPremium && scheduleManager.schedules.count >= 1 {
+        if !premiumManager.isPremium, scheduleManager.schedules.count >= 1 {
             showingPremiumUpgrade = true
             return
         }
-        
+
         // Требуем родительский контроль для добавления расписаний
         parentGateManager.requestAuthorization { authorized in
             if authorized {
@@ -1521,34 +1551,36 @@ struct SleepSchedulesView: View {
     }
 }
 
+// MARK: - NextEventCard
+
 struct NextEventCard: View {
     let event: (schedule: SleepSchedule, time: Date, type: String)
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: event.type == "reminder" ? "bell.fill" : "moon.zzz.fill")
                     .foregroundColor(.orange)
                     .font(.title2)
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(event.type == "reminder" ? "Next Reminder" : "Next Bedtime")
                         .font(.headline)
                         .foregroundColor(.primary)
-                    
+
                     Text(event.schedule.name)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(event.time, style: .time)
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
-                    
+
                     Text(event.time, style: .relative)
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -1567,12 +1599,14 @@ struct NextEventCard: View {
     }
 }
 
+// MARK: - ScheduleCard
+
 struct ScheduleCard: View {
     let schedule: SleepSchedule
     let onToggle: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -1580,47 +1614,47 @@ struct ScheduleCard: View {
                     Text(schedule.name)
                         .font(.headline)
                         .foregroundColor(.primary)
-                    
+
                     Text("\(schedule.selectedSounds.count) sounds selected")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 Toggle("", isOn: .constant(schedule.isEnabled))
                     .labelsHidden()
                     .onTapGesture {
                         onToggle()
                     }
             }
-            
+
             HStack {
                 // Время сна
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Bedtime")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text(schedule.bedTime, style: .time)
                         .font(.title3)
                         .fontWeight(.medium)
                 }
-                
+
                 Spacer()
-                
+
                 // Дни недели
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("Days")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text(formatSelectedDays(schedule.selectedDays))
                         .font(.caption)
                         .foregroundColor(.primary)
                 }
             }
-            
+
             // Кнопки действий
             HStack {
                 Button("Edit") {
@@ -1628,9 +1662,9 @@ struct ScheduleCard: View {
                 }
                 .font(.caption)
                 .foregroundColor(.blue)
-                
+
                 Spacer()
-                
+
                 Button("Delete") {
                     onDelete()
                 }
@@ -1645,7 +1679,7 @@ struct ScheduleCard: View {
                 .opacity(schedule.isEnabled ? 1.0 : 0.6)
         )
     }
-    
+
     private func formatSelectedDays(_ days: Set<Weekday>) -> String {
         if days.count == 7 {
             return "Every day"
@@ -1659,27 +1693,29 @@ struct ScheduleCard: View {
     }
 }
 
+// MARK: - EmptySchedulesView
+
 struct EmptySchedulesView: View {
     let onAddSchedule: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 24) {
             Image(systemName: "moon.zzz")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
-            
+
             VStack(spacing: 8) {
                 Text("No Sleep Schedules")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
-                
+
                 Text("Create a bedtime routine with automatic sound playback")
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
-            
+
             Button(action: onAddSchedule) {
                 HStack {
                     Image(systemName: "plus")
@@ -1699,30 +1735,30 @@ struct EmptySchedulesView: View {
     }
 }
 
-// MARK: - Sleep Schedule Manager
+// MARK: - SleepScheduleManager
 
 @MainActor
 class SleepScheduleManager: ObservableObject {
     static let shared = SleepScheduleManager()
-    
+
     @Published var schedules: [SleepSchedule] = []
-    @Published var isNotificationPermissionGranted: Bool = false
-    
+    @Published var isNotificationPermissionGranted = false
+
     private let userDefaultsKey = "SavedSleepSchedules"
-    
+
     private init() {
         loadSchedules()
         checkNotificationPermission()
     }
-    
+
     func checkAndRequestNotificationPermission() async {
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()
-        
+
         await MainActor.run {
             self.isNotificationPermissionGranted = settings.authorizationStatus == .authorized
         }
-        
+
         if settings.authorizationStatus == .notDetermined {
             do {
                 let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
@@ -1735,79 +1771,87 @@ class SleepScheduleManager: ObservableObject {
             }
         }
     }
-    
+
     func addSchedule(_ schedule: SleepSchedule) async throws {
         schedules.append(schedule)
         saveSchedules()
-        
+
         if schedule.isEnabled {
             try await scheduleNotifications(for: schedule)
         }
-        
+
         print("✅ Added sleep schedule: \(schedule.name)")
     }
-    
+
     func toggleSchedule(_ schedule: SleepSchedule) async throws {
         guard let index = schedules.firstIndex(where: { $0.id == schedule.id }) else { return }
-        
+
         schedules[index].isEnabled.toggle()
         schedules[index].lastModified = Date()
-        
+
         if schedules[index].isEnabled {
             try await scheduleNotifications(for: schedules[index])
         } else {
             await removeNotifications(for: schedules[index])
         }
-        
+
         saveSchedules()
     }
-    
+
     func deleteSchedule(_ schedule: SleepSchedule) async {
         await removeNotifications(for: schedule)
         schedules.removeAll { $0.id == schedule.id }
         saveSchedules()
         print("🗑️ Deleted sleep schedule: \(schedule.name)")
     }
-    
+
     private func scheduleNotifications(for schedule: SleepSchedule) async throws {
         guard isNotificationPermissionGranted else {
-            throw NSError(domain: "SleepSchedule", code: 1, userInfo: [NSLocalizedDescriptionKey: "Notification permission required"])
+            throw NSError(
+                domain: "SleepSchedule",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Notification permission required"]
+            )
         }
-        
+
         // Simplified notification scheduling for demo
         let center = UNUserNotificationCenter.current()
-        
+
         // Remove existing notifications
         await removeNotifications(for: schedule)
-        
+
         // Schedule reminder notification
         let content = UNMutableNotificationContent()
         content.title = "Bedtime Reminder"
         content.body = "Time for \(schedule.name) routine in \(schedule.reminderMinutes) minutes"
         content.sound = .default
-        
+
         let calendar = Calendar.current
         let bedTimeComponents = calendar.dateComponents([.hour, .minute], from: schedule.bedTime)
-        
+
         var triggerDate = DateComponents()
         triggerDate.hour = bedTimeComponents.hour
         triggerDate.minute = (bedTimeComponents.minute ?? 0) - schedule.reminderMinutes
-        
+
         let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: true)
-        let request = UNNotificationRequest(identifier: schedule.reminderNotificationId, content: content, trigger: trigger)
-        
+        let request = UNNotificationRequest(
+            identifier: schedule.reminderNotificationId,
+            content: content,
+            trigger: trigger
+        )
+
         try await center.add(request)
         print("📅 Scheduled notifications for: \(schedule.name)")
     }
-    
+
     private func removeNotifications(for schedule: SleepSchedule) async {
         let center = UNUserNotificationCenter.current()
         center.removePendingNotificationRequests(withIdentifiers: [
             schedule.reminderNotificationId,
-            schedule.bedtimeNotificationId
+            schedule.bedtimeNotificationId,
         ])
     }
-    
+
     private func checkNotificationPermission() {
         Task {
             let center = UNUserNotificationCenter.current()
@@ -1817,7 +1861,7 @@ class SleepScheduleManager: ObservableObject {
             }
         }
     }
-    
+
     private func saveSchedules() {
         do {
             let data = try JSONEncoder().encode(schedules)
@@ -1827,13 +1871,13 @@ class SleepScheduleManager: ObservableObject {
             print("❌ Failed to save schedules: \(error)")
         }
     }
-    
+
     private func loadSchedules() {
         guard let data = UserDefaults.standard.data(forKey: userDefaultsKey) else {
             print("📱 No saved sleep schedules")
             return
         }
-        
+
         do {
             schedules = try JSONDecoder().decode([SleepSchedule].self, from: data)
             print("📖 Loaded \(schedules.count) sleep schedules")
@@ -1841,28 +1885,28 @@ class SleepScheduleManager: ObservableObject {
             print("❌ Failed to load schedules: \(error)")
         }
     }
-    
+
     var nextScheduledEvent: (schedule: SleepSchedule, time: Date, type: String)? {
         let now = Date()
         let calendar = Calendar.current
-        
+
         var nextEvent: (schedule: SleepSchedule, time: Date, type: String)?
-        
+
         for schedule in schedules.filter({ $0.isEnabled }) {
             // Calculate next bedtime
             let bedTimeComponents = calendar.dateComponents([.hour, .minute], from: schedule.bedTime)
-            
-            for dayOffset in 0..<7 {
+
+            for dayOffset in 0 ..< 7 {
                 guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else { continue }
                 let weekday = Weekday(from: calendar.component(.weekday, from: targetDate))
-                
+
                 guard schedule.selectedDays.contains(weekday) else { continue }
-                
+
                 guard let scheduledBedTime = calendar.date(bySettingHour: bedTimeComponents.hour ?? 20,
-                                                          minute: bedTimeComponents.minute ?? 0,
-                                                          second: 0,
-                                                          of: targetDate) else { continue }
-                
+                                                           minute: bedTimeComponents.minute ?? 0,
+                                                           second: 0,
+                                                           of: targetDate) else { continue }
+
                 if scheduledBedTime > now {
                     if nextEvent == nil || scheduledBedTime < nextEvent!.time {
                         nextEvent = (schedule, scheduledBedTime, "bedtime")
@@ -1871,12 +1915,12 @@ class SleepScheduleManager: ObservableObject {
                 }
             }
         }
-        
+
         return nextEvent
     }
 }
 
-// MARK: - Sleep Schedule Models
+// MARK: - SleepSchedule
 
 struct SleepSchedule: Identifiable, Codable {
     let id: UUID
@@ -1889,7 +1933,7 @@ struct SleepSchedule: Identifiable, Codable {
     var autoFadeMinutes: Int
     let dateCreated: Date
     var lastModified: Date
-    
+
     init(
         id: UUID = UUID(),
         name: String = "My Sleep Schedule",
@@ -1913,15 +1957,17 @@ struct SleepSchedule: Identifiable, Codable {
         self.dateCreated = dateCreated
         self.lastModified = lastModified
     }
-    
+
     var reminderNotificationId: String {
         "schedule_reminder_\(id.uuidString)"
     }
-    
+
     var bedtimeNotificationId: String {
         "schedule_bedtime_\(id.uuidString)"
     }
 }
+
+// MARK: - Weekday
 
 enum Weekday: String, CaseIterable, Codable {
     case monday = "Monday"
@@ -1931,7 +1977,7 @@ enum Weekday: String, CaseIterable, Codable {
     case friday = "Friday"
     case saturday = "Saturday"
     case sunday = "Sunday"
-    
+
     var shortName: String {
         switch self {
         case .monday: return "Mon"
@@ -1943,7 +1989,7 @@ enum Weekday: String, CaseIterable, Codable {
         case .sunday: return "Sun"
         }
     }
-    
+
     init(from weekday: Int) {
         switch weekday {
         case 1: self = .sunday
@@ -1958,18 +2004,18 @@ enum Weekday: String, CaseIterable, Codable {
     }
 }
 
-// MARK: - More View
+// MARK: - MoreView
 
 struct MoreView: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @EnvironmentObject var premiumManager: PremiumManager
     @StateObject private var safeVolumeManager = SafeVolumeManager.shared
     @StateObject private var parentGateManager = ParentGateManager.shared
-    
+
     @State private var showingSettings = false
     @State private var showingParentGate = false
     @State private var showingPremiumSheet = false
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -1979,18 +2025,18 @@ struct MoreView: View {
                         Image(systemName: premiumManager.isPremium ? "crown.fill" : "crown")
                             .foregroundColor(premiumManager.isPremium ? .orange : .gray)
                             .frame(width: 24)
-                        
+
                         VStack(alignment: .leading, spacing: 2) {
                             Text(premiumManager.isPremium ? "Premium Active" : "Free Plan")
                                 .foregroundColor(.primary)
-                            
+
                             Text(premiumManager.subscriptionStatus.displayText)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Spacer()
-                        
+
                         if !premiumManager.isPremium {
                             Button("Upgrade") {
                                 showingPremiumSheet = true
@@ -2000,7 +2046,7 @@ struct MoreView: View {
                             .controlSize(.small)
                         }
                     }
-                    
+
                     if !premiumManager.isPremium {
                         Button("Restore Purchases") {
                             parentGateManager.requestAuthorization { authorized in
@@ -2018,7 +2064,7 @@ struct MoreView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Section {
                     HStack {
                         Text("Play sound right away when opening player")
@@ -2026,7 +2072,7 @@ struct MoreView: View {
                         Toggle("", isOn: .constant(true))
                             .labelsHidden()
                     }
-                    
+
                     HStack {
                         Text("Change language")
                         Spacer()
@@ -2039,7 +2085,7 @@ struct MoreView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 // Child Safety Section
                 Section {
                     Button(action: {
@@ -2053,52 +2099,53 @@ struct MoreView: View {
                             Image(systemName: "shield.checkered")
                                 .foregroundColor(.orange)
                                 .frame(width: 24)
-                            
+
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Child Safety Settings")
                                     .foregroundColor(.primary)
-                                
+
                                 Text("Volume limits, parental controls")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                            
+
                             Spacer()
-                            
+
                             Image(systemName: "chevron.right")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                     }
                     .buttonStyle(.plain)
-                    
+
                     HStack {
-                        Image(systemName: safeVolumeManager.isSafeVolumeEnabled ? "speaker.2.fill" : "speaker.slash.fill")
+                        Image(systemName: safeVolumeManager
+                            .isSafeVolumeEnabled ? "speaker.2.fill" : "speaker.slash.fill")
                             .foregroundColor(safeVolumeManager.isSafeVolumeEnabled ? .green : .orange)
                             .frame(width: 24)
-                        
+
                         Text("Safe Volume")
-                        
+
                         Spacer()
-                        
+
                         Toggle("", isOn: $safeVolumeManager.isSafeVolumeEnabled)
                             .labelsHidden()
                             .onChange(of: safeVolumeManager.isSafeVolumeEnabled) { _, enabled in
                                 safeVolumeManager.setSafeVolumeEnabled(enabled)
                             }
                     }
-                    
+
                     if safeVolumeManager.isParentalOverrideActive {
                         HStack {
                             Image(systemName: "lock.open")
                                 .foregroundColor(.blue)
                                 .frame(width: 24)
-                            
+
                             Text("Parental Override Active")
                                 .foregroundColor(.primary)
-                            
+
                             Spacer()
-                            
+
                             Button("Deactivate") {
                                 safeVolumeManager.deactivateParentalOverride()
                             }
@@ -2118,13 +2165,15 @@ struct MoreView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Section {
                     Button(action: {
                         parentGateManager.requestAuthorization { authorized in
                             if authorized {
                                 // Open App Store rating
-                                if let url = URL(string: "https://apps.apple.com/app/id6670503696?action=write-review") {
+                                if let url =
+                                    URL(string: "https://apps.apple.com/app/id6670503696?action=write-review")
+                                {
                                     UIApplication.shared.open(url)
                                 }
                             }
@@ -2134,16 +2183,20 @@ struct MoreView: View {
                             .foregroundColor(.blue)
                     }
                     .buttonStyle(.plain)
-                    
+
                     Button(action: {
                         parentGateManager.requestAuthorization { authorized in
                             if authorized {
                                 // Share app
                                 let shareText = "Check out Baby Sounds - soothing sounds for babies!"
-                                let activityController = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
-                                
+                                let activityController = UIActivityViewController(
+                                    activityItems: [shareText],
+                                    applicationActivities: nil
+                                )
+
                                 if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                   let window = windowScene.windows.first {
+                                   let window = windowScene.windows.first
+                                {
                                     window.rootViewController?.present(activityController, animated: true)
                                 }
                             }
@@ -2153,12 +2206,14 @@ struct MoreView: View {
                             .foregroundColor(.blue)
                     }
                     .buttonStyle(.plain)
-                    
+
                     Button(action: {
                         parentGateManager.requestAuthorization { authorized in
                             if authorized {
                                 // Send feedback email
-                                if let url = URL(string: "mailto:support@babysounds.app?subject=Baby%20Sounds%20Feedback") {
+                                if let url =
+                                    URL(string: "mailto:support@babysounds.app?subject=Baby%20Sounds%20Feedback")
+                                {
                                     UIApplication.shared.open(url)
                                 }
                             }
@@ -2173,7 +2228,7 @@ struct MoreView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Section {
                     HStack {
                         RoundedRectangle(cornerRadius: 12)
@@ -2184,13 +2239,13 @@ struct MoreView: View {
                                     .foregroundColor(.white)
                                     .font(.title2)
                             }
-                        
+
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Check out our new app with lullabies songs. It's FREE for a limited time. Hurry up!")
                                 .font(.system(size: 14))
                                 .foregroundColor(.primary)
                         }
-                        
+
                         Spacer()
                     }
                 } header: {
@@ -2198,7 +2253,7 @@ struct MoreView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Section {
                     Button(action: {
                         parentGateManager.requestAuthorization { authorized in
@@ -2220,7 +2275,7 @@ struct MoreView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    
+
                     Button(action: {
                         parentGateManager.requestAuthorization { authorized in
                             if authorized {
@@ -2241,7 +2296,7 @@ struct MoreView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    
+
                     Button(action: {
                         parentGateManager.requestAuthorization { authorized in
                             if authorized {
@@ -2294,13 +2349,13 @@ struct MoreView: View {
     }
 }
 
-// MARK: - Safety Settings View
+// MARK: - SafetySettingsView
 
 struct SafetySettingsView: View {
     @EnvironmentObject var safeVolumeManager: SafeVolumeManager
     @EnvironmentObject var parentGateManager: ParentGateManager
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -2309,23 +2364,23 @@ struct SafetySettingsView: View {
                         Image(systemName: "speaker.2.fill")
                             .foregroundColor(.blue)
                             .frame(width: 24)
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Safe Volume Limit")
                             Text("Maximum volume: 70% (WHO guidelines)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Spacer()
-                        
+
                         Toggle("", isOn: $safeVolumeManager.isSafeVolumeEnabled)
                             .labelsHidden()
                             .onChange(of: safeVolumeManager.isSafeVolumeEnabled) { _, enabled in
                                 safeVolumeManager.setSafeVolumeEnabled(enabled)
                             }
                     }
-                    
+
                     if !safeVolumeManager.isParentalOverrideActive {
                         Button("Temporarily Override (30 min)") {
                             parentGateManager.requestAuthorization { authorized in
@@ -2339,12 +2394,12 @@ struct SafetySettingsView: View {
                         HStack {
                             Image(systemName: "lock.open")
                                 .foregroundColor(.blue)
-                            
+
                             Text("Override Active")
                                 .foregroundColor(.blue)
-                            
+
                             Spacer()
-                            
+
                             Button("End Override") {
                                 safeVolumeManager.deactivateParentalOverride()
                             }
@@ -2355,67 +2410,71 @@ struct SafetySettingsView: View {
                 } header: {
                     Text("VOLUME PROTECTION")
                 } footer: {
-                    Text("Volume is automatically limited to protect children's hearing according to WHO guidelines (85dB exposure limit).")
+                    Text(
+                        "Volume is automatically limited to protect children's hearing according to WHO guidelines (85dB exposure limit)."
+                    )
                 }
-                
+
                 Section {
                     HStack {
                         Image(systemName: "clock.fill")
                             .foregroundColor(.purple)
                             .frame(width: 24)
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Listening Time")
                             Text("Current session: \(Int(safeVolumeManager.currentListeningDuration / 60)) minutes")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Spacer()
                     }
-                    
+
                     HStack {
                         Image(systemName: "bell.fill")
                             .foregroundColor(.orange)
                             .frame(width: 24)
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Break Reminders")
                             Text("Recommended after 45 minutes")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Spacer()
-                        
+
                         Toggle("", isOn: .constant(true))
                             .labelsHidden()
                     }
                 } header: {
                     Text("LISTENING SESSION")
                 } footer: {
-                    Text("Automatic break reminders help protect against hearing fatigue and encourage healthy listening habits.")
+                    Text(
+                        "Automatic break reminders help protect against hearing fatigue and encourage healthy listening habits."
+                    )
                 }
-                
+
                 Section {
                     HStack {
                         Image(systemName: "shield.checkered")
                             .foregroundColor(.green)
                             .frame(width: 24)
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Parent Gate Active")
                             Text("Protection for premium purchases")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Spacer()
-                        
+
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
                     }
-                    
+
                     Button("Test Parent Gate") {
                         parentGateManager.requestAuthorization { _ in
                             // Just a test
@@ -2447,16 +2506,16 @@ extension SoundCategory {
     static let all = SoundCategory.nature // Используем nature как "All" для простоты
 }
 
-// MARK: - Real Models (упрощенные версии из BabySoundsCore)
+// MARK: - SoundCategory
 
 enum SoundCategory: String, CaseIterable, Codable {
-    case nature = "nature"
-    case white = "white"
-    case pink = "pink"
-    case brown = "brown"
-    case womb = "womb"
-    case fan = "fan"
-    
+    case nature
+    case white
+    case pink
+    case brown
+    case womb
+    case fan
+
     var localizedName: String {
         switch self {
         case .nature: return "Nature"
@@ -2467,7 +2526,7 @@ enum SoundCategory: String, CaseIterable, Codable {
         case .fan: return "Fan & Air"
         }
     }
-    
+
     var emoji: String {
         switch self {
         case .nature: return "🌿"
@@ -2479,6 +2538,8 @@ enum SoundCategory: String, CaseIterable, Codable {
         }
     }
 }
+
+// MARK: - RealSound
 
 // Реальная модель Sound (упрощенная версия)
 struct RealSound: Identifiable {
@@ -2492,8 +2553,18 @@ struct RealSound: Identifiable {
     let defaultGainDb: Float
     let color: Color
     let emoji: String
-    
-    init(title: String, category: SoundCategory, fileName: String, fileExt: String = "mp3", loop: Bool = true, premium: Bool = false, defaultGainDb: Float = 0.0, color: Color, emoji: String? = nil) {
+
+    init(
+        title: String,
+        category: SoundCategory,
+        fileName: String,
+        fileExt: String = "mp3",
+        loop: Bool = true,
+        premium: Bool = false,
+        defaultGainDb: Float = 0.0,
+        color: Color,
+        emoji: String? = nil
+    ) {
         self.title = title
         self.category = category
         self.fileName = fileName
@@ -2504,24 +2575,24 @@ struct RealSound: Identifiable {
         self.color = color
         self.emoji = emoji ?? category.emoji
     }
-    
+
     var filePath: String {
         "Resources/Sounds/\(category.rawValue)/\(fileName).\(fileExt)"
     }
 }
 
-// MARK: - Real Sound Manager с интеграцией AVAudioEngine
+// MARK: - RealSoundManager
 
 @MainActor
 class RealSoundManager: ObservableObject {
     @Published var playingTracks: Set<UUID> = []
     @Published var trackVolumes: [UUID: Double] = [:]
-    @Published var masterVolume: Double = 0.5 {
+    @Published var masterVolume = 0.5 {
         didSet {
             // Apply safe volume limits before updating
             let safeVolume = SafeVolumeManager.shared.applySafeVolume(to: Float(masterVolume))
             let safeMasterVolume = Double(safeVolume)
-            
+
             if abs(safeMasterVolume - masterVolume) > 0.01 {
                 // Volume was limited by safety manager
                 print("🔒 Volume limited by SafeVolumeManager: \(masterVolume) → \(safeMasterVolume)")
@@ -2530,93 +2601,169 @@ class RealSoundManager: ObservableObject {
                 }
                 return
             }
-            
+
             updateMasterVolume()
         }
     }
+
     @Published var isAudioReady = false
-    
+
     private let maxConcurrentTracks = 4
     private let engine = AVAudioEngine()
     private var playerNodes: [UUID: AVAudioPlayerNode] = [:]
     private var audioFiles: [String: AVAudioFile] = [:]
     private let safeVolumeManager = SafeVolumeManager.shared
     private let fadeOutManager = FadeOutManager.shared
-    
+
     // Реальные звуки с файлами
     let allSounds: [RealSound] = [
         // White Noise
-        RealSound(title: "White Noise", category: .white, fileName: "white_noise", fileExt: "aiff", color: .gray, emoji: "🌀"),
-        RealSound(title: "TV Static", category: .white, fileName: "white_noise", fileExt: "aiff", color: .gray, emoji: "📺"),
-        
-        // Pink Noise  
-        RealSound(title: "Pink Noise", category: .pink, fileName: "pink_noise", fileExt: "aiff", color: .pink, emoji: "🌸"),
-        RealSound(title: "Soft Pink", category: .pink, fileName: "pink_noise", fileExt: "aiff", premium: true, color: .purple, emoji: "💕"),
-        
+        RealSound(
+            title: "White Noise",
+            category: .white,
+            fileName: "white_noise",
+            fileExt: "aiff",
+            color: .gray,
+            emoji: "🌀"
+        ),
+        RealSound(
+            title: "TV Static",
+            category: .white,
+            fileName: "white_noise",
+            fileExt: "aiff",
+            color: .gray,
+            emoji: "📺"
+        ),
+
+        // Pink Noise
+        RealSound(
+            title: "Pink Noise",
+            category: .pink,
+            fileName: "pink_noise",
+            fileExt: "aiff",
+            color: .pink,
+            emoji: "🌸"
+        ),
+        RealSound(
+            title: "Soft Pink",
+            category: .pink,
+            fileName: "pink_noise",
+            fileExt: "aiff",
+            premium: true,
+            color: .purple,
+            emoji: "💕"
+        ),
+
         // Brown Noise
-        RealSound(title: "Brown Noise", category: .brown, fileName: "brown_noise", fileExt: "aiff", color: .brown, emoji: "🤎"),
-        RealSound(title: "Deep Brown", category: .brown, fileName: "brown_noise", fileExt: "aiff", premium: true, color: .red, emoji: "🔥"),
-        
+        RealSound(
+            title: "Brown Noise",
+            category: .brown,
+            fileName: "brown_noise",
+            fileExt: "aiff",
+            color: .brown,
+            emoji: "🤎"
+        ),
+        RealSound(
+            title: "Deep Brown",
+            category: .brown,
+            fileName: "brown_noise",
+            fileExt: "aiff",
+            premium: true,
+            color: .red,
+            emoji: "🔥"
+        ),
+
         // Fan & Air
         RealSound(title: "Fan", category: .fan, fileName: "fan", fileExt: "aiff", color: .blue, emoji: "💨"),
-        RealSound(title: "Hair Dryer", category: .fan, fileName: "fan", fileExt: "aiff", premium: true, color: .cyan, emoji: "💇‍♀️"),
-        
+        RealSound(
+            title: "Hair Dryer",
+            category: .fan,
+            fileName: "fan",
+            fileExt: "aiff",
+            premium: true,
+            color: .cyan,
+            emoji: "💇‍♀️"
+        ),
+
         // Nature
-        RealSound(title: "Ocean Waves", category: .nature, fileName: "white_noise", fileExt: "aiff", color: .blue, emoji: "🌊"),
+        RealSound(
+            title: "Ocean Waves",
+            category: .nature,
+            fileName: "white_noise",
+            fileExt: "aiff",
+            color: .blue,
+            emoji: "🌊"
+        ),
         RealSound(title: "Rain", category: .nature, fileName: "pink_noise", fileExt: "aiff", color: .gray, emoji: "🌧️"),
-        RealSound(title: "Forest", category: .nature, fileName: "brown_noise", fileExt: "aiff", premium: true, color: .green, emoji: "🌳"),
-        
+        RealSound(
+            title: "Forest",
+            category: .nature,
+            fileName: "brown_noise",
+            fileExt: "aiff",
+            premium: true,
+            color: .green,
+            emoji: "🌳"
+        ),
+
         // Womb
         RealSound(title: "Heartbeat", category: .womb, fileName: "fan", fileExt: "aiff", color: .red, emoji: "💓"),
-        RealSound(title: "Womb Sounds", category: .womb, fileName: "white_noise", fileExt: "aiff", premium: true, color: .pink, emoji: "🤱"),
+        RealSound(
+            title: "Womb Sounds",
+            category: .womb,
+            fileName: "white_noise",
+            fileExt: "aiff",
+            premium: true,
+            color: .pink,
+            emoji: "🤱"
+        ),
     ]
-    
+
     func initializeAudio() {
         print("🎵 Initializing Real Audio System with AVAudioEngine...")
-        
+
         // Настройка аудио сессии
         setupAudioSession()
-        
+
         // Настройка аудио движка
         setupAudioEngine()
-        
+
         // Инициализация SafeVolumeManager
         safeVolumeManager.startListeningSession()
-        
+
         // Применение безопасной громкости
         let safeInitialVolume = safeVolumeManager.applySafeVolume(to: Float(masterVolume))
         masterVolume = Double(safeInitialVolume)
-        
+
         // Симуляция инициализации (на случай проблем с аудио файлами)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.isAudioReady = true
             print("✅ Real Audio System Ready with SafeVolumeManager")
         }
-        
+
         // Инициализация громкости для всех звуков
         for sound in allSounds {
             trackVolumes[sound.id] = 0.5
         }
-        
+
         // Настройка наблюдения за fade out для обновления громкости
         setupFadeOutObserver()
     }
-    
+
     private func setupAudioSession() {
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
-            
+
             // Настройка Now Playing Info
             setupNowPlayingInfo()
-            
+
             print("✅ Audio session configured with background playback")
         } catch {
             print("❌ Failed to setup audio session: \(error)")
         }
     }
-    
+
     private func setupNowPlayingInfo() {
         // Настройка для отображения в Control Center и Lock Screen
         var nowPlayingInfo: [String: Any] = [:]
@@ -2624,17 +2771,17 @@ class RealSoundManager: ObservableObject {
         nowPlayingInfo[MPMediaItemPropertyArtist] = "Sleep Helper"
         nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = "Baby Sleep Sounds"
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
-        
+
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         print("✅ Now Playing Info configured")
     }
-    
+
     private func setupAudioEngine() {
         do {
             // Подключение главного микшера к выходу
             let format = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 2)
             engine.connect(engine.mainMixerNode, to: engine.outputNode, format: format)
-            
+
             // Запуск движка
             try engine.start()
             print("✅ Audio engine started")
@@ -2642,35 +2789,35 @@ class RealSoundManager: ObservableObject {
             print("❌ Failed to start audio engine: \(error)")
         }
     }
-    
+
     func sounds(for category: SoundCategory) -> [RealSound] {
         return allSounds.filter { $0.category == category }
     }
-    
+
     func isPlaying(_ soundId: UUID) -> Bool {
         return playingTracks.contains(soundId)
     }
-    
+
     func getVolume(for soundId: UUID) -> Double {
         return trackVolumes[soundId] ?? 0.5
     }
-    
+
     func toggleSound(_ sound: RealSound) {
         guard isAudioReady else { return }
-        
+
         if playingTracks.contains(sound.id) {
             stopSound(sound)
         } else {
             playSound(sound)
         }
     }
-    
+
     private func playSound(_ sound: RealSound) {
         guard playingTracks.count < maxConcurrentTracks else {
             print("⚠️ Maximum \(maxConcurrentTracks) sounds playing")
             return
         }
-        
+
         // Попытка загрузить реальный аудио файл
         if let audioFile = loadAudioFile(for: sound) {
             playRealAudio(sound: sound, audioFile: audioFile)
@@ -2679,45 +2826,47 @@ class RealSoundManager: ObservableObject {
             playSimulatedAudio(sound: sound)
         }
     }
-    
+
     private func loadAudioFile(for sound: RealSound) -> AVAudioFile? {
         let cacheKey = "\(sound.fileName).\(sound.fileExt)"
-        
+
         // Проверяем кэш
         if let cachedFile = audioFiles[cacheKey] {
             return cachedFile
         }
-        
+
         // Пытаемся загрузить из bundle
         guard let url = Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt) else {
             print("❌ Audio file not found: \(sound.fileName).\(sound.fileExt)")
             return nil
         }
-        
+
         do {
             let audioFile = try AVAudioFile(forReading: url)
             audioFiles[cacheKey] = audioFile
-            print("✅ Loaded audio file: \(sound.fileName).\(sound.fileExt) - Duration: \(Double(audioFile.length) / audioFile.fileFormat.sampleRate)s")
+            print(
+                "✅ Loaded audio file: \(sound.fileName).\(sound.fileExt) - Duration: \(Double(audioFile.length) / audioFile.fileFormat.sampleRate)s"
+            )
             return audioFile
         } catch {
             print("❌ Failed to load audio file: \(error)")
             return nil
         }
     }
-    
+
     private func playRealAudio(sound: RealSound, audioFile: AVAudioFile) {
         let playerNode = AVAudioPlayerNode()
         engine.attach(playerNode)
-        
+
         // Подключение к микшеру
         engine.connect(playerNode, to: engine.mainMixerNode, format: audioFile.processingFormat)
-        
+
         // Создание буфера
         guard let buffer = createBuffer(from: audioFile) else {
             print("❌ Failed to create buffer for \(sound.fileName)")
             return
         }
-        
+
         // Планирование воспроизведения
         if sound.loop {
             playerNode.scheduleBuffer(buffer, at: nil, options: .loops, completionHandler: nil)
@@ -2728,53 +2877,53 @@ class RealSoundManager: ObservableObject {
                 }
             })
         }
-        
+
         // Запуск воспроизведения
         playerNode.play()
-        
+
         // Сохранение ссылок
         playerNodes[sound.id] = playerNode
         playingTracks.insert(sound.id)
-        
+
         // Обновление Now Playing Info
         updateNowPlayingInfo(with: sound)
-        
+
         print("▶️ Playing real audio: \(sound.title)")
     }
-    
+
     private func playSimulatedAudio(sound: RealSound) {
         playingTracks.insert(sound.id)
-        
+
         // Обновление Now Playing Info для симуляции
         updateNowPlayingInfo(with: sound)
-        
+
         print("▶️ Playing simulated: \(sound.title) (\(sound.fileName))")
     }
-    
+
     private func updateNowPlayingInfo(with sound: RealSound) {
         var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-        
+
         nowPlayingInfo[MPMediaItemPropertyTitle] = sound.title
         nowPlayingInfo[MPMediaItemPropertyArtist] = "Baby Sounds"
         nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = sound.category.localizedName
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0.0
-        
+
         // Для зацикленных звуков ставим большую длительность
         if sound.loop {
             nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 3600.0 // 1 час
         }
-        
+
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         print("🎵 Updated Now Playing: \(sound.title)")
     }
-    
+
     private func createBuffer(from audioFile: AVAudioFile) -> AVAudioPCMBuffer? {
         let frameCount = UInt32(audioFile.length)
         guard let buffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: frameCount) else {
             return nil
         }
-        
+
         do {
             try audioFile.read(into: buffer)
             return buffer
@@ -2783,10 +2932,10 @@ class RealSoundManager: ObservableObject {
             return nil
         }
     }
-    
+
     func stopSound(_ sound: RealSound) {
         playingTracks.remove(sound.id)
-        
+
         // Остановка реального воспроизведения
         if let playerNode = playerNodes[sound.id] {
             playerNode.stop()
@@ -2797,7 +2946,7 @@ class RealSoundManager: ObservableObject {
             print("⏹️ Stopped simulated: \(sound.title)")
         }
     }
-    
+
     func stopAllSounds() {
         let soundsToStop = playingTracks
         for soundId in soundsToStop {
@@ -2807,10 +2956,10 @@ class RealSoundManager: ObservableObject {
         }
         print("⏹️ Stopped all sounds")
     }
-    
+
     func fadeOutAllSounds(duration: TimeInterval = 10.0) {
         guard !playingTracks.isEmpty else { return }
-        
+
         fadeOutManager.startFadeOut(duration: duration) { [weak self] in
             Task { @MainActor in
                 self?.stopAllSounds()
@@ -2818,27 +2967,28 @@ class RealSoundManager: ObservableObject {
             }
         }
     }
-    
+
     func stopFadeOut() {
         fadeOutManager.stopFadeOut()
     }
-    
+
     func setVolume(_ volume: Double, for soundId: UUID) {
         trackVolumes[soundId] = volume
-        
+
         // Применение громкости к реальному воспроизведению с учетом fade out
         if let playerNode = playerNodes[soundId] {
             let fadeMultiplier = fadeOutManager.currentVolumeMultiplier
             let finalVolume = Float(volume * masterVolume) * fadeMultiplier
             playerNode.volume = finalVolume
         }
-        
+
         if let sound = allSounds.first(where: { $0.id == soundId }) {
-            let fadeInfo = fadeOutManager.isActiveFade ? " (fade: \(Int(fadeOutManager.currentVolumeMultiplier * 100))%)" : ""
+            let fadeInfo = fadeOutManager
+                .isActiveFade ? " (fade: \(Int(fadeOutManager.currentVolumeMultiplier * 100))%)" : ""
             print("🔊 \(sound.title) volume: \(Int(volume * 100))%\(fadeInfo)")
         }
     }
-    
+
     private func updateMasterVolume() {
         // Обновление громкости для всех активных треков с учетом fade out
         let fadeMultiplier = fadeOutManager.currentVolumeMultiplier
@@ -2850,12 +3000,12 @@ class RealSoundManager: ObservableObject {
         let fadeInfo = fadeOutManager.isActiveFade ? " (fade: \(Int(fadeMultiplier * 100))%)" : ""
         print("🔊 Master volume: \(Int(masterVolume * 100))%\(fadeInfo)")
     }
-    
+
     private func setupFadeOutObserver() {
         // Периодическое обновление громкости во время fade out
         Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            
+
             Task { @MainActor in
                 if self.fadeOutManager.isActiveFade {
                     self.updateMasterVolume()
@@ -2865,21 +3015,21 @@ class RealSoundManager: ObservableObject {
     }
 }
 
-// MARK: - Mixing Control View
+// MARK: - MixingControlView
 
 struct MixingControlView: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @Environment(\.dismiss) private var dismiss
-    
+
     private let columns = [
         GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
+        GridItem(.flexible(), spacing: 12),
     ]
-    
+
     var playingSounds: [RealSound] {
         soundManager.allSounds.filter { soundManager.isPlaying($0.id) }
     }
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -2889,15 +3039,15 @@ struct MixingControlView: View {
                         dismiss()
                     }
                     .foregroundColor(.blue)
-                    
+
                     Spacer()
-                    
+
                     Text("Sound Mixer")
                         .font(.title2)
                         .fontWeight(.semibold)
-                    
+
                     Spacer()
-                    
+
                     Button("Stop All") {
                         soundManager.stopAllSounds()
                     }
@@ -2907,27 +3057,27 @@ struct MixingControlView: View {
                 }
                 .padding()
                 .background(Color(.systemGray6))
-                
+
                 if playingSounds.isEmpty {
                     // Empty state
                     VStack(spacing: 20) {
                         Spacer()
-                        
+
                         Image(systemName: "waveform.circle.fill")
                             .font(.system(size: 60))
                             .foregroundColor(.gray)
-                        
+
                         Text("No Sounds Playing")
                             .font(.title2)
                             .fontWeight(.medium)
                             .foregroundColor(.primary)
-                        
+
                         Text("Start playing sounds to control their individual volumes here")
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
-                        
+
                         Spacer()
                     }
                 } else {
@@ -2946,12 +3096,14 @@ struct MixingControlView: View {
     }
 }
 
+// MARK: - MixingControlCard
+
 struct MixingControlCard: View {
     let sound: RealSound
     @EnvironmentObject var soundManager: RealSoundManager
-    
-    @State private var localVolume: Double = 0.5
-    
+
+    @State private var localVolume = 0.5
+
     var body: some View {
         VStack(spacing: 16) {
             // Sound info
@@ -2970,7 +3122,7 @@ struct MixingControlCard: View {
                         Text(sound.emoji)
                             .font(.system(size: 24))
                     }
-                
+
                 Text(sound.title)
                     .font(.caption)
                     .fontWeight(.medium)
@@ -2978,30 +3130,30 @@ struct MixingControlCard: View {
                     .lineLimit(2)
                     .foregroundColor(.primary)
             }
-            
+
             // Volume control
             VStack(spacing: 8) {
                 HStack {
                     Image(systemName: "speaker.fill")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Spacer()
-                    
+
                     Text("\(Int(localVolume * 100))%")
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
                 }
-                
+
                 VStack(spacing: 4) {
-                    Slider(value: $localVolume, in: 0...1) { editing in
+                    Slider(value: $localVolume, in: 0 ... 1) { editing in
                         if !editing {
                             soundManager.setVolume(localVolume, for: sound.id)
                         }
                     }
                     .accentColor(sound.color)
-                    
+
                     // Quick volume buttons
                     HStack(spacing: 8) {
                         ForEach([0.25, 0.5, 0.75, 1.0], id: \.self) { volume in
@@ -3016,14 +3168,15 @@ struct MixingControlCard: View {
                                     .frame(width: 24, height: 20)
                                     .background(
                                         RoundedRectangle(cornerRadius: 6)
-                                            .fill(abs(localVolume - volume) < 0.1 ? sound.color : sound.color.opacity(0.1))
+                                            .fill(abs(localVolume - volume) < 0.1 ? sound.color : sound.color
+                                                .opacity(0.1))
                                     )
                             }
                         }
                     }
                 }
             }
-            
+
             // Control buttons
             HStack(spacing: 12) {
                 Button(action: {
@@ -3038,10 +3191,11 @@ struct MixingControlCard: View {
                                 .fill(Color.red)
                         )
                 }
-                
+
                 Button(action: {
                     // Solo - stop all other sounds except this one
-                    let otherSounds = soundManager.allSounds.filter { $0.id != sound.id && soundManager.isPlaying($0.id) }
+                    let otherSounds = soundManager.allSounds
+                        .filter { $0.id != sound.id && soundManager.isPlaying($0.id) }
                     for otherSound in otherSounds {
                         soundManager.stopSound(otherSound)
                     }
@@ -3065,7 +3219,7 @@ struct MixingControlCard: View {
         .onAppear {
             localVolume = soundManager.trackVolumes[sound.id] ?? 0.5
         }
-        .onChange(of: soundManager.trackVolumes[sound.id]) { oldValue, newValue in
+        .onChange(of: soundManager.trackVolumes[sound.id]) { _, newValue in
             if let newValue = newValue {
                 localVolume = newValue
             }
@@ -3073,49 +3227,49 @@ struct MixingControlCard: View {
     }
 }
 
-// MARK: - Safe Volume Manager
+// MARK: - SafeVolumeManager
 
 @MainActor
 class SafeVolumeManager: ObservableObject {
     static let shared = SafeVolumeManager()
-    
-    @Published var isSafeVolumeEnabled: Bool = true
-    @Published var isParentalOverrideActive: Bool = false
+
+    @Published var isSafeVolumeEnabled = true
+    @Published var isParentalOverrideActive = false
     @Published var currentListeningDuration: TimeInterval = 0
-    
+
     // WHO recommended limits
     private let maxChildSafeVolume: Float = 0.7 // 70% = ~85dB
     private let defaultChildVolume: Float = 0.4
     private let warningThreshold: Float = 0.6
-    
+
     private var sessionStartTime: Date?
-    
+
     private init() {
         // Load settings from UserDefaults
         isSafeVolumeEnabled = UserDefaults.standard.object(forKey: "SafeVolumeEnabled") as? Bool ?? true
         isParentalOverrideActive = UserDefaults.standard.bool(forKey: "ParentalOverrideActive")
     }
-    
+
     func applySafeVolume(to volume: Float) -> Float {
         guard isSafeVolumeEnabled && !isParentalOverrideActive else {
             return min(volume, 1.0)
         }
-        
+
         let safeVolume = min(volume, maxChildSafeVolume)
-        
+
         if safeVolume < volume {
             print("🔒 Volume limited: \(volume) → \(safeVolume) (Safe Volume Active)")
         }
-        
+
         return safeVolume
     }
-    
+
     func startListeningSession() {
         sessionStartTime = Date()
         currentListeningDuration = 0
         print("🎧 Safe listening session started")
     }
-    
+
     func endListeningSession() {
         if let startTime = sessionStartTime {
             let duration = Date().timeIntervalSince(startTime)
@@ -3124,25 +3278,25 @@ class SafeVolumeManager: ObservableObject {
         sessionStartTime = nil
         currentListeningDuration = 0
     }
-    
+
     func setSafeVolumeEnabled(_ enabled: Bool) {
         isSafeVolumeEnabled = enabled
         UserDefaults.standard.set(enabled, forKey: "SafeVolumeEnabled")
         print("🔒 Safe Volume \(enabled ? "enabled" : "disabled")")
     }
-    
+
     func activateParentalOverride() {
         isParentalOverrideActive = true
         UserDefaults.standard.set(true, forKey: "ParentalOverrideActive")
-        
+
         // Auto-deactivate after 30 minutes
         DispatchQueue.main.asyncAfter(deadline: .now() + 1800) { [weak self] in
             self?.deactivateParentalOverride()
         }
-        
+
         print("👨‍👩‍👧‍👦 Parental override activated (30 min)")
     }
-    
+
     func deactivateParentalOverride() {
         isParentalOverrideActive = false
         UserDefaults.standard.set(false, forKey: "ParentalOverrideActive")
@@ -3150,118 +3304,118 @@ class SafeVolumeManager: ObservableObject {
     }
 }
 
-// MARK: - Parent Gate Manager
+// MARK: - ParentGateManager
 
 @MainActor
 class ParentGateManager: ObservableObject {
     static let shared = ParentGateManager()
-    
+
     @Published var isShowingGate = false
     @Published var isAuthorized = false
-    
+
     private var authorizationExpiry: Date?
     private let authorizationDuration: TimeInterval = 300 // 5 minutes
-    
+
     private init() {}
-    
+
     struct MathChallenge {
         let question: String
         let correctAnswer: Int
         let options: [Int]
-        
+
         static func generate() -> MathChallenge {
-            let a = Int.random(in: 5...25)
-            let b = Int.random(in: 1...15)
+            let a = Int.random(in: 5 ... 25)
+            let b = Int.random(in: 1 ... 15)
             let operation = Bool.random() ? "+" : "-"
-            
-            let (question, answer) = operation == "+" ? 
-                ("\(a) + \(b) = ?", a + b) : 
+
+            let (question, answer) = operation == "+" ?
+                ("\(a) + \(b) = ?", a + b) :
                 ("\(a) - \(b) = ?", a - b)
-            
+
             // Generate wrong options
             var options = [answer]
             while options.count < 4 {
-                let wrongAnswer = answer + Int.random(in: -10...10)
+                let wrongAnswer = answer + Int.random(in: -10 ... 10)
                 if wrongAnswer != answer && wrongAnswer >= 0 && !options.contains(wrongAnswer) {
                     options.append(wrongAnswer)
                 }
             }
             options.shuffle()
-            
+
             return MathChallenge(question: question, correctAnswer: answer, options: options)
         }
     }
-    
+
     func requestAuthorization(completion: @escaping (Bool) -> Void) {
         // Check if already authorized and not expired
         if let expiry = authorizationExpiry, Date() < expiry {
             completion(true)
             return
         }
-        
+
         // Show parent gate
         isShowingGate = true
-        
+
         // Store completion for later
-        self.authorizationCompletion = completion
+        authorizationCompletion = completion
     }
-    
+
     func verifyAnswer(_ answer: Int, for challenge: MathChallenge) -> Bool {
         let isCorrect = answer == challenge.correctAnswer
-        
+
         if isCorrect {
             // Grant authorization for 5 minutes
             authorizationExpiry = Date().addingTimeInterval(authorizationDuration)
             isAuthorized = true
             isShowingGate = false
-            
+
             authorizationCompletion?(true)
             authorizationCompletion = nil
-            
+
             print("✅ Parent gate passed - authorized for 5 minutes")
         } else {
             print("❌ Parent gate failed - incorrect answer")
             authorizationCompletion?(false)
         }
-        
+
         return isCorrect
     }
-    
+
     func cancel() {
         isShowingGate = false
         authorizationCompletion?(false)
         authorizationCompletion = nil
     }
-    
+
     private var authorizationCompletion: ((Bool) -> Void)?
 }
 
-// MARK: - Sleep Timer Manager
+// MARK: - SleepTimerManager
 
 @MainActor
 class SleepTimerManager: ObservableObject {
     static let shared = SleepTimerManager()
-    
-    @Published var isActive: Bool = false
+
+    @Published var isActive = false
     @Published var timeRemaining: TimeInterval = 0
     @Published var totalTime: TimeInterval = 0
-    
+
     private var timer: Timer?
     private var onTimerComplete: (() -> Void)?
-    
+
     private init() {}
-    
+
     func startTimer(duration: TimeInterval, onComplete: @escaping () -> Void) {
         stopTimer() // Stop any existing timer
-        
-        self.totalTime = duration
-        self.timeRemaining = duration
-        self.isActive = true
-        self.onTimerComplete = onComplete
-        
+
+        totalTime = duration
+        timeRemaining = duration
+        isActive = true
+        onTimerComplete = onComplete
+
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            
+
             Task { @MainActor in
                 if self.timeRemaining > 0 {
                     self.timeRemaining -= 1
@@ -3270,11 +3424,11 @@ class SleepTimerManager: ObservableObject {
                 }
             }
         }
-        
+
         HapticManager.shared.timerStart()
-        print("⏰ Sleep timer started: \(Int(duration/60)) minutes")
+        print("⏰ Sleep timer started: \(Int(duration / 60)) minutes")
     }
-    
+
     func stopTimer() {
         timer?.invalidate()
         timer = nil
@@ -3282,97 +3436,97 @@ class SleepTimerManager: ObservableObject {
         timeRemaining = 0
         totalTime = 0
         onTimerComplete = nil
-        
+
         print("⏰ Sleep timer stopped")
     }
-    
+
     func addTime(_ additionalTime: TimeInterval) {
         guard isActive else { return }
-        
+
         timeRemaining += additionalTime
         totalTime += additionalTime
-        
-        print("⏰ Added \(Int(additionalTime/60)) minutes to sleep timer")
+
+        print("⏰ Added \(Int(additionalTime / 60)) minutes to sleep timer")
     }
-    
+
     private func completeTimer() {
         timer?.invalidate()
         timer = nil
         isActive = false
-        
+
         print("⏰ Sleep timer completed - executing completion action")
         onTimerComplete?()
-        
+
         timeRemaining = 0
         totalTime = 0
         onTimerComplete = nil
     }
-    
+
     var formattedTimeRemaining: String {
         let hours = Int(timeRemaining) / 3600
         let minutes = Int(timeRemaining.truncatingRemainder(dividingBy: 3600)) / 60
         let seconds = Int(timeRemaining.truncatingRemainder(dividingBy: 60))
-        
+
         if hours > 0 {
             return String(format: "%d:%02d:%02d", hours, minutes, seconds)
         } else {
             return String(format: "%02d:%02d", minutes, seconds)
         }
     }
-    
+
     var progressPercentage: Double {
         guard totalTime > 0 else { return 0 }
         return (totalTime - timeRemaining) / totalTime
     }
 }
 
-// MARK: - Fade Out Manager
+// MARK: - FadeOutManager
 
 @MainActor
 class FadeOutManager: ObservableObject {
     static let shared = FadeOutManager()
-    
-    @Published var isActiveFade: Bool = false
-    @Published var fadeProgress: Double = 0.0
-    
+
+    @Published var isActiveFade = false
+    @Published var fadeProgress = 0.0
+
     private var fadeTimer: Timer?
     private var fadeStartTime: Date?
     private var totalFadeDuration: TimeInterval = 0
     private var onFadeComplete: (() -> Void)?
-    
+
     private init() {}
-    
+
     func startFadeOut(duration: TimeInterval = 10.0, onComplete: @escaping () -> Void) {
         stopFadeOut() // Stop any existing fade
-        
-        self.totalFadeDuration = duration
-        self.fadeStartTime = Date()
-        self.isActiveFade = true
-        self.fadeProgress = 0.0
-        self.onFadeComplete = onComplete
-        
+
+        totalFadeDuration = duration
+        fadeStartTime = Date()
+        isActiveFade = true
+        fadeProgress = 0.0
+        onFadeComplete = onComplete
+
         // Start fade animation
         fadeTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            
+
             Task { @MainActor in
                 guard let startTime = self.fadeStartTime else { return }
-                
+
                 let elapsed = Date().timeIntervalSince(startTime)
                 let progress = min(elapsed / self.totalFadeDuration, 1.0)
-                
+
                 self.fadeProgress = progress
-                
+
                 if progress >= 1.0 {
                     self.completeFade()
                 }
             }
         }
-        
+
         HapticManager.shared.fadeStart()
         print("🌅 Fade out started: \(Int(duration))s")
     }
-    
+
     func stopFadeOut() {
         fadeTimer?.invalidate()
         fadeTimer = nil
@@ -3380,40 +3534,40 @@ class FadeOutManager: ObservableObject {
         fadeProgress = 0.0
         fadeStartTime = nil
         onFadeComplete = nil
-        
+
         print("🌅 Fade out stopped")
     }
-    
+
     private func completeFade() {
         fadeTimer?.invalidate()
         fadeTimer = nil
         isActiveFade = false
-        
+
         print("🌅 Fade out completed - executing completion action")
         onFadeComplete?()
-        
+
         fadeProgress = 0.0
         fadeStartTime = nil
         totalFadeDuration = 0
         onFadeComplete = nil
     }
-    
+
     var currentVolumeMultiplier: Float {
         if isActiveFade {
             return Float(1.0 - fadeProgress)
         }
         return 1.0
     }
-    
+
     var formattedTimeRemaining: String {
         guard isActiveFade, let startTime = fadeStartTime else { return "" }
-        
+
         let elapsed = Date().timeIntervalSince(startTime)
         let remaining = max(totalFadeDuration - elapsed, 0)
-        
+
         let minutes = Int(remaining) / 60
         let seconds = Int(remaining.truncatingRemainder(dividingBy: 60))
-        
+
         return String(format: "%02d:%02d", minutes, seconds)
     }
 }
@@ -3422,77 +3576,79 @@ class FadeOutManager: ObservableObject {
 
 import StoreKit
 
+// MARK: - RealSubscriptionService
+
 @MainActor
 class RealSubscriptionService: ObservableObject {
     static let shared = RealSubscriptionService()
-    
+
     @Published var subscriptionStatus: SubscriptionStatus = .notSubscribed
     @Published var availableProducts: [Product] = []
     @Published var isLoading = false
     @Published var lastError: String?
-    
+
     private var productsLoaded = false
     private var transactionUpdateTask: Task<Void, Never>?
-    
+
     // Product IDs
     private let productIds = [
         "baby.monthly",
-        "baby.annual"
+        "baby.annual",
     ]
-    
+
     enum SubscriptionStatus {
         case notSubscribed
         case subscribed(Product)
         case inTrial(Product)
         case expired(Product)
-        
+
         var isActive: Bool {
             switch self {
-            case .subscribed, .inTrial:
+            case .inTrial, .subscribed:
                 return true
-            case .notSubscribed, .expired:
+            case .expired, .notSubscribed:
                 return false
             }
         }
-        
+
         var displayText: String {
             switch self {
             case .notSubscribed:
                 return "Not Subscribed"
-            case .subscribed(let product):
+            case let .subscribed(product):
                 return "Premium Active - \(product.displayName)"
-            case .inTrial(let product):
+            case let .inTrial(product):
                 return "Free Trial - \(product.displayName)"
-            case .expired(let product):
+            case let .expired(product):
                 return "Expired - \(product.displayName)"
             }
         }
     }
-    
+
     private init() {
         startTransactionObserver()
     }
-    
+
     deinit {
         transactionUpdateTask?.cancel()
     }
-    
+
     // MARK: - Public Methods
-    
+
     func initialize() async {
         await loadProducts()
         await updateSubscriptionStatus()
     }
-    
+
     func loadProducts() async {
         guard !productsLoaded else { return }
-        
+
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             let products = try await Product.products(for: productIds)
-            
+
             // Sort products: monthly first, then annual
             let sortedProducts = products.sorted { product1, product2 in
                 if product1.id == "baby.monthly" {
@@ -3503,192 +3659,191 @@ class RealSubscriptionService: ObservableObject {
                     return product1.price < product2.price
                 }
             }
-            
-            self.availableProducts = sortedProducts
-            self.productsLoaded = true
-            self.lastError = nil
-            
+
+            availableProducts = sortedProducts
+            productsLoaded = true
+            lastError = nil
+
             print("✅ [StoreKit] Loaded \(products.count) products")
             for product in products {
                 print("  • \(product.id): \(product.displayPrice) - \(product.displayName)")
             }
-            
+
         } catch {
             print("❌ [StoreKit] Failed to load products: \(error)")
-            self.lastError = "Failed to load products: \(error.localizedDescription)"
+            lastError = "Failed to load products: \(error.localizedDescription)"
         }
     }
-    
+
     func purchase(_ product: Product) async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             let result = try await product.purchase()
-            
+
             switch result {
-            case .success(let verification):
+            case let .success(verification):
                 // Handle successful purchase
                 switch verification {
-                case .verified(let transaction):
+                case let .verified(transaction):
                     print("✅ Purchase successful: \(transaction.productID)")
                     await updateSubscriptionStatus()
                     await transaction.finish()
-                case .unverified(_, let verificationError):
+                case let .unverified(_, verificationError):
                     print("❌ Transaction unverified: \(verificationError)")
-                    self.lastError = "Transaction verification failed"
+                    lastError = "Transaction verification failed"
                 }
             case .userCancelled:
                 print("🚫 User cancelled purchase")
-                self.lastError = nil
+                lastError = nil
             case .pending:
                 print("⏳ Purchase pending...")
-                self.lastError = "Purchase is pending"
+                lastError = "Purchase is pending"
             @unknown default:
                 print("❓ Unknown purchase result")
-                self.lastError = "Unknown purchase result"
+                lastError = "Unknown purchase result"
             }
         } catch {
             print("❌ Purchase failed: \(error)")
-            self.lastError = "Purchase failed: \(error.localizedDescription)"
+            lastError = "Purchase failed: \(error.localizedDescription)"
         }
     }
-    
+
     func restorePurchases() async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             try await AppStore.sync()
             await updateSubscriptionStatus()
             print("✅ Purchases restored successfully")
-            self.lastError = nil
+            lastError = nil
         } catch {
             print("❌ Restore failed: \(error)")
-            self.lastError = "Restore failed: \(error.localizedDescription)"
+            lastError = "Restore failed: \(error.localizedDescription)"
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func startTransactionObserver() {
         transactionUpdateTask = Task.detached {
             for await result in Transaction.updates {
                 switch result {
-                case .verified(let transaction):
+                case let .verified(transaction):
                     print("🔄 Transaction update: \(transaction.productID)")
                     await self.updateSubscriptionStatus()
                     await transaction.finish()
-                case .unverified(_, let error):
+                case let .unverified(_, error):
                     print("❌ Unverified transaction: \(error)")
                 }
             }
         }
     }
-    
+
     private func updateSubscriptionStatus() async {
         // Check for active subscriptions
         for await result in Transaction.currentEntitlements {
             switch result {
-            case .verified(let transaction):
+            case let .verified(transaction):
                 if productIds.contains(transaction.productID) {
                     // Find the product
                     if let product = availableProducts.first(where: { $0.id == transaction.productID }) {
                         // Check if it's still valid
                         if let expirationDate = transaction.expirationDate,
-                           expirationDate > Date() {
-                            
+                           expirationDate > Date()
+                        {
                             // Check if in trial period
                             if let statusArray = try? await product.subscription?.status {
                                 for status in statusArray {
                                     switch status.state {
                                     case .subscribed:
-                                        self.subscriptionStatus = .subscribed(product)
+                                        subscriptionStatus = .subscribed(product)
                                         print("💎 Premium subscription active: \(product.displayName)")
                                         return
                                     case .inBillingRetryPeriod, .inGracePeriod:
-                                        self.subscriptionStatus = .subscribed(product)
+                                        subscriptionStatus = .subscribed(product)
                                         print("💎 Premium subscription active (grace period): \(product.displayName)")
                                         return
-                                    case .revoked, .expired:
-                                        self.subscriptionStatus = .expired(product)
+                                    case .expired, .revoked:
+                                        subscriptionStatus = .expired(product)
                                         print("💎 Subscription expired: \(product.displayName)")
-                                        break
                                     default:
                                         print("💎 Unknown subscription state: \(status.state)")
-                                        break
                                     }
                                 }
                             }
-                            
+
                             // Fallback: assume subscribed if we have a valid transaction
-                            self.subscriptionStatus = .subscribed(product)
+                            subscriptionStatus = .subscribed(product)
                             print("💎 Premium subscription active: \(product.displayName)")
                             return
                         } else {
-                            self.subscriptionStatus = .expired(product)
+                            subscriptionStatus = .expired(product)
                             print("💎 Subscription expired: \(product.displayName)")
                         }
                     }
                 }
-            case .unverified(_, let error):
+            case let .unverified(_, error):
                 print("❌ Unverified entitlement: \(error)")
             }
         }
-        
+
         // No active subscription found
-        self.subscriptionStatus = .notSubscribed
+        subscriptionStatus = .notSubscribed
         print("💎 No active subscription")
     }
 }
 
-// MARK: - Premium Manager
+// MARK: - PremiumManager
 
 @MainActor
 class PremiumManager: ObservableObject {
     static let shared = PremiumManager()
-    
-    @Published var isPremium: Bool = false
-    @Published var isLoading: Bool = false
-    
+
+    @Published var isPremium = false
+    @Published var isLoading = false
+
     private let subscriptionService = RealSubscriptionService.shared
-    
+
     private init() {
         // Watch for subscription status changes
         subscriptionService.$subscriptionStatus
             .map { $0.isActive }
             .assign(to: &$isPremium)
-        
+
         subscriptionService.$isLoading
             .assign(to: &$isLoading)
-        
+
         // Initialize StoreKit
         Task {
             await subscriptionService.initialize()
         }
     }
-    
+
     func purchasePremium() async {
-        guard let monthlyProduct = subscriptionService.availableProducts.first(where: { $0.id == "baby.monthly" }) else {
+        guard let monthlyProduct = subscriptionService.availableProducts.first(where: { $0.id == "baby.monthly" })
+        else {
             print("❌ Monthly product not available")
             return
         }
-        
+
         await subscriptionService.purchase(monthlyProduct)
     }
-    
+
     func purchaseProduct(_ product: Product) async {
         await subscriptionService.purchase(product)
     }
-    
+
     func restorePurchases() async {
         await subscriptionService.restorePurchases()
     }
-    
+
     var availableProducts: [Product] {
         subscriptionService.availableProducts
     }
-    
+
     var subscriptionStatus: RealSubscriptionService.SubscriptionStatus {
         subscriptionService.subscriptionStatus
     }
@@ -3702,4 +3857,4 @@ extension Color {
 
 #Preview {
     ContentView()
-} 
+}

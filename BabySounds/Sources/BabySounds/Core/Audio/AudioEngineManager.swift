@@ -3,14 +3,14 @@ import Foundation
 import MediaPlayer
 import SwiftUI
 
-// MARK: - Track Handle
+// MARK: - TrackHandle
 
 /// Represents a playing audio track with its associated controls
 public struct TrackHandle: Identifiable, Hashable {
     public let id: UUID
     public let soundId: UUID
     public let startTime: Date
-    
+
     public init(id: UUID = UUID(), soundId: UUID, startTime: Date = Date()) {
         self.id = id
         self.soundId = soundId
@@ -18,7 +18,7 @@ public struct TrackHandle: Identifiable, Hashable {
     }
 }
 
-// MARK: - Playing Info
+// MARK: - PlayingInfo
 
 /// Information about currently playing tracks
 public struct PlayingInfo: Identifiable {
@@ -29,7 +29,7 @@ public struct PlayingInfo: Identifiable {
     public let isLooping: Bool
     public let gainDb: Float
     public let pan: Float
-    
+
     public init(
         id: UUID,
         soundId: UUID,
@@ -49,7 +49,7 @@ public struct PlayingInfo: Identifiable {
     }
 }
 
-// MARK: - Audio Track
+// MARK: - AudioTrack
 
 /// Internal representation of an audio track
 private class AudioTrack {
@@ -61,10 +61,10 @@ private class AudioTrack {
     let gainDb: Float
     let pan: Float
     let startTime: Date
-    
+
     var isScheduled = false
     var isLocked = false // For mix tracks that shouldn't be auto-removed
-    
+
     init(
         id: UUID,
         sound: Sound,
@@ -81,36 +81,36 @@ private class AudioTrack {
         self.isLooping = isLooping
         self.gainDb = gainDb
         self.pan = pan
-        self.startTime = Date()
+        startTime = Date()
     }
 }
 
-// MARK: - Audio Engine Manager
+// MARK: - AudioEngineManager
 
 /// Main audio engine manager using AVAudioEngine for high-quality multi-track playback
 @MainActor
 public final class AudioEngineManager: ObservableObject {
     // MARK: - Singleton
-    
+
     public static let shared = AudioEngineManager()
-    
+
     // MARK: - Properties
-    
+
     private let engine = AVAudioEngine()
     private let mainMixer: AVAudioMixerNode
-    
+
     /// Maximum concurrent tracks (prevents resource exhaustion)
     private let maxConcurrentTracks = 4
-    
+
     /// Currently playing tracks
     private var tracks: [UUID: AudioTrack] = [:]
-    
+
     /// Preloaded audio files cache
     private var audioFileCache: [String: AVAudioFile] = [:]
-    
+
     /// Scheduled stop tasks
     private var scheduledStops: [UUID: Task<Void, Never>] = [:]
-    
+
     /// Safe volume manager integration
     private let safeVolumeManager = SafeVolumeManager.shared
 
@@ -118,40 +118,40 @@ public final class AudioEngineManager: ObservableObject {
     private var safeVolumeLevel: Float = 1.0
 
     /// Safe volume enabled flag
-    private var safeVolumeEnabled: Bool = true
+    private var safeVolumeEnabled = true
 
     /// Currently playing tracks info
     @Published public private(set) var currentlyPlaying: [UUID: PlayingInfo] = [:]
 
     /// Engine state
     @Published public private(set) var isEngineRunning = false
-    
+
     // MARK: - Initialization
-    
+
     private init() {
         mainMixer = engine.mainMixerNode
         setupEngine()
         setupSafeVolumeIntegration()
     }
-    
+
     // MARK: - Engine Setup
-    
+
     /// Configure the audio engine with optimal settings for baby sounds
     private func setupEngine() {
         // Configure main mixer for stereo output
-        let outputFormat = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 2)
+        let outputFormat = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 2)
         guard let format = outputFormat else {
             print("AudioEngineManager: Failed to create output format")
             return
         }
-        
+
         // Set mixer output format
         engine.connect(mainMixer, to: engine.outputNode, format: format)
-        
+
         // Start engine
         startEngine()
     }
-    
+
     /// Setup safe volume integration
     private func setupSafeVolumeIntegration() {
         // Listen for safety notifications
@@ -161,21 +161,21 @@ public final class AudioEngineManager: ObservableObject {
             name: .audioRouteChangedForSafety,
             object: nil
         )
-        
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleVolumeWarning),
             name: .volumeWarningTriggered,
             object: nil
         )
-        
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleBreakRecommendation),
             name: .breakRecommendationTriggered,
             object: nil
         )
-        
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleMaxListeningTimeReached),
@@ -183,11 +183,11 @@ public final class AudioEngineManager: ObservableObject {
             object: nil
         )
     }
-    
+
     /// Start the audio engine
     private func startEngine() {
         guard !engine.isRunning else { return }
-        
+
         do {
             try engine.start()
             isEngineRunning = true
@@ -197,32 +197,32 @@ public final class AudioEngineManager: ObservableObject {
             isEngineRunning = false
         }
     }
-    
+
     /// Stop the audio engine
     private func stopEngine() {
         guard engine.isRunning else { return }
-        
+
         engine.stop()
         isEngineRunning = false
         print("AudioEngineManager: Engine stopped")
     }
-    
+
     // MARK: - Audio File Loading
-    
+
     /// Preload a sound file into memory for fast playback
     public func preload(sound: Sound) async throws {
         let cacheKey = "\(sound.fileName).\(sound.fileExt)"
-        
+
         // Check if already cached
         if audioFileCache[cacheKey] != nil {
             return
         }
-        
+
         // Load from bundle
         guard let url = Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt) else {
             throw AudioEngineError.fileNotFound(sound.fileName)
         }
-        
+
         do {
             let audioFile = try AVAudioFile(forReading: url)
             audioFileCache[cacheKey] = audioFile
@@ -231,27 +231,27 @@ public final class AudioEngineManager: ObservableObject {
             throw AudioEngineError.fileLoadError(error)
         }
     }
-    
+
     /// Get cached audio file or load it
     private func getAudioFile(for sound: Sound) throws -> AVAudioFile {
         let cacheKey = "\(sound.fileName).\(sound.fileExt)"
-        
+
         if let cachedFile = audioFileCache[cacheKey] {
             return cachedFile
         }
-        
+
         // Load synchronously if not cached
         guard let url = Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt) else {
             throw AudioEngineError.fileNotFound(sound.fileName)
         }
-        
+
         let audioFile = try AVAudioFile(forReading: url)
         audioFileCache[cacheKey] = audioFile
         return audioFile
     }
-    
+
     // MARK: - Playback Control
-    
+
     /// Play a sound with specified parameters
     public func play(
         sound: Sound,
@@ -263,19 +263,19 @@ public final class AudioEngineManager: ObservableObject {
         if !engine.isRunning {
             startEngine()
         }
-        
+
         // Load audio file
         let audioFile = try getAudioFile(for: sound)
-        
+
         // Create player node
         let playerNode = AVAudioPlayerNode()
-        
+
         // Calculate gain with safe volume integration
         let finalGain = gainDb ?? sound.defaultGainDb
         let linearVolume = convertFromDb(finalGain)
         let safeLinearVolume = safeVolumeManager.applySafeVolume(to: linearVolume)
         let safeGain = convertToDb(safeLinearVolume)
-        
+
         // Create track
         let trackHandle = TrackHandle(soundId: sound.id)
         let track = AudioTrack(
@@ -287,45 +287,45 @@ public final class AudioEngineManager: ObservableObject {
             gainDb: safeGain,
             pan: pan
         )
-        
+
         // Check track limit and remove oldest if needed
         if tracks.count >= maxConcurrentTracks {
             removeOldestUnlockedTrack()
         }
-        
+
         // Add to engine and tracks
         engine.attach(playerNode)
         tracks[trackHandle.id] = track
-        
+
         // Configure audio processing chain
         try setupAudioChain(for: track)
-        
+
         // Schedule audio playback
         scheduleAudio(for: track)
-        
+
         // Start playback
         playerNode.play()
-        
+
         // Start listening session if this is the first track
         if tracks.count == 1 {
             safeVolumeManager.startListeningSession()
         }
-        
+
         // Update published state
         updateCurrentlyPlaying()
-        
+
         print("AudioEngineManager: Started playing \(sound.fileName) (loop: \(loop))")
-        
+
         return trackHandle
     }
-    
+
     /// Stop a specific track with optional fade-out
     public func stop(id: UUID, fade: TimeInterval? = nil) {
         guard let track = tracks[id] else {
             print("AudioEngineManager: Track \(id) not found for stopping")
             return
         }
-        
+
         if let fadeTime = fade, fadeTime > 0 {
             // Fade out gradually
             fadeOutTrack(track, duration: fadeTime) { [weak self] in
@@ -336,21 +336,21 @@ public final class AudioEngineManager: ObservableObject {
             removeTrack(id)
         }
     }
-    
+
     /// Stop all currently playing tracks
     public func stopAll(fade: TimeInterval? = nil) {
         let trackIds = Array(tracks.keys)
-        
+
         for trackId in trackIds {
             stop(id: trackId, fade: fade)
         }
-        
+
         // End listening session when all tracks stop
         if !trackIds.isEmpty {
             safeVolumeManager.endListeningSession()
         }
     }
-    
+
     /// Schedule a track to stop at a specific date
     public func scheduleStop(at date: Date) {
         let delay = date.timeIntervalSinceNow
@@ -358,17 +358,17 @@ public final class AudioEngineManager: ObservableObject {
             stopAll(fade: 2.0) // Immediate fade-out if date is in the past
             return
         }
-        
+
         scheduleStop(after: delay)
     }
-    
+
     /// Schedule a track to stop after a specific duration
     public func scheduleStop(after seconds: TimeInterval) {
         guard seconds > 0 else { return }
-        
+
         // Cancel any existing scheduled stop
         cancelScheduledStops()
-        
+
         let task = Task { [weak self] in
             do {
                 try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
@@ -377,11 +377,11 @@ public final class AudioEngineManager: ObservableObject {
                 // Task was cancelled
             }
         }
-        
+
         scheduledStops[UUID()] = task
         print("AudioEngineManager: Scheduled stop in \(seconds) seconds")
     }
-    
+
     /// Cancel all scheduled stops
     public func cancelScheduledStops() {
         for task in scheduledStops.values {
@@ -389,61 +389,61 @@ public final class AudioEngineManager: ObservableObject {
         }
         scheduledStops.removeAll()
     }
-    
+
     // MARK: - Volume Control
-    
+
     /// Set safe volume level (0.0 to 1.0)
     public func setSafeVolumeLevel(_ level: Float) {
         safeVolumeLevel = max(0.0, min(1.0, level))
-        
+
         // Update all playing tracks
         for track in tracks.values {
             updateTrackVolume(track)
         }
     }
-    
+
     /// Enable or disable safe volume
     public func setSafeVolumeEnabled(_ enabled: Bool) {
         safeVolumeEnabled = enabled
-        
+
         // Update all playing tracks
         for track in tracks.values {
             updateTrackVolume(track)
         }
     }
-    
+
     // MARK: - Private Implementation
-    
+
     /// Setup audio processing chain for a track
     private func setupAudioChain(for track: AudioTrack) throws {
         let audioFile = track.audioFile
         let playerNode = track.playerNode
-        
+
         // Create format for connections
         let format = audioFile.processingFormat
-        
+
         // Connect player to main mixer with volume and pan controls
         engine.connect(
             playerNode,
             to: mainMixer,
             format: format
         )
-        
+
         // Apply initial volume and pan
         updateTrackVolume(track)
         updateTrackPan(track)
     }
-    
+
     /// Schedule audio buffer for playback
     private func scheduleAudio(for track: AudioTrack) {
         let audioFile = track.audioFile
         let playerNode = track.playerNode
-        
+
         guard let buffer = createBuffer(from: audioFile) else {
             print("AudioEngineManager: Failed to create buffer for \(track.sound.fileName)")
             return
         }
-        
+
         if track.isLooping {
             // Schedule buffer with looping
             playerNode.scheduleBuffer(buffer, at: nil, options: .loops, completionHandler: nil)
@@ -455,10 +455,10 @@ public final class AudioEngineManager: ObservableObject {
                 }
             }
         }
-        
+
         track.isScheduled = true
     }
-    
+
     /// Create audio buffer from file
     private func createBuffer(from audioFile: AVAudioFile) -> AVAudioPCMBuffer? {
         let frameCount = UInt32(audioFile.length)
@@ -468,7 +468,7 @@ public final class AudioEngineManager: ObservableObject {
         ) else {
             return nil
         }
-        
+
         do {
             try audioFile.read(into: buffer)
             return buffer
@@ -477,74 +477,74 @@ public final class AudioEngineManager: ObservableObject {
             return nil
         }
     }
-    
+
     /// Update track volume based on gain and safe volume settings
     private func updateTrackVolume(_ track: AudioTrack) {
         let linearGain = convertFromDb(track.gainDb)
         let safeMultiplier = safeVolumeEnabled ? safeVolumeLevel : 1.0
         let finalVolume = linearGain * safeMultiplier
-        
+
         track.playerNode.volume = finalVolume
     }
-    
+
     /// Update track pan (-1.0 to 1.0)
     private func updateTrackPan(_ track: AudioTrack) {
         track.playerNode.pan = track.pan
     }
-    
+
     /// Fade out a track over specified duration
     private func fadeOutTrack(_ track: AudioTrack, duration: TimeInterval, completion: @escaping () -> Void) {
         let playerNode = track.playerNode
         let startVolume = playerNode.volume
         let steps = 20
         let stepDuration = duration / Double(steps)
-        
+
         var currentStep = 0
-        
+
         let timer = Timer.scheduledTimer(withTimeInterval: stepDuration, repeats: true) { timer in
             currentStep += 1
             let progress = Float(currentStep) / Float(steps)
             let newVolume = startVolume * (1.0 - progress)
-            
+
             playerNode.volume = newVolume
-            
+
             if currentStep >= steps {
                 timer.invalidate()
                 completion()
             }
         }
-        
+
         timer.fire()
     }
-    
+
     /// Remove oldest unlocked track to make room for new tracks
     private func removeOldestUnlockedTrack() {
         let unlockedTracks = tracks.values.filter { !$0.isLocked }
         guard let oldestTrack = unlockedTracks.min(by: { $0.startTime < $1.startTime }) else {
             return
         }
-        
+
         removeTrack(oldestTrack.id)
         print("AudioEngineManager: Removed oldest track to make room")
     }
-    
+
     /// Remove a track from the engine
     private func removeTrack(_ trackId: UUID) {
         guard let track = tracks[trackId] else { return }
-        
+
         // Stop and detach player node
         track.playerNode.stop()
         engine.detach(track.playerNode)
-        
+
         // Remove from tracks
         tracks.removeValue(forKey: trackId)
-        
+
         // Update published state
         updateCurrentlyPlaying()
-        
+
         print("AudioEngineManager: Removed track \(track.sound.fileName)")
     }
-    
+
     /// Update the published currently playing state
     private func updateCurrentlyPlaying() {
         currentlyPlaying = tracks.mapValues { track in
@@ -558,26 +558,26 @@ public final class AudioEngineManager: ObservableObject {
                 pan: track.pan
             )
         }
-        
+
         // Update Now Playing Info when tracks change (defined in BackgroundAudioManager.swift)
         DispatchQueue.main.async { [weak self] in
             self?.updateNowPlayingInfo()
         }
     }
-    
+
     /// Stub method - actual implementation in BackgroundAudioManager.swift extension
     private func updateNowPlayingInfo() {
         // Will be overridden by extension
     }
-    
+
     // MARK: - Utility Functions
-    
+
     /// Convert linear gain (0.0-1.0) to decibels
     private func convertToDb(_ linear: Float) -> Float {
         guard linear > 0 else { return -80.0 } // Silence
         return 20.0 * log10(linear)
     }
-    
+
     /// Convert decibels to linear gain (0.0-1.0)
     private func convertFromDb(_ db: Float) -> Float {
         guard db > -80.0 else { return 0.0 } // Silence
@@ -586,7 +586,8 @@ public final class AudioEngineManager: ObservableObject {
 
     // MARK: - Safe Volume Notification Handlers
 
-    @objc private func handleAudioRouteChangedForSafety() {
+    @objc
+    private func handleAudioRouteChangedForSafety() {
         // Pause all audio when headphones are unplugged for safety
         stopAll(fade: 0.5)
         safeVolumeManager.endListeningSession()
@@ -594,9 +595,11 @@ public final class AudioEngineManager: ObservableObject {
         print("[AudioEngineManager] Audio paused due to route change for safety")
     }
 
-    @objc private func handleVolumeWarning(notification: Notification) {
+    @objc
+    private func handleVolumeWarning(notification: Notification) {
         guard let volume = notification.userInfo?["volume"] as? Float,
-              let level = notification.userInfo?["level"] as? SafeVolumeManager.VolumeWarningLevel else {
+              let level = notification.userInfo?["level"] as? SafeVolumeManager.VolumeWarningLevel
+        else {
             return
         }
 
@@ -610,7 +613,8 @@ public final class AudioEngineManager: ObservableObject {
         }
     }
 
-    @objc private func handleBreakRecommendation(notification: Notification) {
+    @objc
+    private func handleBreakRecommendation(notification: Notification) {
         guard let duration = notification.userInfo?["duration"] as? TimeInterval else {
             return
         }
@@ -621,7 +625,8 @@ public final class AudioEngineManager: ObservableObject {
         fadeAllTracks(to: 0.3, duration: 10.0)
     }
 
-    @objc private func handleMaxListeningTimeReached(notification: Notification) {
+    @objc
+    private func handleMaxListeningTimeReached(notification: Notification) {
         guard let duration = notification.userInfo?["duration"] as? TimeInterval else {
             return
         }
@@ -650,7 +655,7 @@ public final class AudioEngineManager: ObservableObject {
             let steps = Int(duration * 10) // 10 steps per second
             let volumeStep = (targetVolume - currentVolume) / Float(steps)
 
-            for step in 1...steps {
+            for step in 1 ... steps {
                 let delay = Double(step) * (duration / Double(steps))
                 let newVolume = currentVolume + (volumeStep * Float(step))
 
@@ -666,7 +671,7 @@ public final class AudioEngineManager: ObservableObject {
     }
 }
 
-// MARK: - Audio Engine Errors
+// MARK: - AudioEngineError
 
 public enum AudioEngineError: Error, LocalizedError {
     case fileNotFound(String)
@@ -676,16 +681,16 @@ public enum AudioEngineError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .fileNotFound(let fileName):
+        case let .fileNotFound(fileName):
             return "Audio file not found: \(fileName)"
 
-        case .fileLoadError(let error):
+        case let .fileLoadError(error):
             return "Failed to load audio file: \(error.localizedDescription)"
 
         case .engineNotRunning:
             return "Audio engine is not running"
 
-        case .trackNotFound(let id):
+        case let .trackNotFound(id):
             return "Audio track not found: \(id)"
         }
     }
@@ -693,9 +698,9 @@ public enum AudioEngineError: Error, LocalizedError {
 
 // MARK: - Legacy Compatibility
 
-extension AudioEngineManager {
+public extension AudioEngineManager {
     /// Legacy method for simple sound playback
-    public func playSound(_ sound: Sound, loop: Bool = true) {
+    func playSound(_ sound: Sound, loop: Bool = true) {
         Task {
             do {
                 _ = try await play(sound: sound, loop: loop)
@@ -704,47 +709,47 @@ extension AudioEngineManager {
             }
         }
     }
-    
+
     /// Legacy method for stopping all sounds
-    public func stopSound(fadeOut: Bool = false, duration: TimeInterval = 1.0) {
+    func stopSound(fadeOut: Bool = false, duration: TimeInterval = 1.0) {
         let fadeTime = fadeOut ? duration : nil
         stopAll(fade: fadeTime)
     }
-    
+
     /// Legacy volume setter
-    public func setVolume(_ volume: Float) {
+    func setVolume(_ volume: Float) {
         setSafeVolumeLevel(volume)
     }
-    
+
     /// Legacy timer setter (converted to scheduled stop)
-    public func setTimer(minutes: Int) {
+    func setTimer(minutes: Int) {
         guard minutes > 0 else {
             cancelScheduledStops()
             return
         }
-        
+
         let seconds = TimeInterval(minutes * 60)
         scheduleStop(after: seconds)
     }
-    
+
     // Legacy published properties for existing UI
-    public var isPlaying: Bool {
+    var isPlaying: Bool {
         !currentlyPlaying.isEmpty
     }
-    
-    public var currentVolume: Float {
+
+    var currentVolume: Float {
         safeVolumeLevel
     }
-    
-    public var timerRemaining: TimeInterval {
+
+    var timerRemaining: TimeInterval {
         // This would need to be computed from scheduled stops
         // For now, return 0 to maintain compatibility
         0
     }
-    
+
     // MARK: - Sleep Schedule Integration
 
-    func startSleepSchedule(sounds: [String], fadeMinutes: Int) async {
+    internal func startSleepSchedule(sounds: [String], fadeMinutes: Int) async {
         print("🌙 [AudioEngineManager] Starting sleep schedule with \(sounds.count) sound(s)")
 
         // Stop current playback

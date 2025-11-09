@@ -1,24 +1,24 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Sound Category
+// MARK: - SoundCategory
 
 enum SoundCategory: String, CaseIterable, Codable {
-    case all = "all"
-    case white = "white"
-    case pink = "pink"
-    case brown = "brown"
-    case nature = "nature"
-    case womb = "womb"
-    case fan = "fan"
-    case animal = "animal"
-    case transport = "transport"
-    case music = "music"
-    case lullaby = "lullaby"
-    case household = "household"
-    case vehicle = "vehicle"
-    case custom = "custom"
-    
+    case all
+    case white
+    case pink
+    case brown
+    case nature
+    case womb
+    case fan
+    case animal
+    case transport
+    case music
+    case lullaby
+    case household
+    case vehicle
+    case custom
+
     var localizedName: LocalizedStringKey {
         switch self {
         case .all: return "All Sounds"
@@ -37,7 +37,7 @@ enum SoundCategory: String, CaseIterable, Codable {
         case .custom: return "Custom"
         }
     }
-    
+
     var emoji: String {
         switch self {
         case .all: return "🎵"
@@ -58,7 +58,7 @@ enum SoundCategory: String, CaseIterable, Codable {
     }
 }
 
-// MARK: - Sound Model
+// MARK: - Sound
 
 struct Sound: Identifiable, Codable, Hashable {
     let id: UUID
@@ -72,7 +72,7 @@ struct Sound: Identifiable, Codable, Hashable {
     let defaultGainDb: Float
     let color: CodableColor
     let emoji: String?
-    
+
     init(
         id: UUID = UUID(),
         titleKey: LocalizedStringKey,
@@ -98,11 +98,11 @@ struct Sound: Identifiable, Codable, Hashable {
         self.color = CodableColor(color)
         self.emoji = emoji
     }
-    
+
     var filePath: String {
         "Resources/Sounds/\(category.rawValue)/\(fileName).\(fileExt)"
     }
-    
+
     var displayEmoji: String {
         emoji ?? category.emoji
     }
@@ -162,20 +162,20 @@ struct Sound: Identifiable, Codable, Hashable {
             return [color.color, color.color.opacity(0.6)]
         }
     }
-    
+
     private enum CodingKeys: String, CodingKey {
         case id, titleKey, category, fileName, fileExt
         case loop, premium, previewGainDb, defaultGainDb
         case color, emoji
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
-        
+
         let titleString = try container.decode(String.self, forKey: .titleKey)
         titleKey = LocalizedStringKey(titleString)
-        
+
         category = try container.decode(SoundCategory.self, forKey: .category)
         fileName = try container.decode(String.self, forKey: .fileName)
         fileExt = try container.decode(String.self, forKey: .fileExt)
@@ -186,7 +186,7 @@ struct Sound: Identifiable, Codable, Hashable {
         color = try container.decode(CodableColor.self, forKey: .color)
         emoji = try container.decodeIfPresent(String.self, forKey: .emoji)
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -203,7 +203,7 @@ struct Sound: Identifiable, Codable, Hashable {
     }
 }
 
-// MARK: - Sound Pack
+// MARK: - SoundPack
 
 struct SoundPack: Identifiable, Codable {
     let id: UUID
@@ -212,7 +212,7 @@ struct SoundPack: Identifiable, Codable {
     let premium: Bool
     let ageMin: Int?
     let ageMax: Int?
-    
+
     init(
         id: UUID = UUID(),
         titleKey: LocalizedStringKey,
@@ -228,24 +228,24 @@ struct SoundPack: Identifiable, Codable {
         self.ageMin = ageMin
         self.ageMax = ageMax
     }
-    
+
     private enum CodingKeys: String, CodingKey {
         case id, titleKey, sounds, premium, ageMin, ageMax
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
-        
+
         let titleString = try container.decode(String.self, forKey: .titleKey)
         titleKey = LocalizedStringKey(titleString)
-        
+
         sounds = try container.decode([Sound].self, forKey: .sounds)
         premium = try container.decode(Bool.self, forKey: .premium)
         ageMin = try container.decodeIfPresent(Int.self, forKey: .ageMin)
         ageMax = try container.decodeIfPresent(Int.self, forKey: .ageMax)
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -257,12 +257,14 @@ struct SoundPack: Identifiable, Codable {
     }
 }
 
-// MARK: - Mix Models (Premium)
+// MARK: - MixDurationPolicy
 
 enum MixDurationPolicy: Codable {
     case infinite
     case timed(seconds: Int)
 }
+
+// MARK: - MixTrack
 
 struct MixTrack: Identifiable, Codable {
     let id: UUID
@@ -270,7 +272,7 @@ struct MixTrack: Identifiable, Codable {
     let gain: Float
     let pan: Float // -1.0 (left) to 1.0 (right)
     let mute: Bool
-    
+
     init(
         id: UUID = UUID(),
         soundId: UUID,
@@ -286,12 +288,14 @@ struct MixTrack: Identifiable, Codable {
     }
 }
 
+// MARK: - Mix
+
 struct Mix: Identifiable, Codable {
     let id: UUID
     let title: String
     let tracks: [MixTrack]
     let durationPolicy: MixDurationPolicy
-    
+
     init(
         id: UUID = UUID(),
         title: String,
@@ -305,36 +309,36 @@ struct Mix: Identifiable, Codable {
     }
 }
 
-// MARK: - Codable Color Helper
+// MARK: - CodableColor
 
 struct CodableColor: Codable, Hashable {
     let red: Double
     let green: Double
     let blue: Double
     let alpha: Double
-    
+
     init(_ color: Color) {
         // Note: This is a simplified implementation
         // In a real app, you'd want to properly extract color components
         if color == .white {
-            self.red = 1.0; self.green = 1.0; self.blue = 1.0; self.alpha = 1.0
+            red = 1.0; green = 1.0; blue = 1.0; alpha = 1.0
         } else if color == .pink {
-            self.red = 1.0; self.green = 0.75; self.blue = 0.8; self.alpha = 1.0
+            red = 1.0; green = 0.75; blue = 0.8; alpha = 1.0
         } else if color == .blue {
-            self.red = 0.0; self.green = 0.5; self.blue = 1.0; self.alpha = 1.0
+            red = 0.0; green = 0.5; blue = 1.0; alpha = 1.0
         } else if color == .red {
-            self.red = 1.0; self.green = 0.0; self.blue = 0.0; self.alpha = 1.0
+            red = 1.0; green = 0.0; blue = 0.0; alpha = 1.0
         } else {
-            self.red = 0.5; self.green = 0.5; self.blue = 0.5; self.alpha = 1.0
+            red = 0.5; green = 0.5; blue = 0.5; alpha = 1.0
         }
     }
-    
+
     var color: Color {
         Color(.sRGB, red: red, green: green, blue: blue, opacity: alpha)
     }
 }
 
-// MARK: - Schedule Models (Future v1.1)
+// MARK: - SleepSchedule
 
 struct SleepSchedule: Identifiable, Codable {
     let id: UUID
@@ -344,7 +348,7 @@ struct SleepSchedule: Identifiable, Codable {
     let mixId: UUID?
     let repeatPattern: UInt8 // Bitmask for days of week
     let enabled: Bool
-    
+
     init(
         id: UUID = UUID(),
         startTime: Date,
@@ -362,7 +366,7 @@ struct SleepSchedule: Identifiable, Codable {
         self.repeatPattern = repeatPattern
         self.enabled = enabled
     }
-    
+
     var repeatDays: [String] {
         var days: [String] = []
         if repeatPattern & 0b0000001 != 0 { days.append("Sunday") }
