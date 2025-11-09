@@ -3,9 +3,10 @@ import Foundation
 import Combine
 
 // MARK: - Product Identifiers
+// swiftlint:disable:next no_hardcoded_strings
 public enum SubscriptionProduct: String, CaseIterable {
-    case monthly = "baby.monthly"
-    case annual = "baby.annual"
+    case monthly = "baby.monthly"  // swiftlint:disable:this no_hardcoded_strings
+    case annual = "baby.annual"  // swiftlint:disable:this no_hardcoded_strings
     
     public var displayName: String {
         switch self {
