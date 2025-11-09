@@ -26,5 +26,12 @@
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>BabySounds needs microphone access for audio calibration (optional)</string>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string></string>
+		<key>UIImageName</key>
+		<string></string>
+	</dict>
 </dict>
 </plist>
