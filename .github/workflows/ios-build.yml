@@ -140,7 +140,7 @@ jobs:
 
       - name: Archive build artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-logs-${{ matrix.destination }}
           path: |
@@ -191,7 +191,7 @@ jobs:
             | xcpretty
 
       - name: Archive build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release-archive
           path: build/BabySounds.xcarchive
