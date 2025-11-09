@@ -330,6 +330,7 @@ custom_rules:
     regex: '(?<!NSLocalizedString\(|LocalizedStringKey\(|Text\(|Label\()"[^"]{3,}"'
     message: "Use NSLocalizedString for all user-facing text in Kids apps"
     severity: warning
+    excluded: ".*Tests\\.swift"
     
   no_print_statements:
     name: "No Print Statements"
