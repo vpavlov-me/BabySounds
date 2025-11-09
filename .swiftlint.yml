@@ -12,6 +12,7 @@ excluded:
   - DerivedData
   - fastlane/report.xml
   - BabySounds/Preview\ Content
+  - BabySounds/Tests
   - .git
 
 # File extensions to lint
