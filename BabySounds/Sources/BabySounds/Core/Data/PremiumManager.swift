@@ -274,9 +274,14 @@ public final class PremiumManager: ObservableObject {
         canSetTimer(minutes: minutes)
     }
 
-    /// Check if user can play specified number of simultaneous tracks (alias for canPlayMultipleTracks)
+    /// Check if user can play specified number of simultaneous tracks
+    /// - Parameter count: Total number of tracks user wants to play
+    /// - Returns: true if user can play that many tracks
     public func canPlaySimultaneousTracks(_ count: Int) -> Bool {
-        canPlayMultipleTracks(currentCount: count - 1)
+        if hasAccess(to: .multiTrackMixing) {
+            return true
+        }
+        return count <= Limits.maxSimultaneousTracksForFree
     }
 
     /// Get allowed gain adjustment for current subscription status

@@ -162,9 +162,9 @@ public class SafeVolumeManager: ObservableObject {
 
         var clampedVolume = min(volume, safeVolumeMultiplier)
 
-        // Apply additional reduction for headphones (WHO recommends 60% max)
+        // Apply additional reduction for headphones (reduced to 80% of speaker limit)
         if isHeadphonesConnected {
-            let headphoneLimit = safeVolumeMultiplier * 0.8 // 20% reduction for headphones
+            let headphoneLimit = safeVolumeMultiplier * 0.8
             clampedVolume = min(clampedVolume, headphoneLimit)
         }
 
