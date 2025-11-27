@@ -346,12 +346,11 @@ public final class PremiumManager: ObservableObject {
             print("PremiumManager: Feature '\(feature.rawValue)' gated with action '\(action)'")
         #endif
 
-        // TODO: Send to analytics service
-        // Analytics.track("premium_gate", properties: [
-        //     "feature": feature.rawValue,
-        //     "action": action,
-        //     "subscription_status": subscriptionService.status
-        // ])
+        // Send to analytics service
+        AnalyticsService.shared.trackPremiumFeatureAttempted(
+            feature: feature.rawValue,
+            userType: subscriptionService.hasActiveSubscription ? "premium" : "free"
+        )
     }
 
     // MARK: - Clear Pending Actions

@@ -54,21 +54,16 @@ public final class NotificationPermissionManager: ObservableObject {
                 print("NotificationPermissionManager: Permission granted: \(granted)")
             #endif
 
-            // TODO: Track analytics
-            // Analytics.track("notification_permission_requested", properties: [
-            //     "granted": granted,
-            //     "timestamp": Date().timeIntervalSince1970
-            // ])
+            // Track analytics event
+            await AnalyticsService.shared.trackNotificationPermissionGranted(granted: granted)
 
         } catch {
             #if DEBUG
                 print("NotificationPermissionManager: Error requesting permissions: \(error)")
             #endif
 
-            // TODO: Track error
-            // Analytics.track("notification_permission_error", properties: [
-            //     "error": error.localizedDescription
-            // ])
+            // Track error event
+            await AnalyticsService.shared.trackError(error: error, context: "notification_permission_request")
         }
     }
 
@@ -92,8 +87,8 @@ public final class NotificationPermissionManager: ObservableObject {
             UIApplication.shared.open(settingsUrl)
         }
 
-        // TODO: Track analytics
-        // Analytics.track("notification_settings_opened")
+        // Track analytics event
+        AnalyticsService.shared.trackAction("notification_settings_opened")
     }
 
     // MARK: - Parent Gate Integration

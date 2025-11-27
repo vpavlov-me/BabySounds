@@ -433,7 +433,7 @@ struct SoundSelectionRow: View {
         .onTapGesture {
             // Premium check
             if sound.isPremium && !premiumManager.hasSubscription {
-                // TODO: Show premium gate
+                premiumManager.requestAccess(to: .premiumSounds)
                 return
             }
 
