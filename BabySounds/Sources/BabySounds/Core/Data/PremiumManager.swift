@@ -269,6 +269,37 @@ public final class PremiumManager: ObservableObject {
         hasAccess(to: .advancedControls)
     }
 
+    /// Check if user can use timer for specified minutes (alias for canSetTimer)
+    public func canUseTimerMinutes(_ minutes: Int) -> Bool {
+        canSetTimer(minutes: minutes)
+    }
+
+    /// Check if user can play specified number of simultaneous tracks
+    /// - Parameter count: Total number of tracks user wants to play
+    /// - Returns: true if user can play that many tracks
+    public func canPlaySimultaneousTracks(_ count: Int) -> Bool {
+        if hasAccess(to: .multiTrackMixing) {
+            return true
+        }
+        return count <= Limits.maxSimultaneousTracksForFree
+    }
+
+    /// Get allowed gain adjustment for current subscription status
+    public func allowedGainAdjustment(_ requested: Float) -> Float {
+        if hasAccess(to: .advancedControls) {
+            return requested
+        }
+        return Limits.maxGainAdjustmentForFree
+    }
+
+    /// Get allowed pan adjustment for current subscription status
+    public func allowedPanAdjustment(_ requested: Float) -> Float {
+        if hasAccess(to: .advancedControls) {
+            return requested
+        }
+        return Limits.maxPanAdjustmentForFree
+    }
+
     // MARK: - UI State Helpers
 
     /// Get opacity for premium-locked content
@@ -315,12 +346,11 @@ public final class PremiumManager: ObservableObject {
             print("PremiumManager: Feature '\(feature.rawValue)' gated with action '\(action)'")
         #endif
 
-        // TODO: Send to analytics service
-        // Analytics.track("premium_gate", properties: [
-        //     "feature": feature.rawValue,
-        //     "action": action,
-        //     "subscription_status": subscriptionService.status
-        // ])
+        // Send to analytics service
+        AnalyticsService.shared.trackPremiumFeatureAttempted(
+            feature: feature.rawValue,
+            userType: subscriptionService.hasActiveSubscription ? "premium" : "free"
+        )
     }
 
     // MARK: - Clear Pending Actions

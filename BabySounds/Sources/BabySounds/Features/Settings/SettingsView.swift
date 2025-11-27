@@ -187,7 +187,8 @@ struct SettingsView: View {
             }
 
             Button("Rate Baby Sounds") {
-                if let url = URL(string: "https://apps.apple.com/app/idXXXXXXXXXX?action=write-review") {
+                // TODO: Replace with actual App Store ID when app is published
+                if let url = URL(string: "https://apps.apple.com/app/id000000000?action=write-review") {
                     UIApplication.shared.open(url)
                 }
             }
