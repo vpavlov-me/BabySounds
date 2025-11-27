@@ -62,6 +62,7 @@ public class SafeVolumeManager: ObservableObject {
     private var volumeWarningTimer: Timer?
     private var lastVolumeWarningTime: Date?
     private var sessionStartTime: Date?
+    private var isHeadphonesConnected = false
 
     // UserDefaults keys
     private let safeVolumeEnabledKey = "SafeVolumeEnabled"
@@ -159,7 +160,14 @@ public class SafeVolumeManager: ObservableObject {
             return min(volume, SafetyLimits.maxAdultVolume)
         }
 
-        let clampedVolume = min(volume, safeVolumeMultiplier)
+        var clampedVolume = min(volume, safeVolumeMultiplier)
+
+        // Apply additional reduction for headphones (WHO recommends 60% max)
+        if isHeadphonesConnected {
+            let headphoneLimit = safeVolumeMultiplier * 0.8 // 20% reduction for headphones
+            clampedVolume = min(clampedVolume, headphoneLimit)
+        }
+
         updateVolumeWarningLevel(for: clampedVolume)
 
         return clampedVolume
@@ -278,6 +286,52 @@ public class SafeVolumeManager: ObservableObject {
         deactivateParentalOverride()
 
         print("[SafeVolumeManager] Reset to child-safe defaults")
+    }
+
+    // MARK: - Alias Methods for API Compatibility
+
+    /// Set volume limit (alias for setSafeVolumeMultiplier)
+    public func setVolumeLimit(_ limit: Float) {
+        setSafeVolumeMultiplier(limit)
+    }
+
+    /// Get current volume limit (alias for safeVolumeMultiplier)
+    public var currentVolumeLimit: Float {
+        safeVolumeMultiplier
+    }
+
+    /// Get current session duration (alias for currentListeningDuration)
+    public var currentSessionDuration: TimeInterval {
+        currentListeningDuration
+    }
+
+    /// Enable or disable safe volume (alias for setSafeVolumeEnabled)
+    public func setEnabled(_ enabled: Bool) {
+        setSafeVolumeEnabled(enabled)
+    }
+
+    /// Set headphones connected state (reduces volume for headphone safety)
+    public func setHeadphonesConnected(_ connected: Bool) {
+        isHeadphonesConnected = connected
+    }
+
+    /// Get total listening time today
+    public var totalListeningTime: TimeInterval {
+        UserDefaults.standard.double(forKey: totalListeningTimeKey)
+    }
+
+    // MARK: - dB Conversion Methods
+
+    /// Convert decibels to linear gain (0.0-1.0)
+    public func convertFromDb(_ db: Float) -> Float {
+        guard db > -80.0 else { return 0.0 }
+        return pow(10.0, db / 20.0)
+    }
+
+    /// Convert linear gain (0.0-1.0) to decibels
+    public func convertToDb(_ linear: Float) -> Float {
+        guard linear > 0 else { return -80.0 }
+        return 20.0 * log10(linear)
     }
 
     // MARK: - Private Methods

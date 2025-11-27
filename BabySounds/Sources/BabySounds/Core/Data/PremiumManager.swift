@@ -269,6 +269,32 @@ public final class PremiumManager: ObservableObject {
         hasAccess(to: .advancedControls)
     }
 
+    /// Check if user can use timer for specified minutes (alias for canSetTimer)
+    public func canUseTimerMinutes(_ minutes: Int) -> Bool {
+        canSetTimer(minutes: minutes)
+    }
+
+    /// Check if user can play specified number of simultaneous tracks (alias for canPlayMultipleTracks)
+    public func canPlaySimultaneousTracks(_ count: Int) -> Bool {
+        canPlayMultipleTracks(currentCount: count - 1)
+    }
+
+    /// Get allowed gain adjustment for current subscription status
+    public func allowedGainAdjustment(_ requested: Float) -> Float {
+        if hasAccess(to: .advancedControls) {
+            return requested
+        }
+        return Limits.maxGainAdjustmentForFree
+    }
+
+    /// Get allowed pan adjustment for current subscription status
+    public func allowedPanAdjustment(_ requested: Float) -> Float {
+        if hasAccess(to: .advancedControls) {
+            return requested
+        }
+        return Limits.maxPanAdjustmentForFree
+    }
+
     // MARK: - UI State Helpers
 
     /// Get opacity for premium-locked content
