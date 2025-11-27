@@ -55,7 +55,7 @@ public final class NotificationPermissionManager: ObservableObject {
             #endif
 
             // Track analytics event
-            await AnalyticsService.shared.trackNotificationPermissionGranted(granted: granted)
+            AnalyticsService.shared.trackNotificationPermissionGranted(granted: granted)
 
         } catch {
             #if DEBUG
@@ -63,7 +63,7 @@ public final class NotificationPermissionManager: ObservableObject {
             #endif
 
             // Track error event
-            await AnalyticsService.shared.trackError(error: error, context: "notification_permission_request")
+            AnalyticsService.shared.trackError(error: error, context: "notification_permission_request")
         }
     }
 
