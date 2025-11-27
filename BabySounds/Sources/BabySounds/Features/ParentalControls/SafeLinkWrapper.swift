@@ -64,11 +64,8 @@ public struct SafeLinkWrapper: View {
                 print("SafeLinkWrapper: Opening external URL: \(url)")
             #endif
 
-            // TODO: Track analytics
-            // Analytics.track("external_link_opened", properties: [
-            //     "url": url.absoluteString,
-            //     "title": title
-            // ])
+            // Track external link opened
+            AnalyticsService.shared.trackExternalLinkOpened(url: url.absoluteString)
         }
     }
 }

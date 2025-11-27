@@ -193,13 +193,17 @@ struct PaywallView: View {
 
                         HStack(spacing: 16) {
                             Button("Terms of Service") {
-                                // TODO: Open terms
+                                if let url = URL(string: "https://vpavlov-me.github.io/BabySounds/terms-of-service") {
+                                    UIApplication.shared.open(url)
+                                }
                             }
                             .font(.caption)
                             .foregroundColor(.blue)
 
                             Button("Privacy Policy") {
-                                // TODO: Open privacy policy
+                                if let url = URL(string: "https://vpavlov-me.github.io/BabySounds/privacy-policy") {
+                                    UIApplication.shared.open(url)
+                                }
                             }
                             .font(.caption)
                             .foregroundColor(.blue)

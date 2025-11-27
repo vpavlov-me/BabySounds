@@ -101,8 +101,6 @@ public final class SoundCatalog: ObservableObject {
 
     /// Load sounds from bundle JSON
     private func loadSounds() {
-        // TODO-DATA: Load sounds from bundle JSON
-
         Task {
             do {
                 try await loadSoundsFromJSON()
@@ -271,8 +269,6 @@ public final class SoundCatalog: ObservableObject {
 extension SoundCatalog {
     /// Load sounds from the bundled JSON file
     public func loadSoundsFromJSON() async throws {
-        // TODO-DATA: Implement complete JSON loading with color parsing
-
         guard let url = Bundle.main.url(forResource: "sounds", withExtension: "json") else {
             throw SoundCatalogError.bundleFileNotFound("sounds.json")
         }

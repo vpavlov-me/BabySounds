@@ -141,34 +141,86 @@ swift test
 
 ## 📝 Git Workflow
 
-### Current Phase (Pre-v1.0)
+### Post-v1.0 Workflow (CURRENT)
 
-**IMPORTANT**: Until v1.0 release, work directly in the `main` branch
+**IMPORTANT**: After v1.0 release, use the develop → main workflow
+
+#### Branch Strategy
+
+- `main` - production-ready code, protected
+- `develop` - integration branch for testing
+- `feature/*` - feature development branches (optional)
+
+#### Standard Workflow
 
 ```bash
-# Current workflow
-git checkout main
-git pull origin main
+# 1. Start work in develop branch
+git checkout develop
+git pull origin develop
 
-# ... make changes ...
-
+# 2. Make changes and commit
 git add .
 git commit -m "feat(scope): description"
-git push origin main
+
+# 3. Push to develop
+git push origin develop
+
+# 4. Wait for CI/CD to pass (CRITICAL!)
+# Check GitHub Actions for:
+# - ✅ SwiftLint check
+# - ✅ Build & Test (iPhone 15 Pro, SE, iPad)
+# - ✅ Security scan
+# - ✅ Accessibility check
+# - ✅ Kids compliance check
+
+# 5. Once ALL tests pass in develop, create PR to main
+gh pr create --base main --head develop \
+  --title "Release: [version]" \
+  --body "All tests passed in develop branch"
+
+# 6. Merge PR after review
+gh pr merge --merge
 ```
 
-### Rules for Main Branch
+### Critical CI/CD Rules
+
+🚨 **MANDATORY BEFORE MERGING TO MAIN:**
+
+1. **All CI/CD checks MUST pass in `develop`**
+   - SwiftLint (code quality)
+   - Build & Test on 3 devices
+   - Security scan (Trivy)
+   - Accessibility check
+   - Kids compliance check
+
+2. **Never merge to `main` if ANY test fails**
+   - Fix the issue in `develop`
+   - Wait for green checkmarks
+   - Then create PR
+
+3. **Monitor GitHub Actions**
+   ```bash
+   # Check workflow status
+   gh run list --branch develop
+
+   # View specific run
+   gh run view [run-id]
+   ```
+
+### Rules for Develop Branch
 
 ✅ **DO:**
-- Commit frequently with clear messages
-- Test before committing
+- Push all changes to `develop` first
+- Wait for CI/CD to pass
+- Fix any failing tests immediately
 - Keep commits atomic and focused
 - Use conventional commit format
 
 ❌ **DON'T:**
-- Break the build in main
+- Push directly to `main` (protected)
+- Merge to `main` with failing tests
+- Skip CI/CD checks
 - Commit work-in-progress
-- Push without testing
 
 ### Commit Message Format
 
