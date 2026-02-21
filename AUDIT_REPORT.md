@@ -172,7 +172,7 @@
 
 | # | File | Line | Content |
 |---|------|------|---------|
-| 1 | `SleepScheduleManager.swift` | 176 | `"Через \(schedule.reminderMinutes) мин. schedule starts..."` — **Russian text mixed with English** |
+| 1 | `SleepScheduleManager.swift` | 176 | `"Через \(schedule.reminderMinutes) мин. schedule starts..."` — **Russian text mixed with English** ("Через" = "In", "мин." = "min." in Russian) |
 | 2 | `SleepScheduleManager.swift` | 175 | `"Bedtime soon"` — not localized |
 | 3 | `SleepScheduleManager.swift` | 201 | `"Bedtime!"` — not localized |
 | 4 | `BackgroundAudioManager.swift` | 250-251 | `"Baby Sounds"`, `"Baby Sounds Mix"` — hardcoded |
@@ -455,7 +455,7 @@ Views using fixed font sizes (`.font(.system(size:))`) should use Dynamic Type s
 | P0-6 | `SleepSchedulesView.swift:129` | **`hasFeature` does not exist** on `PremiumManager` | Replace with `hasAccess(to:)`. |
 | P0-7 | `AudioEngineManager.swift` | **Missing `currentSound` property** — referenced in 6+ views | Add `var currentSound: Sound?` computed property based on `currentlyPlaying.values.first?.sound`. |
 | P0-8 | `BackgroundAudioManager.swift:246` | **Force unwrap `currentlyPlaying.values.first!`** — crash risk | Replace with `guard let primaryTrackInfo = currentlyPlaying.values.first else { return }`. |
-| P0-9 | `SleepScheduleManager.swift:176` | **Russian text in notification** | Replace `"Через \(schedule.reminderMinutes) мин. schedule starts"` with proper English/localized string. |
+| P0-9 | `SleepScheduleManager.swift:176` | **Russian text in notification** ("Через...мин." = "In...min." in Russian) | Replace `"Через \(schedule.reminderMinutes) мин. schedule starts"` with proper English/localized string, e.g., `String(localized: "Bedtime in \(schedule.reminderMinutes) minutes")`. |
 | P0-10 | `AudioEngineManager.swift:569-571` | **Stub `updateNowPlayingInfo()` shadows real implementation** | Remove the private stub method. The extension's public method in `BackgroundAudioManager.swift` will be used correctly. |
 
 ### P1 — High (Fix in v1.0)
