@@ -20,6 +20,11 @@ let package = Package(
             name: "BabySounds",
             dependencies: [],
             path: "BabySounds/Sources/BabySounds",
+            sources: [
+                "Core/Audio/SafeVolumeManager.swift",
+                "Core/Data/PremiumManager.swift",
+                "Core/Models/SleepSchedule.swift",
+            ],
             resources: [
                 .process("Resources"),
             ]

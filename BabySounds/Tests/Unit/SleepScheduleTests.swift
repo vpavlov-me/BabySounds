@@ -1,7 +1,6 @@
 import XCTest
 @testable import BabySounds
 
-@MainActor
 final class SleepScheduleTests: XCTestCase {
     // MARK: - Model Tests
 

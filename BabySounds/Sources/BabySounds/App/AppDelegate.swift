@@ -1,3 +1,6 @@
+import Foundation
+
+#if canImport(UIKit)
 import UIKit
 import UserNotifications
 
@@ -48,3 +51,5 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         completionHandler()
     }
 }
+
+#endif

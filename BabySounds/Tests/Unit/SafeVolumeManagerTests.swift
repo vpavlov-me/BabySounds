@@ -1,7 +1,6 @@
 import XCTest
 @testable import BabySounds
 
-@MainActor
 final class SafeVolumeManagerTests: XCTestCase {
     var sut: SafeVolumeManager!
 
@@ -11,6 +10,7 @@ final class SafeVolumeManagerTests: XCTestCase {
         // Reset to defaults
         sut.setVolumeLimit(0.75)
         sut.setEnabled(true)
+        sut.setHeadphonesConnected(false)
     }
 
     override func tearDown() async throws {

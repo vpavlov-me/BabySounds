@@ -1,21 +1,19 @@
 import Foundation
 
-// MARK: - SleepSchedule
+public struct SleepSchedule: Identifiable, Codable, Equatable {
+    public let id: UUID
+    public var name: String
+    public var isEnabled: Bool
+    public var bedTime: Date
+    public var wakeTime: Date
+    public var selectedDays: Set<Weekday>
+    public var reminderMinutes: Int
+    public var selectedSounds: [String]
+    public var autoFadeMinutes: Int
+    public var dateCreated: Date
+    public var lastModified: Date
 
-struct SleepSchedule: Identifiable, Codable, Equatable {
-    let id = UUID()
-    var name: String
-    var bedtimeHour: Int
-    var bedtimeMinute: Int
-    var weekdays: [Bool] // [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
-    var reminderMinutes: Int // Minutes before bedtime for reminder
-    var selectedSounds: [String] // Sound IDs for playback
-    var autoFadeMinutes: Int // Auto fade after X minutes
-    var isEnabled: Bool
-    var createdAt: Date
-    var updatedAt: Date
-
-    init(
+    public init(
         id: UUID = UUID(),
         name: String = "My Sleep Schedule",
         isEnabled: Bool = true,
@@ -25,7 +23,8 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
         reminderMinutes: Int = 30,
         selectedSounds: [String] = [],
         autoFadeMinutes: Int = 45,
-        dateCreated: Date = Date()
+        dateCreated: Date = Date(),
+        lastModified: Date = Date()
     ) {
         self.id = id
         self.name = name
@@ -37,96 +36,60 @@ struct SleepSchedule: Identifiable, Codable, Equatable {
         self.selectedSounds = selectedSounds
         self.autoFadeMinutes = autoFadeMinutes
         self.dateCreated = dateCreated
-        lastModified = Date()
+        self.lastModified = lastModified
     }
 
-    // MARK: - Computed Properties
-
-    var nextBedTime: Date? {
+    public var nextBedTime: Date? {
         guard isEnabled, !selectedDays.isEmpty else { return nil }
-
         let calendar = Calendar.current
         let now = Date()
 
-        // Check each weekday starting from today
-        for dayOffset in 0 ..< 7 {
-            guard let targetDate = calendar.date(byAdding: .day, value: dayOffset, to: now) else { continue }
-            let weekday = Weekday(from: calendar.component(.weekday, from: targetDate))
-
+        for dayOffset in 0 ..< 8 {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: now) else { continue }
+            let weekday = Weekday(from: calendar.component(.weekday, from: date))
             guard selectedDays.contains(weekday) else { continue }
 
-            // Create bedtime for this day
-            let bedTimeComponents = calendar.dateComponents([.hour, .minute], from: bedTime)
-            guard let scheduledBedTime = calendar.date(bySettingHour: bedTimeComponents.hour ?? 20,
-                                                       minute: bedTimeComponents.minute ?? 0,
-                                                       second: 0,
-                                                       of: targetDate) else { continue }
-
-            // If it's today and time hasn't passed, or it's a future day
-            if scheduledBedTime > now {
-                return scheduledBedTime
-            }
+            let components = calendar.dateComponents([.hour, .minute], from: bedTime)
+            guard let candidate = calendar.date(bySettingHour: components.hour ?? 20,
+                                                minute: components.minute ?? 0,
+                                                second: 0,
+                                                of: date) else { continue }
+            if candidate > now { return candidate }
         }
-
         return nil
     }
 
-    var nextReminderTime: Date? {
-        guard let bedTime = nextBedTime else { return nil }
-        return Calendar.current.date(byAdding: .minute, value: -reminderMinutes, to: bedTime)
-    }
-
-    var formattedBedTime: String {
+    public var formattedBedTime: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: bedTime)
     }
 
-    var formattedWakeTime: String {
+    public var formattedWakeTime: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: wakeTime)
     }
 
-    var selectedDaysText: String {
-        if selectedDays.count == 7 {
-            return "Every day"
-        } else if selectedDays.count == 5 && selectedDays.isSuperset(of: [
-            .monday,
-            .tuesday,
-            .wednesday,
-            .thursday,
-            .friday,
-        ]) {
-            return "Weekdays"
-        } else if selectedDays.count == 2 && selectedDays.isSuperset(of: [.saturday, .sunday]) {
-            return "Weekends"
-        } else {
-            return selectedDays.sorted().map { $0.shortName }.joined(separator: ", ")
-        }
+    public var selectedDaysText: String {
+        if selectedDays == Set(Weekday.allCases) { return "Every day" }
+        if selectedDays == Set([.monday, .tuesday, .wednesday, .thursday, .friday]) { return "Weekdays" }
+        if selectedDays == Set([.saturday, .sunday]) { return "Weekends" }
+        return selectedDays.sorted().map(\.shortName).joined(separator: ", ")
     }
 
-    // MARK: - Notification Identifiers
-
-    var reminderNotificationId: String {
-        "sleep_reminder_\(id.uuidString)"
-    }
-
-    var bedtimeNotificationId: String {
-        "sleep_bedtime_\(id.uuidString)"
-    }
+    public var reminderNotificationId: String { "sleep_reminder_\(id.uuidString)" }
+    public var bedtimeNotificationId: String { "sleep_bedtime_\(id.uuidString)" }
 }
 
-// MARK: - Weekday
-
-enum Weekday: Int, CaseIterable, Codable, Comparable {
+public enum Weekday: Int, CaseIterable, Codable, Comparable {
     case sunday = 1, monday, tuesday, wednesday, thursday, friday, saturday
 
-    init(from weekdayComponent: Int) {
+    public init(from weekdayComponent: Int) {
         self = Weekday(rawValue: weekdayComponent) ?? .sunday
     }
 
-    var name: String {
+    public var name: String {
         switch self {
         case .sunday: return "Sunday"
         case .monday: return "Monday"
@@ -138,7 +101,7 @@ enum Weekday: Int, CaseIterable, Codable, Comparable {
         }
     }
 
-    var shortName: String {
+    public var shortName: String {
         switch self {
         case .sunday: return "Sun"
         case .monday: return "Mon"
@@ -150,35 +113,20 @@ enum Weekday: Int, CaseIterable, Codable, Comparable {
         }
     }
 
-    static func < (lhs: Weekday, rhs: Weekday) -> Bool {
-        // Sort: Monday first, Sunday last
-        let lhsOrder = lhs == .sunday ? 7 : lhs.rawValue
-        let rhsOrder = rhs == .sunday ? 7 : rhs.rawValue
-        return lhsOrder < rhsOrder
+    public static func < (lhs: Weekday, rhs: Weekday) -> Bool {
+        (lhs == .sunday ? 8 : lhs.rawValue) < (rhs == .sunday ? 8 : rhs.rawValue)
     }
 }
 
-// MARK: - SleepScheduleError
+public enum SleepScheduleError: LocalizedError {
+    case notificationPermissionDenied, invalidTimeConfiguration, scheduleNotFound, maxSchedulesReached
 
-enum SleepScheduleError: LocalizedError {
-    case notificationPermissionDenied
-    case invalidTimeConfiguration
-    case scheduleNotFound
-    case maxSchedulesReached
-
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
-        case .notificationPermissionDenied:
-            return "Notification permission not granted"
-
-        case .invalidTimeConfiguration:
-            return "Invalid time configuration"
-
-        case .scheduleNotFound:
-            return "Schedule not found"
-
-        case .maxSchedulesReached:
-            return "Maximum number of schedules reached"
+        case .notificationPermissionDenied: return "Notification permission not granted"
+        case .invalidTimeConfiguration: return "Invalid time configuration"
+        case .scheduleNotFound: return "Schedule not found"
+        case .maxSchedulesReached: return "Maximum number of schedules reached"
         }
     }
 }
