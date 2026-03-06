@@ -1,7 +1,6 @@
 import XCTest
 @testable import BabySounds
 
-@MainActor
 final class PremiumManagerTests: XCTestCase {
     var sut: PremiumManager!
 

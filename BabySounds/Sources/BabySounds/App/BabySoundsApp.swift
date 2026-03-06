@@ -3,7 +3,9 @@ import SwiftUI
 
 @main
 struct BabySoundsApp: App {
+#if canImport(UIKit)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+#endif
 
     @StateObject private var audioManager = AudioEngineManager.shared
     @StateObject private var subscriptionService = SubscriptionServiceSK2.shared
