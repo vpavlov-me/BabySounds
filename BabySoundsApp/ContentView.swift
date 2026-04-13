@@ -113,298 +113,127 @@ struct SoundsView: View {
     @StateObject private var favoritesManager = FavoritesManager.shared
     @State private var selectedCategory: SoundCategory = .all
     @State private var selectedSound: RealSound?
-    @State private var showingPlayer = false
     @State private var showingPremiumSheet = false
-
-    private let categories: [SoundCategory] = [.all, .nature, .white, .pink, .brown, .womb, .fan]
-
-    private let columns = [
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16),
-    ]
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Header
-                VStack(spacing: 12) {
-                    HStack {
-                        Text("Sounds")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.pink)
-
-                        Spacer()
-
-                        Button(action: {}) {
-                            Image(systemName: "airplayaudio")
-                                .font(.title2)
-                                .foregroundColor(.secondary)
+            List(filteredSounds) { sound in
+                SoundRow(
+                    sound: sound,
+                    isPlaying: soundManager.isPlaying(sound.id),
+                    isFavorite: favoritesManager.isFavorite(sound),
+                    onTap: {
+                        if sound.premium, !premiumManager.isPremium {
+                            showingPremiumSheet = true
+                        } else {
+                            selectedSound = sound
+                        }
+                    },
+                    onFavoriteTap: {
+                        favoritesManager.toggleFavorite(sound)
+                    },
+                    onPlayTap: {
+                        if sound.premium, !premiumManager.isPremium {
+                            showingPremiumSheet = true
+                        } else {
+                            soundManager.toggleSound(sound)
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-                }
-
-                // Category Tabs (только если не "All")
-                if selectedCategory != .all {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(categories, id: \.self) { category in
-                                CategoryTab(
-                                    category: category,
-                                    isSelected: selectedCategory == category,
-                                    action: { selectedCategory = category }
-                                )
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                    }
-                    .padding(.vertical, 12)
-                }
-
-                // Sounds Grid
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(Array(filteredSounds.enumerated()), id: \.element.id) { index, sound in
-                            SoundCardModern(
-                                sound: sound,
-                                isPlaying: soundManager.isPlaying(sound.id),
-                                isFavorite: favoritesManager.isFavorite(sound),
-                                onTap: {
-                                    HapticManager.shared.playSound()
-                                    if sound.premium, !premiumManager.isPremium {
-                                        showingPremiumSheet = true
-                                    } else {
-                                        selectedSound = sound
-                                        showingPlayer = true
-                                    }
-                                },
-                                onFavoriteTap: {
-                                    HapticManager.shared.favoriteToggle()
-                                    favoritesManager.toggleFavorite(sound)
-                                }
-                            )
-                            .transition(.asymmetric(
-                                insertion: .scale(scale: 0.8).combined(with: .opacity).animation(.spring(
-                                    response: 0.6,
-                                    dampingFraction: 0.8
-                                ).delay(Double(index) * 0.05)),
-                                removal: .scale(scale: 0.8).combined(with: .opacity).animation(.easeOut(duration: 0.3))
-                            ))
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 100) // Space for now playing
-                }
-
-                Spacer()
+                )
             }
-            .background(Color(UIColor.systemGroupedBackground))
+            .navigationTitle("Sounds")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Picker("Category", selection: $selectedCategory) {
+                        ForEach(SoundCategory.allCases, id: \.self) { cat in
+                            Text(cat.localizedName).tag(cat)
+                        }
+                    }
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                if !soundManager.playingTracks.isEmpty {
+                    NowPlayingBar()
+                        .environmentObject(soundManager)
+                }
+            }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .sheet(isPresented: $showingPlayer) {
-            if let sound = selectedSound {
-                PlayerView(sound: sound)
-                    .environmentObject(soundManager)
-                    .environmentObject(premiumManager)
-            }
+        .sheet(item: $selectedSound) { sound in
+            PlayerView(sound: sound)
+                .environmentObject(soundManager)
+                .environmentObject(premiumManager)
         }
         .sheet(isPresented: $showingPremiumSheet) {
             PremiumUpgradeView()
                 .environmentObject(premiumManager)
         }
-        .overlay(alignment: .bottom) {
-            if !soundManager.playingTracks.isEmpty {
-                NowPlayingBar()
-                    .environmentObject(soundManager)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 90)
-            }
-        }
     }
 
     private var filteredSounds: [RealSound] {
-        if selectedCategory == .all {
-            return soundManager.allSounds
-        } else {
-            return soundManager.sounds(for: selectedCategory)
-        }
+        selectedCategory == .all ? soundManager.allSounds : soundManager.sounds(for: selectedCategory)
     }
 }
 
-// MARK: - CategoryTab
+// MARK: - SoundRow
 
-struct CategoryTab: View {
-    let category: SoundCategory
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: category.sfSymbol)
-                    .font(.caption)
-
-                Text(category.localizedName)
-                    .font(.system(size: 14, weight: .medium))
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? Color.pink : Color(UIColor.secondarySystemGroupedBackground))
-            )
-            .foregroundColor(isSelected ? .white : .primary)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-// MARK: - SoundCardModern
-
-struct SoundCardModern: View {
+struct SoundRow: View {
     let sound: RealSound
     let isPlaying: Bool
-    var isFavorite = false
+    let isFavorite: Bool
     let onTap: () -> Void
-    var onFavoriteTap: (() -> Void)? = nil
-
-    @State private var isPressed = false
-    @State private var pulseScale: CGFloat = 1.0
-
-    private var cardContent: some View {
-        VStack(spacing: 0) {
-            // Image
-            RoundedRectangle(cornerRadius: 16)
-                .fill(
-                    LinearGradient(
-                        colors: [sound.color, sound.color.opacity(0.7)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay {
-                    // Sound visualization or icon
-                    Image(systemName: sound.sfSymbol)
-                        .font(.system(size: 40))
-                        .foregroundColor(.white)
-                        .scaleEffect(isPlaying ? pulseScale : 1.0)
-                        .animation(
-                            isPlaying ?
-                                Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true) :
-                                .easeOut(duration: 0.3),
-                            value: isPlaying
-                        )
-                }
-                .aspectRatio(1, contentMode: .fit)
-                .overlay(alignment: .topTrailing) {
-                    HStack(spacing: 4) {
-                        if let onFavoriteTap = onFavoriteTap {
-                            Button(action: onFavoriteTap) {
-                                Image(systemName: isFavorite ? "heart.fill" : "heart")
-                                    .font(.caption)
-                                    .foregroundColor(isFavorite ? .red : .white)
-                                    .background(
-                                        Circle()
-                                            .fill(.ultraThinMaterial)
-                                            .frame(width: 24, height: 24)
-                                    )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-
-                        if sound.premium {
-                            Image(systemName: "crown.fill")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                                .background(
-                                    Circle()
-                                        .fill(.ultraThinMaterial)
-                                        .frame(width: 24, height: 24)
-                                )
-                        }
-                    }
-                    .padding(8)
-                }
-
-            // Title
-            VStack(spacing: 4) {
-                Text(sound.title)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.primary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-
-                if isPlaying {
-                    Text("Playing")
-                        .font(.caption)
-                        .foregroundColor(.pink)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.bottom, 12)
-            .frame(height: 50)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-        )
-    }
+    let onFavoriteTap: () -> Void
+    let onPlayTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
-            cardContent
-        }
-        .buttonStyle(PlainButtonStyle())
-        .scaleEffect(currentScale)
-        .animation(.easeInOut(duration: 0.1), value: isPressed)
-        .animation(.easeInOut(duration: 0.2), value: isPlaying)
-        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: handlePress, perform: {})
-        .onAppear(perform: handleAppear)
-        .onChange(of: isPlaying) { _, newValue in
-            handlePlayingChange(false, newValue)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(sound.title)
-        .accessibilityHint(accessibilityHintText)
-        .accessibilityValue(isPlaying ? "Playing" : "Stopped")
-        .accessibilityAddTraits(isPlaying ? [.isSelected] : [])
-        .accessibilityAction(.default) { onTap() }
-        .accessibilityAction(named: favoriteActionName) {
-            onFavoriteTap?()
-        }
-    }
+            HStack(spacing: 12) {
+                AsyncImage(url: URL(string: sound.imageURL)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    default:
+                        Image(systemName: sound.sfSymbol)
+                            .font(.title2)
+                            .foregroundStyle(sound.color)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(sound.color.opacity(0.12))
+                    }
+                }
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
-    private var currentScale: CGFloat {
-        isPressed ? 0.95 : (isPlaying ? 1.05 : 1.0)
-    }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(sound.title)
+                        .foregroundStyle(.primary)
+                    Text(isPlaying ? "Now playing" : sound.category.localizedName)
+                        .font(.caption)
+                        .foregroundStyle(isPlaying ? Color.pink : Color.secondary)
+                }
 
-    private var accessibilityHintText: String {
-        isPlaying ? "Currently playing. Tap to open player controls." : "Tap to play this sound."
-    }
+                Spacer()
 
-    private var favoriteActionName: String {
-        isFavorite ? "Remove from favorites" : "Add to favorites"
-    }
+                if sound.premium {
+                    Image(systemName: "crown.fill")
+                        .font(.caption)
+                        .foregroundStyle(Color.orange)
+                }
 
-    private func handlePress(_ pressing: Bool) {
-        withAnimation(.easeInOut(duration: 0.1)) {
-            isPressed = pressing
+                Button(action: onFavoriteTap) {
+                    Image(systemName: isFavorite ? "heart.fill" : "heart")
+                        .foregroundStyle(isFavorite ? Color.pink : Color.secondary)
+                }
+                .buttonStyle(.plain)
+
+                Button(action: onPlayTap) {
+                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color.pink)
+                }
+                .buttonStyle(.plain)
+            }
         }
-    }
-
-    private func handleAppear() {
-        if isPlaying {
-            pulseScale = 1.1
-        }
-    }
-
-    private func handlePlayingChange(_: Bool, _ newValue: Bool) {
-        withAnimation {
-            pulseScale = newValue ? 1.1 : 1.0
-        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -505,247 +334,126 @@ struct PlayerView: View {
     }
 
     var body: some View {
-        ZStack {
-            // Background
-            LinearGradient(
-                colors: [sound.color.opacity(0.3), sound.color.opacity(0.1)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 20) {
-                // Header
-                HStack {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.primary)
-
-                    Spacer()
-
-                    // Chevron down
-                    Image(systemName: "chevron.down")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
-
-                Spacer()
-
-                // Sound Card
-                VStack(spacing: 24) {
-                    // Large sound visualization
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(
-                            LinearGradient(
-                                colors: [sound.color, sound.color.opacity(0.8)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 280, height: 280)
-                        .overlay {
-                            Text(sound.emoji)
+        NavigationView {
+            List {
+                // Cover image
+                Section {
+                    AsyncImage(url: URL(string: sound.imageURL)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().scaledToFill()
+                        default:
+                            Image(systemName: sound.sfSymbol)
                                 .font(.system(size: 80))
+                                .foregroundStyle(sound.color)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 260)
+                                .background(sound.color.opacity(0.12))
                         }
-                        .shadow(color: sound.color.opacity(0.3), radius: 20, x: 0, y: 10)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 260)
+                    .clipped()
+                }
+                .listRowInsets(EdgeInsets())
 
-                    // Title and favorite
+                // Playback controls
+                Section {
                     HStack {
-                        Text(sound.title)
-                            .font(.title2)
-                            .fontWeight(.semibold)
+                        Image(systemName: "speaker.fill").foregroundStyle(.secondary)
+                        Slider(
+                            value: Binding(
+                                get: { volume },
+                                set: { soundManager.setVolume($0, for: sound.id) }
+                            ),
+                            in: 0...1
+                        )
+                        .tint(.pink)
+                        Image(systemName: "speaker.wave.2.fill").foregroundStyle(.secondary)
+                    }
 
+                    HStack {
                         Spacer()
-
-                        Button(action: {
-                            HapticManager.shared.favoriteToggle()
-                            favoritesManager.toggleFavorite(sound)
-                        }) {
-                            Image(systemName: favoritesManager.isFavorite(sound) ? "heart.fill" : "heart")
-                                .font(.title2)
-                                .foregroundColor(favoritesManager.isFavorite(sound) ? .red : .secondary)
+                        Button(action: { soundManager.toggleSound(sound) }) {
+                            Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                .font(.system(size: 56))
+                                .foregroundStyle(Color.pink)
                         }
+                        .buttonStyle(.plain)
+                        Spacer()
                     }
-                    .padding(.horizontal, 40)
-
-                    // Volume Control
-                    VStack(spacing: 8) {
-                        HStack {
-                            Image(systemName: "speaker.fill")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-
-                            Slider(
-                                value: Binding(
-                                    get: { volume },
-                                    set: { soundManager.setVolume($0, for: sound.id) }
-                                ),
-                                in: 0 ... 1
-                            )
-                            .accentColor(.pink)
-
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal, 40)
-                    }
-
-                    // Timer Display
-                    VStack(spacing: 12) {
-                        if sleepTimer.isActive {
-                            VStack(spacing: 8) {
-                                Text("Sleep Timer")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-
-                                HStack(spacing: 4) {
-                                    Image(systemName: "clock.fill")
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
-
-                                    Text(sleepTimer.formattedTimeRemaining)
-                                        .font(.title3)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.orange)
-                                }
-
-                                // Progress bar
-                                ProgressView(value: sleepTimer.progressPercentage)
-                                    .progressViewStyle(LinearProgressViewStyle(tint: .orange))
-                                    .frame(width: 120)
-                            }
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.orange.opacity(0.1))
-                            )
-                        }
-
-                        if fadeOutManager.isActiveFade {
-                            VStack(spacing: 8) {
-                                Text("Fade Out")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-
-                                HStack(spacing: 4) {
-                                    Image(systemName: "minus.magnifyingglass")
-                                        .font(.caption)
-                                        .foregroundColor(.blue)
-
-                                    Text(fadeOutManager.formattedTimeRemaining)
-                                        .font(.title3)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.blue)
-                                }
-
-                                // Progress bar
-                                ProgressView(value: fadeOutManager.fadeProgress)
-                                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
-                                    .frame(width: 120)
-                            }
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.blue.opacity(0.1))
-                            )
-                        }
-                    }
-
-                    // Control Buttons
-                    HStack(spacing: 60) {
-                        // Play/Pause
-                        Button(action: {
-                            soundManager.toggleSound(sound)
-                        }) {
-                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 32))
-                                .foregroundColor(.pink)
-                        }
-
-                        // Stop
-                        Button(action: {
-                            if isPlaying {
-                                soundManager.toggleSound(sound)
-                            }
-                        }) {
-                            Image(systemName: "stop.fill")
-                                .font(.system(size: 32))
-                                .foregroundColor(.pink)
-                        }
-                    }
-                    .padding(.top, 20)
-
-                    // Bottom Controls
-                    HStack(spacing: 80) {
-                        // Timer
-                        VStack(spacing: 4) {
-                            Button(action: {
-                                if sleepTimer.isActive {
-                                    sleepTimer.stopTimer()
-                                } else {
-                                    showingTimer = true
-                                }
-                            }) {
-                                Image(systemName: sleepTimer.isActive ? "timer.circle.fill" : "timer")
-                                    .font(.title2)
-                                    .foregroundColor(sleepTimer.isActive ? .orange : .secondary)
-                            }
-                            Text(sleepTimer.isActive ? "Stop" : "Timer")
-                                .font(.caption)
-                                .foregroundColor(sleepTimer.isActive ? .orange : .secondary)
-                        }
-
-                        // Fade out
-                        VStack(spacing: 4) {
-                            Button(action: {
-                                if fadeOutManager.isActiveFade {
-                                    soundManager.stopFadeOut()
-                                } else {
-                                    soundManager.fadeOutAllSounds(duration: 10.0)
-                                }
-                            }) {
-                                Image(systemName: fadeOutManager
-                                    .isActiveFade ? "pause.circle.fill" : "minus.magnifyingglass")
-                                    .font(.title2)
-                                    .foregroundColor(fadeOutManager.isActiveFade ? .orange : .blue)
-                            }
-                            Text(fadeOutManager.isActiveFade ? "Stop Fade" : "Fade out")
-                                .font(.caption)
-                                .foregroundColor(fadeOutManager.isActiveFade ? .orange : .blue)
-                        }
-
-                        // Mixer
-                        VStack(spacing: 4) {
-                            Button(action: { showingMixer = true }) {
-                                Image(systemName: "slider.horizontal.3")
-                                    .font(.title2)
-                                    .foregroundColor(.purple)
-                            }
-                            Text("Mixer")
-                                .font(.caption)
-                                .foregroundColor(.purple)
-                        }
-
-                        // AirPlay
-                        VStack(spacing: 4) {
-                            Button(action: {}) {
-                                Image(systemName: "airplayaudio")
-                                    .font(.title2)
-                                    .foregroundColor(.secondary)
-                            }
-                            Text("AirPlay/BT")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding(.top, 40)
+                    .padding(.vertical, 4)
                 }
 
-                Spacer()
+                // Timer / Fade status
+                if sleepTimer.isActive || fadeOutManager.isActiveFade {
+                    Section("Active") {
+                        if sleepTimer.isActive {
+                            Label("Timer: \(sleepTimer.formattedTimeRemaining)", systemImage: "timer")
+                                .foregroundStyle(Color.orange)
+                        }
+                        if fadeOutManager.isActiveFade {
+                            Label("Fade out: \(fadeOutManager.formattedTimeRemaining)", systemImage: "minus.magnifyingglass")
+                                .foregroundStyle(Color.blue)
+                        }
+                    }
+                }
+
+                // Actions
+                Section {
+                    Button {
+                        if sleepTimer.isActive {
+                            sleepTimer.stopTimer()
+                        } else {
+                            showingTimer = true
+                        }
+                    } label: {
+                        Label(
+                            sleepTimer.isActive ? "Cancel Timer (\(sleepTimer.formattedTimeRemaining))" : "Set Sleep Timer",
+                            systemImage: "timer"
+                        )
+                        .foregroundStyle(sleepTimer.isActive ? Color.orange : Color.primary)
+                    }
+
+                    Button {
+                        if fadeOutManager.isActiveFade {
+                            soundManager.stopFadeOut()
+                        } else {
+                            soundManager.fadeOutAllSounds(duration: 10.0)
+                        }
+                    } label: {
+                        Label(
+                            fadeOutManager.isActiveFade ? "Cancel Fade Out" : "Fade Out (10 s)",
+                            systemImage: "minus.magnifyingglass"
+                        )
+                        .foregroundStyle(fadeOutManager.isActiveFade ? Color.orange : Color.primary)
+                    }
+
+                    Button { showingMixer = true } label: {
+                        Label("Mixer", systemImage: "slider.horizontal.3")
+                    }
+                }
+            }
+            .navigationTitle(sound.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                if !soundManager.isPlaying(sound.id) {
+                    soundManager.toggleSound(sound)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Done") { dismiss() }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        HapticManager.shared.favoriteToggle()
+                        favoritesManager.toggleFavorite(sound)
+                    } label: {
+                        Image(systemName: favoritesManager.isFavorite(sound) ? "heart.fill" : "heart")
+                            .foregroundStyle(favoritesManager.isFavorite(sound) ? Color.pink : Color.primary)
+                    }
+                }
             }
         }
         .sheet(isPresented: $showingTimer) {
@@ -774,97 +482,63 @@ struct TimerPickerView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                // Gradient background
-                LinearGradient(
-                    colors: [Color.pink.opacity(0.3), Color.purple.opacity(0.3)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-
-                VStack(spacing: 40) {
-                    Text("Choose how long the player should play")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-
-                    // Picker
-                    HStack(spacing: 20) {
-                        // Hours
-                        VStack {
-                            Picker("Hours", selection: $hours) {
-                                ForEach(0 ... 6, id: \.self) { hour in
-                                    Text("\(hour)")
-                                        .tag(hour)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(width: 60, height: 120)
-                            .clipped()
-                        }
-
-                        Text("hours")
-                            .font(.title3)
-                            .fontWeight(.medium)
-
-                        // Minutes
-                        VStack {
-                            Picker("Minutes", selection: $minutes) {
-                                ForEach(Array(stride(from: 0, through: 50, by: 10)), id: \.self) { minute in
-                                    Text("\(minute)")
-                                        .tag(minute)
-                                }
-                            }
-                            .pickerStyle(WheelPickerStyle())
-                            .frame(width: 60, height: 120)
-                            .clipped()
-                        }
-
-                        Text("min")
-                            .font(.title3)
-                            .fontWeight(.medium)
-                    }
-
-                    Button("Start Timer") {
-                        let totalMinutes = hours * 60 + minutes
-                        let duration = TimeInterval(totalMinutes * 60)
-
-                        sleepTimer.startTimer(duration: duration) {
-                            // Stop all playing sounds when timer completes
-                            Task { @MainActor in
-                                soundManager.stopAllSounds()
-                                print("⏰ Sleep timer completed - all sounds stopped")
-                            }
-                        }
-
-                        isPresented = false
-                    }
-                    .disabled(hours == 0 && minutes == 0)
-                    .font(.title3)
+            VStack(spacing: 40) {
+                Text("Choose how long the player should play")
+                    .font(.title2)
                     .fontWeight(.medium)
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill((hours == 0 && minutes == 0) ? Color.gray.opacity(0.3) : Color.white)
-                    )
+                    .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
 
-                    Spacer()
+                // Picker
+                HStack(spacing: 20) {
+                    VStack {
+                        Picker("Hours", selection: $hours) {
+                            ForEach(0 ... 6, id: \.self) { hour in
+                                Text("\(hour)").tag(hour)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(width: 60, height: 120)
+                        .clipped()
+                    }
+                    Text("hours").font(.title3).fontWeight(.medium)
+
+                    VStack {
+                        Picker("Minutes", selection: $minutes) {
+                            ForEach(Array(stride(from: 0, through: 50, by: 10)), id: \.self) { minute in
+                                Text("\(minute)").tag(minute)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(width: 60, height: 120)
+                        .clipped()
+                    }
+                    Text("min").font(.title3).fontWeight(.medium)
                 }
-                .padding(.top, 40)
+
+                Button("Start Timer") {
+                    let totalMinutes = hours * 60 + minutes
+                    sleepTimer.startTimer(duration: TimeInterval(totalMinutes * 60)) {
+                        Task { @MainActor in
+                            soundManager.stopAllSounds()
+                        }
+                    }
+                    isPresented = false
+                }
+                .disabled(hours == 0 && minutes == 0)
+                .buttonStyle(.borderedProminent)
+                .tint(.pink)
+                .font(.title3)
+                .padding(.horizontal, 40)
+
+                Spacer()
             }
+            .padding(.top, 40)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        isPresented = false
-                    }
-                    .foregroundColor(.primary)
+                    Button("Cancel") { isPresented = false }
                 }
             }
         }
@@ -883,13 +557,12 @@ struct NowPlayingBar: View {
         if let firstPlayingSound = soundManager.allSounds.first(where: { soundManager.isPlaying($0.id) }) {
             HStack(spacing: 12) {
                 // Sound icon
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(firstPlayingSound.color.opacity(0.8))
+                Image(systemName: firstPlayingSound.sfSymbol)
+                    .font(.title3)
+                    .foregroundStyle(firstPlayingSound.color)
                     .frame(width: 40, height: 40)
-                    .overlay {
-                        Text(firstPlayingSound.emoji)
-                            .font(.title3)
-                    }
+                    .background(firstPlayingSound.color.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 // Info
                 VStack(alignment: .leading, spacing: 2) {
@@ -961,11 +634,8 @@ struct NowPlayingBar: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-            )
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             .sheet(isPresented: $showingMixer) {
                 MixingControlView()
                     .environmentObject(soundManager)
@@ -1023,7 +693,6 @@ struct FavoritesView: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @StateObject private var favoritesManager = FavoritesManager.shared
     @State private var selectedSound: RealSound?
-    @State private var showingPlayer = false
 
     var favoriteSounds: [RealSound] {
         soundManager.allSounds.filter { favoritesManager.isFavorite($0) }
@@ -1031,34 +700,25 @@ struct FavoritesView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
-
+            Group {
                 if favoriteSounds.isEmpty {
                     EmptyFavoritesView()
                 } else {
-                    ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible(), spacing: 12),
-                            GridItem(.flexible(), spacing: 12),
-                        ], spacing: 16) {
-                            ForEach(favoriteSounds) { sound in
-                                SoundCardModern(
-                                    sound: sound,
-                                    isPlaying: soundManager.isPlaying(sound.id),
-                                    isFavorite: true,
-                                    onTap: {
-                                        selectedSound = sound
-                                        showingPlayer = true
-                                    },
-                                    onFavoriteTap: {
-                                        favoritesManager.toggleFavorite(sound)
-                                    }
-                                )
+                    List(favoriteSounds) { sound in
+                        SoundRow(
+                            sound: sound,
+                            isPlaying: soundManager.isPlaying(sound.id),
+                            isFavorite: true,
+                            onTap: {
+                                selectedSound = sound
+                            },
+                            onFavoriteTap: {
+                                favoritesManager.toggleFavorite(sound)
+                            },
+                            onPlayTap: {
+                                soundManager.toggleSound(sound)
                             }
-                        }
-                        .padding()
+                        )
                     }
                 }
             }
@@ -1066,12 +726,10 @@ struct FavoritesView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .sheet(isPresented: $showingPlayer) {
-            if let sound = selectedSound {
-                PlayerView(sound: sound)
-                    .environmentObject(soundManager)
-                    .environmentObject(FavoritesManager.shared)
-            }
+        .sheet(item: $selectedSound) { sound in
+            PlayerView(sound: sound)
+                .environmentObject(soundManager)
+                .environmentObject(FavoritesManager.shared)
         }
     }
 }
@@ -2501,15 +2159,10 @@ struct SafetySettingsView: View {
     }
 }
 
-// MARK: - Sound Category Extension
-
-extension SoundCategory {
-    static let all = SoundCategory.nature // Используем nature как "All" для простоты
-}
-
 // MARK: - SoundCategory
 
 enum SoundCategory: String, CaseIterable, Codable {
+    case all
     case nature
     case white
     case pink
@@ -2519,17 +2172,19 @@ enum SoundCategory: String, CaseIterable, Codable {
 
     var localizedName: String {
         switch self {
+        case .all:    return "All"
         case .nature: return "Nature"
-        case .white: return "White Noise"
-        case .pink: return "Pink Noise"
-        case .brown: return "Brown Noise"
-        case .womb: return "Womb Sounds"
-        case .fan: return "Fan & Air"
+        case .white:  return "White Noise"
+        case .pink:   return "Pink Noise"
+        case .brown:  return "Brown Noise"
+        case .womb:   return "Womb Sounds"
+        case .fan:    return "Fan & Air"
         }
     }
 
     var emoji: String {
         switch self {
+        case .all:    return "🎵"
         case .nature: return "🌿"
         case .white: return "🌬️"
         case .pink: return "🌸"
@@ -2541,12 +2196,212 @@ enum SoundCategory: String, CaseIterable, Codable {
 
     var sfSymbol: String {
         switch self {
+        case .all:    return "square.grid.2x2.fill"
         case .nature: return "leaf.fill"
-        case .white: return "speaker.wave.3.fill"
-        case .pink: return "waveform"
-        case .brown: return "wave.3.right"
-        case .womb: return "heart.fill"
-        case .fan: return "wind"
+        case .white:  return "speaker.wave.3.fill"
+        case .pink:   return "waveform"
+        case .brown:  return "wave.3.right"
+        case .womb:   return "heart.fill"
+        case .fan:    return "wind"
+        }
+    }
+}
+
+// MARK: - Sound Generator Types
+
+enum SoundGeneratorType {
+    case white, tvStatic
+    case pink, deepPink
+    case brown, red
+    case airConditioner, boxFan
+    case ocean, rain, stream, thunder
+    case heartbeat, womb
+}
+
+// MARK: - Noise Generator State (runs on audio thread)
+
+final class NoiseGeneratorState: @unchecked Sendable {
+    let type: SoundGeneratorType
+    let sampleRate: Double
+    private var sampleIndex: Int64 = 0
+
+    // Pink noise state (Paul Kellet algorithm)
+    private var pk_b0: Float = 0, pk_b1: Float = 0, pk_b2: Float = 0
+    private var pk_b3: Float = 0, pk_b4: Float = 0, pk_b5: Float = 0, pk_b6: Float = 0
+
+    // Brown noise state
+    private var brownOut: Float = 0
+    private var brownOut2: Float = 0
+
+    // LFO phase (radians)
+    private var lfoPhase: Double = 0
+
+    // Thunder state
+    private var thunderCountdown: Int = 0
+
+    init(type: SoundGeneratorType, sampleRate: Double) {
+        self.type = type
+        self.sampleRate = sampleRate
+        lfoPhase = Double.random(in: 0...(2 * .pi))
+        thunderCountdown = Int(sampleRate * Double.random(in: 4...10))
+    }
+
+    func nextSample() -> Float {
+        sampleIndex &+= 1
+        switch type {
+        case .white:          return white()
+        case .tvStatic:       return tvStatic()
+        case .pink:           return pink() * 0.50
+        case .deepPink:       return pink() * 0.62
+        case .brown:          return brownNoise()
+        case .red:            return brownNoise() * 1.10
+        case .airConditioner: return airConditioner()
+        case .boxFan:         return boxFan()
+        case .ocean:          return ocean()
+        case .rain:           return rain()
+        case .stream:         return stream()
+        case .thunder:        return thunder()
+        case .heartbeat:      return heartbeat()
+        case .womb:           return wombSound()
+        }
+    }
+
+    // MARK: White noise
+    private func white() -> Float {
+        return Float.random(in: -0.45...0.45)
+    }
+
+    // MARK: TV Static – white with random amplitude drops
+    private func tvStatic() -> Float {
+        let w = Float.random(in: -0.45...0.45)
+        return Float.random(in: 0...1) > 0.03 ? w : w * 0.08
+    }
+
+    // MARK: Pink noise – Paul Kellet algorithm
+    private func pink() -> Float {
+        let w = Float.random(in: -1...1)
+        pk_b0 = 0.99886 * pk_b0 + w * 0.0555179
+        pk_b1 = 0.99332 * pk_b1 + w * 0.0750759
+        pk_b2 = 0.96900 * pk_b2 + w * 0.1538520
+        pk_b3 = 0.86650 * pk_b3 + w * 0.3104856
+        pk_b4 = 0.55000 * pk_b4 + w * 0.5329522
+        pk_b5 = -0.7616 * pk_b5 - w * 0.0168980
+        let out = (pk_b0 + pk_b1 + pk_b2 + pk_b3 + pk_b4 + pk_b5 + pk_b6 + w * 0.5362) * 0.11
+        pk_b6 = w * 0.115926
+        return out
+    }
+
+    // MARK: Brown noise – leaky integrator of white
+    private func brownNoise() -> Float {
+        let w = Float.random(in: -1...1)
+        brownOut = (brownOut + 0.02 * w) / 1.02
+        return brownOut * 3.5
+    }
+
+    // MARK: Air conditioner – brown + subtle 60 Hz hum
+    private func airConditioner() -> Float {
+        let w = Float.random(in: -1...1)
+        brownOut = (brownOut + 0.02 * w) / 1.02
+        let b = brownOut * 3.0
+        let hum = sin(Float(sampleIndex) * 2.0 * .pi * 60.0 / Float(sampleRate)) * 0.015
+        return (b + hum) * 0.80
+    }
+
+    // MARK: Box fan – pink with rotational ~7.5 Hz AM
+    private func boxFan() -> Float {
+        let p = pink()
+        let mod = 0.85 + 0.15 * sin(Float(sampleIndex) * 2.0 * .pi * 7.5 / Float(sampleRate))
+        return p * mod * 0.60
+    }
+
+    // MARK: Ocean waves – pink with slow 0.1 Hz amplitude envelope
+    private func ocean() -> Float {
+        let p = pink()
+        lfoPhase += (2.0 * .pi * 0.10) / sampleRate
+        if lfoPhase >= 2.0 * .pi { lfoPhase -= 2.0 * .pi }
+        let env = 0.20 + 0.80 * (sin(Float(lfoPhase)) * 0.5 + 0.5)
+        return p * env * 0.55
+    }
+
+    // MARK: Forest rain – pink base + sparse droplet crackles
+    private func rain() -> Float {
+        let base = pink() * 0.40
+        if Int.random(in: 0..<180) == 0 {
+            return base + Float.random(in: -0.22...0.22)
+        }
+        return base
+    }
+
+    // MARK: Gentle stream – pink with medium 1.5 Hz AM
+    private func stream() -> Float {
+        let p = pink()
+        lfoPhase += (2.0 * .pi * 1.5) / sampleRate
+        if lfoPhase >= 2.0 * .pi { lfoPhase -= 2.0 * .pi }
+        let env = 0.50 + 0.50 * sin(Float(lfoPhase))
+        return p * env * 0.55
+    }
+
+    // MARK: Thunderstorm – rain + occasional decaying deep rumble
+    private func thunder() -> Float {
+        let rainBase = pink() * 0.30
+        thunderCountdown -= 1
+        if thunderCountdown <= 0 {
+            thunderCountdown = Int(sampleRate * Double.random(in: 6...16))
+        }
+        let rumbleDuration = Int(sampleRate * 2.2)
+        if thunderCountdown < rumbleDuration {
+            let decay = Float(thunderCountdown) / Float(rumbleDuration)
+            let w = Float.random(in: -1...1)
+            brownOut = (brownOut + 0.02 * w) / 1.02
+            return rainBase + brownOut * 3.5 * decay * 0.65
+        }
+        return rainBase
+    }
+
+    // MARK: Heartbeat – ~65 BPM lub-dub + brown background
+    private func heartbeat() -> Float {
+        let period = sampleRate * 60.0 / 65.0
+        let phase = Double(sampleIndex).truncatingRemainder(dividingBy: period) / period
+        var beat: Float = 0
+        if phase < 0.04 {
+            let t = Float(phase / 0.04)
+            beat = sin(t * .pi) * exp(-8.0 * t) * 0.80
+        } else if phase >= 0.07 && phase < 0.12 {
+            let t = Float((phase - 0.07) / 0.05)
+            beat = sin(t * .pi) * exp(-9.0 * t) * 0.50
+        }
+        let w = Float.random(in: -1...1)
+        brownOut2 = (brownOut2 + 0.02 * w) / 1.02
+        return beat + brownOut2 * 0.90
+    }
+
+    // MARK: Womb – ~55 BPM fetal heartbeat + deep brown rumble
+    private func wombSound() -> Float {
+        let period = sampleRate * 60.0 / 55.0
+        let phase = Double(sampleIndex).truncatingRemainder(dividingBy: period) / period
+        var beat: Float = 0
+        if phase < 0.05 {
+            let t = Float(phase / 0.05)
+            beat = sin(t * .pi) * exp(-6.0 * t) * 0.55
+        }
+        let w = Float.random(in: -1...1)
+        brownOut = (brownOut + 0.02 * w) / 1.02
+        return (beat + brownOut * 2.0) * 0.60
+    }
+
+    // Creates an AVAudioSourceNode whose render block runs on the audio thread
+    // (no @MainActor isolation — this is a plain method on a non-actor class)
+    func makeSourceNode(format: AVAudioFormat) -> AVAudioSourceNode {
+        AVAudioSourceNode(format: format) { [self] _, _, frameCount, audioBufferList in
+            let ablPointer = UnsafeMutableAudioBufferListPointer(audioBufferList)
+            for frame in 0..<Int(frameCount) {
+                let sample = self.nextSample()
+                for buffer in ablPointer {
+                    let buf = UnsafeMutableBufferPointer<Float>(buffer)
+                    if frame < buf.count { buf[frame] = sample }
+                }
+            }
+            return noErr
         }
     }
 }
@@ -2592,6 +2447,26 @@ struct RealSound: Identifiable {
         "Resources/Sounds/\(category.rawValue)/\(fileName).\(fileExt)"
     }
 
+    var imageURL: String {
+        switch title {
+        case "White Noise":       return "https://picsum.photos/seed/whitenoise/300/300"
+        case "TV Static":         return "https://picsum.photos/seed/tvstatic/300/300"
+        case "Pink Noise":        return "https://picsum.photos/seed/pinknoise/300/300"
+        case "Deep Pink":         return "https://picsum.photos/seed/deeppink/300/300"
+        case "Brown Noise":       return "https://picsum.photos/seed/brownnoise/300/300"
+        case "Red Noise":         return "https://picsum.photos/seed/rednoise/300/300"
+        case "Air Conditioner":   return "https://picsum.photos/seed/airconditioner/300/300"
+        case "Box Fan":           return "https://picsum.photos/seed/boxfan/300/300"
+        case "Ocean Waves":       return "https://picsum.photos/seed/oceanwaves/300/300"
+        case "Forest Rain":       return "https://picsum.photos/seed/forestrain/300/300"
+        case "Gentle Stream":     return "https://picsum.photos/seed/gentlestream/300/300"
+        case "Thunderstorm":      return "https://picsum.photos/seed/thunderstorm/300/300"
+        case "Heartbeat":         return "https://picsum.photos/seed/heartbeat/300/300"
+        case "Womb Environment":  return "https://picsum.photos/seed/wombenvironment/300/300"
+        default:                  return "https://picsum.photos/seed/\(title.replacingOccurrences(of: " ", with: ""))/300/300"
+        }
+    }
+
     var sfSymbol: String {
         switch title {
         case "White Noise": return "waveform"
@@ -2608,6 +2483,26 @@ struct RealSound: Identifiable {
         case "Heartbeat": return "heart.fill"
         case "Womb Sounds": return "waveform.path.ecg"
         default: return category.sfSymbol
+        }
+    }
+
+    var generatorType: SoundGeneratorType {
+        switch title {
+        case "White Noise":        return .white
+        case "TV Static":          return .tvStatic
+        case "Pink Noise":         return .pink
+        case "Deep Pink":          return .deepPink
+        case "Brown Noise":        return .brown
+        case "Red Noise":          return .red
+        case "Air Conditioner":    return .airConditioner
+        case "Box Fan":            return .boxFan
+        case "Ocean Waves":        return .ocean
+        case "Forest Rain":        return .rain
+        case "Gentle Stream":      return .stream
+        case "Thunderstorm":       return .thunder
+        case "Heartbeat":          return .heartbeat
+        case "Womb Environment":   return .womb
+        default:                   return .white
         }
     }
 }
@@ -2642,6 +2537,8 @@ class RealSoundManager: ObservableObject {
     private let maxConcurrentTracks = 4
     private let engine = AVAudioEngine()
     private var playerNodes: [UUID: AVAudioPlayerNode] = [:]
+    private var sourceNodes: [UUID: AVAudioSourceNode] = [:]
+    private var generatorStates: [UUID: NoiseGeneratorState] = [:]
     private var audioFiles: [String: AVAudioFile] = [:]
     private let safeVolumeManager = SafeVolumeManager.shared
     private let fadeOutManager = FadeOutManager.shared
@@ -2649,104 +2546,30 @@ class RealSoundManager: ObservableObject {
     // Реальные звуки с файлами
     let allSounds: [RealSound] = [
         // White Noise
-        RealSound(
-            title: "White Noise",
-            category: .white,
-            fileName: "white_noise",
-            fileExt: "aiff",
-            color: .gray,
-            emoji: "🌀"
-        ),
-        RealSound(
-            title: "TV Static",
-            category: .white,
-            fileName: "white_noise",
-            fileExt: "aiff",
-            color: .gray,
-            emoji: "📺"
-        ),
+        RealSound(title: "White Noise",      category: .white,  fileName: "white_noise", fileExt: "aiff", color: .gray),
+        RealSound(title: "TV Static",        category: .white,  fileName: "white_noise", fileExt: "aiff", color: .gray),
 
         // Pink Noise
-        RealSound(
-            title: "Pink Noise",
-            category: .pink,
-            fileName: "pink_noise",
-            fileExt: "aiff",
-            color: .pink,
-            emoji: "🌸"
-        ),
-        RealSound(
-            title: "Soft Pink",
-            category: .pink,
-            fileName: "pink_noise",
-            fileExt: "aiff",
-            premium: true,
-            color: .purple,
-            emoji: "💕"
-        ),
+        RealSound(title: "Pink Noise",       category: .pink,   fileName: "pink_noise",  fileExt: "aiff", color: .pink),
+        RealSound(title: "Deep Pink",        category: .pink,   fileName: "pink_noise",  fileExt: "aiff", color: .purple),
 
         // Brown Noise
-        RealSound(
-            title: "Brown Noise",
-            category: .brown,
-            fileName: "brown_noise",
-            fileExt: "aiff",
-            color: .brown,
-            emoji: "🤎"
-        ),
-        RealSound(
-            title: "Deep Brown",
-            category: .brown,
-            fileName: "brown_noise",
-            fileExt: "aiff",
-            premium: true,
-            color: .red,
-            emoji: "🔥"
-        ),
+        RealSound(title: "Brown Noise",      category: .brown,  fileName: "brown_noise", fileExt: "aiff", color: .brown),
+        RealSound(title: "Red Noise",        category: .brown,  fileName: "brown_noise", fileExt: "aiff", color: .red),
 
-        // Fan & Air
-        RealSound(title: "Fan", category: .fan, fileName: "fan", fileExt: "aiff", color: .blue, emoji: "💨"),
-        RealSound(
-            title: "Hair Dryer",
-            category: .fan,
-            fileName: "fan",
-            fileExt: "aiff",
-            premium: true,
-            color: .cyan,
-            emoji: "💇‍♀️"
-        ),
+        // Fan
+        RealSound(title: "Air Conditioner",  category: .fan,    fileName: "fan",         fileExt: "aiff", color: .blue),
+        RealSound(title: "Box Fan",          category: .fan,    fileName: "fan",         fileExt: "aiff", color: .cyan),
 
         // Nature
-        RealSound(
-            title: "Ocean Waves",
-            category: .nature,
-            fileName: "white_noise",
-            fileExt: "aiff",
-            color: .blue,
-            emoji: "🌊"
-        ),
-        RealSound(title: "Rain", category: .nature, fileName: "pink_noise", fileExt: "aiff", color: .gray, emoji: "🌧️"),
-        RealSound(
-            title: "Forest",
-            category: .nature,
-            fileName: "brown_noise",
-            fileExt: "aiff",
-            premium: true,
-            color: .green,
-            emoji: "🌳"
-        ),
+        RealSound(title: "Ocean Waves",      category: .nature, fileName: "white_noise", fileExt: "aiff", color: .blue),
+        RealSound(title: "Forest Rain",      category: .nature, fileName: "pink_noise",  fileExt: "aiff", color: .green),
+        RealSound(title: "Gentle Stream",    category: .nature, fileName: "pink_noise",  fileExt: "aiff", color: .teal),
+        RealSound(title: "Thunderstorm",     category: .nature, fileName: "brown_noise", fileExt: "aiff", color: .indigo),
 
         // Womb
-        RealSound(title: "Heartbeat", category: .womb, fileName: "fan", fileExt: "aiff", color: .red, emoji: "💓"),
-        RealSound(
-            title: "Womb Sounds",
-            category: .womb,
-            fileName: "white_noise",
-            fileExt: "aiff",
-            premium: true,
-            color: .pink,
-            emoji: "🤱"
-        ),
+        RealSound(title: "Heartbeat",        category: .womb,   fileName: "fan",         fileExt: "aiff", color: .red),
+        RealSound(title: "Womb Environment", category: .womb,   fileName: "fan",         fileExt: "aiff", color: .pink),
     ]
 
     func initializeAudio() {
@@ -2809,20 +2632,20 @@ class RealSoundManager: ObservableObject {
 
     private func setupAudioEngine() {
         do {
-            // Подключение главного микшера к выходу
-            let format = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 2)
-            engine.connect(engine.mainMixerNode, to: engine.outputNode, format: format)
-
-            // Запуск движка
+            // AVAudioEngine manages mainMixerNode→outputNode automatically.
+            // Manual connection with a mismatched format causes kAUStartIO error.
+            engine.mainMixerNode.outputVolume = 1.0
+            engine.prepare()
             try engine.start()
-            print("✅ Audio engine started")
+            let sr = engine.outputNode.outputFormat(forBus: 0).sampleRate
+            print("✅ Audio engine started at \(sr) Hz")
         } catch {
             print("❌ Failed to start audio engine: \(error)")
         }
     }
 
     func sounds(for category: SoundCategory) -> [RealSound] {
-        return allSounds.filter { $0.category == category }
+        category == .all ? allSounds : allSounds.filter { $0.category == category }
     }
 
     func isPlaying(_ soundId: UUID) -> Bool {
@@ -2849,13 +2672,33 @@ class RealSoundManager: ObservableObject {
             return
         }
 
-        // Попытка загрузить реальный аудио файл
-        if let audioFile = loadAudioFile(for: sound) {
-            playRealAudio(sound: sound, audioFile: audioFile)
-        } else {
-            // Fallback: симуляция воспроизведения
-            playSimulatedAudio(sound: sound)
+        playGeneratedAudio(sound: sound)
+    }
+
+    private func playGeneratedAudio(sound: RealSound) {
+        // Use hardware sample rate so no silent resampling mismatch
+        let hwFormat = engine.outputNode.outputFormat(forBus: 0)
+        let sampleRate = hwFormat.sampleRate > 0 ? hwFormat.sampleRate : 44100.0
+        guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 2) else {
+            print("❌ Failed to create audio format")
+            return
         }
+
+        let generator = NoiseGeneratorState(type: sound.generatorType, sampleRate: sampleRate)
+        generatorStates[sound.id] = generator
+
+        // sourceNode render block is created on NoiseGeneratorState (non-actor class)
+        // so Swift 6 does NOT inject @MainActor isolation into the audio-thread callback
+        let sourceNode = generator.makeSourceNode(format: format)
+
+        engine.attach(sourceNode)
+        engine.connect(sourceNode, to: engine.mainMixerNode, format: format)
+        sourceNode.volume = Float((trackVolumes[sound.id] ?? 0.5) * masterVolume)
+
+        sourceNodes[sound.id] = sourceNode
+        playingTracks.insert(sound.id)
+        updateNowPlayingInfo(with: sound)
+        print("▶️ Playing generated audio: \(sound.title) [\(sound.generatorType)]")
     }
 
     private func loadAudioFile(for sound: RealSound) -> AVAudioFile? {
@@ -2866,8 +2709,9 @@ class RealSoundManager: ObservableObject {
             return cachedFile
         }
 
-        // Пытаемся загрузить из bundle (файлы находятся в папке Sounds/)
+        // .aiff файлы лежат в Sounds/ (корень), MP3 — в Sounds/{category}/
         let url = Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt, subdirectory: "Sounds")
+            ?? Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt, subdirectory: "Sounds/\(sound.category.rawValue)")
             ?? Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt)
         guard let url else {
             print("❌ Audio file not found: \(sound.fileName).\(sound.fileExt)")
@@ -2969,14 +2813,20 @@ class RealSoundManager: ObservableObject {
     func stopSound(_ sound: RealSound) {
         playingTracks.remove(sound.id)
 
-        // Остановка реального воспроизведения
+        // Stop generated (DSP) node
+        if let sourceNode = sourceNodes[sound.id] {
+            engine.detach(sourceNode)
+            sourceNodes.removeValue(forKey: sound.id)
+            generatorStates.removeValue(forKey: sound.id)
+            print("⏹️ Stopped generated audio: \(sound.title)")
+        }
+
+        // Stop file-based node (legacy fallback)
         if let playerNode = playerNodes[sound.id] {
             playerNode.stop()
             engine.detach(playerNode)
             playerNodes.removeValue(forKey: sound.id)
-            print("⏹️ Stopped real audio: \(sound.title)")
-        } else {
-            print("⏹️ Stopped simulated: \(sound.title)")
+            print("⏹️ Stopped file audio: \(sound.title)")
         }
     }
 
@@ -3008,11 +2858,14 @@ class RealSoundManager: ObservableObject {
     func setVolume(_ volume: Double, for soundId: UUID) {
         trackVolumes[soundId] = volume
 
-        // Применение громкости к реальному воспроизведению с учетом fade out
+        let fadeMultiplier = fadeOutManager.currentVolumeMultiplier
+        let finalVolume = Float(volume * masterVolume) * fadeMultiplier
+
         if let playerNode = playerNodes[soundId] {
-            let fadeMultiplier = fadeOutManager.currentVolumeMultiplier
-            let finalVolume = Float(volume * masterVolume) * fadeMultiplier
             playerNode.volume = finalVolume
+        }
+        if let sourceNode = sourceNodes[soundId] {
+            sourceNode.volume = finalVolume
         }
 
         if let sound = allSounds.first(where: { $0.id == soundId }) {
@@ -3023,12 +2876,14 @@ class RealSoundManager: ObservableObject {
     }
 
     private func updateMasterVolume() {
-        // Обновление громкости для всех активных треков с учетом fade out
         let fadeMultiplier = fadeOutManager.currentVolumeMultiplier
         for (soundId, playerNode) in playerNodes {
             let trackVolume = trackVolumes[soundId] ?? 0.5
-            let finalVolume = Float(trackVolume * masterVolume) * fadeMultiplier
-            playerNode.volume = finalVolume
+            playerNode.volume = Float(trackVolume * masterVolume) * fadeMultiplier
+        }
+        for (soundId, sourceNode) in sourceNodes {
+            let trackVolume = trackVolumes[soundId] ?? 0.5
+            sourceNode.volume = Float(trackVolume * masterVolume) * fadeMultiplier
         }
         let fadeInfo = fadeOutManager.isActiveFade ? " (fade: \(Int(fadeMultiplier * 100))%)" : ""
         print("🔊 Master volume: \(Int(masterVolume * 100))%\(fadeInfo)")
