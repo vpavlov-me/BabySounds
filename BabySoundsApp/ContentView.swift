@@ -243,7 +243,7 @@ struct CategoryTab: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
-                Text(category.emoji)
+                Image(systemName: category.sfSymbol)
                     .font(.caption)
 
                 Text(category.localizedName)
@@ -286,8 +286,9 @@ struct SoundCardModern: View {
                 )
                 .overlay {
                     // Sound visualization or icon
-                    Text(sound.emoji)
+                    Image(systemName: sound.sfSymbol)
                         .font(.system(size: 40))
+                        .foregroundColor(.white)
                         .scaleEffect(isPlaying ? pulseScale : 1.0)
                         .animation(
                             isPlaying ?
@@ -2537,6 +2538,17 @@ enum SoundCategory: String, CaseIterable, Codable {
         case .fan: return "💨"
         }
     }
+
+    var sfSymbol: String {
+        switch self {
+        case .nature: return "leaf.fill"
+        case .white: return "speaker.wave.3.fill"
+        case .pink: return "waveform"
+        case .brown: return "wave.3.right"
+        case .womb: return "heart.fill"
+        case .fan: return "wind"
+        }
+    }
 }
 
 // MARK: - RealSound
@@ -2578,6 +2590,25 @@ struct RealSound: Identifiable {
 
     var filePath: String {
         "Resources/Sounds/\(category.rawValue)/\(fileName).\(fileExt)"
+    }
+
+    var sfSymbol: String {
+        switch title {
+        case "White Noise": return "waveform"
+        case "TV Static": return "tv.fill"
+        case "Pink Noise": return "waveform.path.ecg"
+        case "Soft Pink": return "waveform.path.ecg.rectangle"
+        case "Brown Noise": return "wave.3.right"
+        case "Deep Brown": return "flame.fill"
+        case "Fan": return "wind"
+        case "Hair Dryer": return "fan.fill"
+        case "Ocean Waves": return "water.waves"
+        case "Rain": return "cloud.rain.fill"
+        case "Forest": return "leaf.fill"
+        case "Heartbeat": return "heart.fill"
+        case "Womb Sounds": return "waveform.path.ecg"
+        default: return category.sfSymbol
+        }
     }
 }
 
@@ -2835,8 +2866,10 @@ class RealSoundManager: ObservableObject {
             return cachedFile
         }
 
-        // Пытаемся загрузить из bundle
-        guard let url = Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt) else {
+        // Пытаемся загрузить из bundle (файлы находятся в папке Sounds/)
+        let url = Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt, subdirectory: "Sounds")
+            ?? Bundle.main.url(forResource: sound.fileName, withExtension: sound.fileExt)
+        guard let url else {
             print("❌ Audio file not found: \(sound.fileName).\(sound.fileExt)")
             return nil
         }

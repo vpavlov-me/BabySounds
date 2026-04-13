@@ -4,16 +4,4 @@
    <FileRef
       location = "group:BabySoundsApp.xcodeproj">
    </FileRef>
-   <FileRef
-      location = "group:Package.swift">
-   </FileRef>
-   <FileRef
-      location = "group:Packages/BabySoundsCore">
-   </FileRef>
-   <FileRef
-      location = "group:Packages/BabySoundsUI">
-   </FileRef>
-   <FileRef
-      location = "group:docs">
-   </FileRef>
 </Workspace>

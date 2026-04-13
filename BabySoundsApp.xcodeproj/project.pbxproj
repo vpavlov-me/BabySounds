@@ -11,6 +11,7 @@
 		CE0A0A0C2C495F2E00000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A0B2C495F2E00000001 /* ContentView.swift */; };
 		CE0A0A0E2C495F2F00000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A0D2C495F2F00000001 /* Assets.xcassets */; };
 		CE0A0A112C495F2F00000001 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A102C495F2F00000001 /* Preview Assets.xcassets */; };
+		CE0A0A122C49600000000001 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A132C49600000000001 /* Sounds */; };
 /* End PBXBuildFile section */
 
 
@@ -20,6 +21,7 @@
 		CE0A0A0B2C495F2E00000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		CE0A0A0D2C495F2F00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CE0A0A102C495F2F00000001 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		CE0A0A132C49600000000001 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Sounds; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +57,7 @@
 				CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */,
 				CE0A0A0B2C495F2E00000001 /* ContentView.swift */,
 				CE0A0A0D2C495F2F00000001 /* Assets.xcassets */,
+				CE0A0A132C49600000000001 /* Sounds */,
 				CE0A0A0F2C495F2F00000001 /* Preview Content */,
 			);
 			path = BabySoundsApp;
@@ -129,6 +132,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE0A0A122C49600000000001 /* Sounds in Resources */,
 				CE0A0A112C495F2F00000001 /* Preview Assets.xcassets in Resources */,
 				CE0A0A0E2C495F2F00000001 /* Assets.xcassets in Resources */,
 			);
