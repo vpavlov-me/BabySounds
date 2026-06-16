@@ -9,9 +9,6 @@
 /* Begin PBXBuildFile section */
 		CE0A0A0A2C495F2E00000001 /* BabySoundsAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */; };
 		CE0A0A0C2C495F2E00000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A0B2C495F2E00000001 /* ContentView.swift */; };
-		CE0A0A0E2C495F2F00000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A0D2C495F2F00000001 /* Assets.xcassets */; };
-		CE0A0A112C495F2F00000001 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A102C495F2F00000001 /* Preview Assets.xcassets */; };
-		CE0A0A122C49600000000001 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A132C49600000000001 /* Sounds */; };
 /* End PBXBuildFile section */
 
 
@@ -20,8 +17,6 @@
 		CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabySoundsAppApp.swift; sourceTree = "<group>"; };
 		CE0A0A0B2C495F2E00000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		CE0A0A0D2C495F2F00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		CE0A0A102C495F2F00000001 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		CE0A0A132C49600000000001 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Sounds; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,18 +52,8 @@
 				CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */,
 				CE0A0A0B2C495F2E00000001 /* ContentView.swift */,
 				CE0A0A0D2C495F2F00000001 /* Assets.xcassets */,
-				CE0A0A132C49600000000001 /* Sounds */,
-				CE0A0A0F2C495F2F00000001 /* Preview Content */,
 			);
 			path = BabySoundsApp;
-			sourceTree = "<group>";
-		};
-		CE0A0A0F2C495F2F00000001 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				CE0A0A102C495F2F00000001 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -132,9 +117,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE0A0A122C49600000000001 /* Sounds in Resources */,
-				CE0A0A112C495F2F00000001 /* Preview Assets.xcassets in Resources */,
-				CE0A0A0E2C495F2F00000001 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -209,10 +191,11 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = iphoneos;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+					MTL_FAST_MATH = YES;
+					ONLY_ACTIVE_ARCH = YES;
+					SDKROOT = iphoneos;
+					SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+					SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -265,10 +248,11 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
+					MTL_ENABLE_DEBUG_INFO = NO;
+					MTL_FAST_MATH = YES;
+					SDKROOT = iphoneos;
+					SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+					SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -276,12 +260,9 @@
 		CE0A0A2B2C495F2F00000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = BabySoundsApp/BabySoundsApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"BabySoundsApp/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -297,9 +278,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
+					PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app;
+					PRODUCT_NAME = "$(TARGET_NAME)";
+					SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+					SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -308,12 +290,9 @@
 		CE0A0A2C2C495F2F00000001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = BabySoundsApp/BabySoundsApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"BabySoundsApp/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -329,9 +308,10 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
+					PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app;
+					PRODUCT_NAME = "$(TARGET_NAME)";
+					SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+					SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
