@@ -108,9 +108,18 @@ struct SoundsView: View {
     @State private var selectedSound: RealSound?
     @State private var showingPremiumSheet = false
 
+    private var sortedSounds: [RealSound] {
+        soundManager.allSounds.sorted { first, second in
+            if first.premium != second.premium {
+                return !first.premium && second.premium
+            }
+            return first.title.localizedCaseInsensitiveCompare(second.title) == .orderedAscending
+        }
+    }
+
     var body: some View {
         NavigationView {
-            List(soundManager.allSounds) { sound in
+            List(sortedSounds) { sound in
                 SoundRow(
                     sound: sound,
                     isPlaying: soundManager.isPlaying(sound.id),
@@ -130,6 +139,7 @@ struct SoundsView: View {
                             showingPremiumSheet = true
                         } else {
                             soundManager.toggleSound(sound)
+                            selectedSound = sound
                         }
                     }
                 )
@@ -147,6 +157,8 @@ struct SoundsView: View {
             PlayerView(sound: sound)
                 .environmentObject(soundManager)
                 .environmentObject(premiumManager)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showingPremiumSheet) {
             PremiumUpgradeView()
@@ -284,137 +296,253 @@ struct ErrorView: View {
 struct PlayerView: View {
     let sound: RealSound
     @EnvironmentObject var soundManager: RealSoundManager
+    @EnvironmentObject var premiumManager: PremiumManager
     @StateObject private var favoritesManager = FavoritesManager.shared
     @StateObject private var sleepTimer = SleepTimerManager.shared
     @StateObject private var fadeOutManager = FadeOutManager.shared
-    @Environment(\.dismiss) private var dismiss
-    @State private var showingTimer = false
-    @State private var timerHours = 0
-    @State private var timerMinutes = 10
+    @State private var currentSound: RealSound
+    @State private var showingPremiumSheet = false
 
-    private var isPlaying: Bool {
-        soundManager.isPlaying(sound.id)
+    private let timerOptions = [15, 30, 45, 60]
+
+    init(sound: RealSound) {
+        self.sound = sound
+        _currentSound = State(initialValue: sound)
     }
 
-    private var volume: Double {
-        soundManager.getVolume(for: sound.id)
+    private var orderedSounds: [RealSound] {
+        soundManager.allSounds.sorted { first, second in
+            if first.premium != second.premium {
+                return !first.premium && second.premium
+            }
+            return first.title.localizedCaseInsensitiveCompare(second.title) == .orderedAscending
+        }
+    }
+
+    private var isPlaying: Bool {
+        soundManager.isPlaying(currentSound.id)
     }
 
     var body: some View {
-        NavigationView {
-            List {
-                // Cover image
-                Section {
-                    SoundArtwork(sound: sound, size: 260, iconSize: 86)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 260)
-                }
-                .listRowInsets(EdgeInsets())
-
-                // Playback controls
-                Section {
-                    HStack {
-                        Image(systemName: "speaker.fill").foregroundStyle(.secondary)
-                        Slider(
-                            value: Binding(
-                                get: { volume },
-                                set: { soundManager.setVolume($0, for: sound.id) }
-                            ),
-                            in: 0...1
+        NavigationStack {
+            ZStack {
+                BundledArtwork(name: currentSound.artworkName)
+                    .ignoresSafeArea()
+                    .overlay {
+                        LinearGradient(
+                            colors: [.black.opacity(0.12), .black.opacity(0.36), .black.opacity(0.82)],
+                            startPoint: .top,
+                            endPoint: .bottom
                         )
-                        .tint(.pink)
-                        Image(systemName: "speaker.wave.2.fill").foregroundStyle(.secondary)
+                        .ignoresSafeArea()
                     }
 
-                    HStack {
-                        Spacer()
-                        Button(action: { soundManager.toggleSound(sound) }) {
-                            Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                .font(.system(size: 56))
-                                .foregroundStyle(Color.pink)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 36)
+
+                    VStack(spacing: 18) {
+                        Text(statusText)
+                            .font(.headline)
+                            .foregroundStyle(.white.opacity(0.72))
+
+                        Button {
+                            soundManager.toggleSound(currentSound)
+                        } label: {
+                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 34, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 86, height: 86)
+                                .background(.pink, in: Circle())
+                                .shadow(color: .pink.opacity(0.38), radius: 22, x: 0, y: 12)
                         }
                         .buttonStyle(.plain)
-                        Spacer()
                     }
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, 28)
+
+                    Spacer(minLength: 220)
                 }
 
-                // Timer / Fade status
-                if sleepTimer.isActive || fadeOutManager.isActiveFade {
-                    Section("Active") {
-                        if sleepTimer.isActive {
-                            Label("Timer: \(sleepTimer.formattedTimeRemaining)", systemImage: "timer")
-                                .foregroundStyle(Color.orange)
-                        }
-                        if fadeOutManager.isActiveFade {
-                            Label("Fade out: \(fadeOutManager.formattedTimeRemaining)", systemImage: "minus.magnifyingglass")
-                                .foregroundStyle(Color.blue)
-                        }
-                    }
-                }
-
-                // Actions
-                Section {
-                    Button {
-                        if sleepTimer.isActive {
-                            sleepTimer.stopTimer()
-                        } else {
-                            showingTimer = true
-                        }
-                    } label: {
-                        Label(
-                            sleepTimer.isActive ? "Cancel Timer (\(sleepTimer.formattedTimeRemaining))" : "Set Sleep Timer",
-                            systemImage: "timer"
-                        )
-                        .foregroundStyle(sleepTimer.isActive ? Color.orange : Color.primary)
-                    }
-
-                    Button {
-                        if fadeOutManager.isActiveFade {
-                            soundManager.stopFadeOut()
-                        } else {
-                            soundManager.fadeOutAllSounds(duration: 30.0)
-                        }
-                    } label: {
-                        Label(
-                            fadeOutManager.isActiveFade ? "Cancel Fade Out" : "Fade Out",
-                            systemImage: "minus.magnifyingglass"
-                        )
-                        .foregroundStyle(fadeOutManager.isActiveFade ? Color.orange : Color.primary)
-                    }
+                VStack {
+                    Spacer()
+                    playerSettingsPanel
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 12)
                 }
             }
-            .navigationTitle(sound.title)
+            .navigationTitle(currentSound.title)
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                if !soundManager.isPlaying(sound.id) {
-                    soundManager.toggleSound(sound)
-                }
-            }
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") { dismiss() }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         HapticManager.shared.favoriteToggle()
-                        favoritesManager.toggleFavorite(sound)
+                        favoritesManager.toggleFavorite(currentSound)
                     } label: {
-                        Image(systemName: favoritesManager.isFavorite(sound) ? "heart.fill" : "heart")
-                            .foregroundStyle(favoritesManager.isFavorite(sound) ? Color.pink : Color.primary)
+                        Image(systemName: favoritesManager.isFavorite(currentSound) ? "heart.fill" : "heart")
+                            .foregroundStyle(favoritesManager.isFavorite(currentSound) ? Color.pink : .primary)
+                    }
+                    .accessibilityLabel(favoritesManager.isFavorite(currentSound) ? "Remove from favorites" : "Add to favorites")
+                }
+            }
+            .gesture(
+                DragGesture(minimumDistance: 44)
+                    .onEnded { value in
+                        guard abs(value.translation.width) > abs(value.translation.height),
+                              abs(value.translation.width) > 52
+                        else { return }
+
+                        switchSound(by: value.translation.width < 0 ? 1 : -1)
+                    }
+            )
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            if !soundManager.isPlaying(currentSound.id) {
+                soundManager.toggleSound(currentSound)
+            }
+        }
+        .sheet(isPresented: $showingPremiumSheet) {
+            PremiumUpgradeView()
+                .environmentObject(premiumManager)
+        }
+    }
+
+    private var playerSettingsPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Sleep Timer")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Spacer()
+                if sleepTimer.isActive {
+                    Text(sleepTimer.formattedTimeRemaining)
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(.orange)
+                }
+            }
+
+            HStack(spacing: 8) {
+                ForEach(timerOptions, id: \.self) { option in
+                    Button {
+                        startTimer(minutes: option)
+                    } label: {
+                        VStack(spacing: 1) {
+                            Text("\(option)")
+                                .font(.headline)
+                            Text("min")
+                                .font(.caption2)
+                            if option > 30 && !premiumManager.isPremium {
+                                Image(systemName: "crown.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(timerBackground(for: option), in: RoundedRectangle(cornerRadius: 14))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(.white.opacity(0.14), lineWidth: 1)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Toggle(isOn: Binding(
+                get: { fadeOutManager.isActiveFade },
+                set: { isOn in
+                    if isOn {
+                        soundManager.startFadeOutToggle(for: currentSound, duration: 30.0)
+                    } else {
+                        soundManager.stopFadeOut()
+                    }
+                }
+            )) {
+                HStack(spacing: 10) {
+                    Image(systemName: "moon.zzz.fill")
+                        .foregroundStyle(.pink)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Fade Out")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                        Text(fadeOutManager.isActiveFade ? fadeOutManager.formattedTimeRemaining : "Gently ease in, then fade down")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.62))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                 }
             }
+            .toggleStyle(SwitchToggleStyle(tint: .pink))
         }
-        .sheet(isPresented: $showingTimer) {
-            TimerPickerView(
-                hours: $timerHours,
-                minutes: $timerMinutes,
-                isPresented: $showingTimer
-            )
-            .environmentObject(soundManager)
-            .environmentObject(PremiumManager.shared)
+        .padding(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22)
+                .stroke(.white.opacity(0.12), lineWidth: 1)
         }
+    }
+
+    private var statusText: String {
+        if fadeOutManager.isActiveFade {
+            return "Fade Out"
+        }
+        if sleepTimer.isActive {
+            return "Timer"
+        }
+        return isPlaying ? "Playing" : "Paused"
+    }
+
+    private func timerBackground(for option: Int) -> Color {
+        if option > 30 && !premiumManager.isPremium {
+            return .orange.opacity(0.22)
+        }
+        return sleepTimer.isActive ? .white.opacity(0.12) : .white.opacity(0.09)
+    }
+
+    private func switchSound(by offset: Int) {
+        guard let currentIndex = orderedSounds.firstIndex(where: { $0.id == currentSound.id }) else { return }
+        let nextIndex = (currentIndex + offset + orderedSounds.count) % orderedSounds.count
+        let nextSound = orderedSounds[nextIndex]
+
+        guard !nextSound.premium || premiumManager.isPremium else {
+            showingPremiumSheet = true
+            return
+        }
+
+        currentSound = nextSound
+        if !soundManager.isPlaying(nextSound.id) {
+            soundManager.toggleSound(nextSound)
+        }
+    }
+
+    private func startTimer(minutes: Int) {
+        guard minutes <= 30 || premiumManager.isPremium else {
+            showingPremiumSheet = true
+            return
+        }
+
+        if !soundManager.isPlaying(currentSound.id) {
+            soundManager.toggleSound(currentSound)
+        }
+
+        sleepTimer.startTimer(duration: TimeInterval(minutes * 60)) {
+            Task { @MainActor in
+                soundManager.fadeOutAllSounds(duration: 30.0)
+            }
+        }
+        let endDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
+        SharedPlaybackStore.shared.updateTimer(endDate: endDate)
+        PlaybackLiveActivityController.startOrUpdate(
+            soundTitle: currentSound.title,
+            isPlaying: true,
+            timerEndDate: endDate,
+            status: "Timer"
+        )
     }
 }
 
@@ -709,11 +837,19 @@ class FavoritesManager: ObservableObject {
 
 struct FavoritesView: View {
     @EnvironmentObject var soundManager: RealSoundManager
+    @EnvironmentObject var premiumManager: PremiumManager
     @StateObject private var favoritesManager = FavoritesManager.shared
     @State private var selectedSound: RealSound?
 
     var favoriteSounds: [RealSound] {
-        soundManager.allSounds.filter { favoritesManager.isFavorite($0) }
+        soundManager.allSounds
+            .filter { favoritesManager.isFavorite($0) }
+            .sorted { first, second in
+                if first.premium != second.premium {
+                    return !first.premium && second.premium
+                }
+                return first.title.localizedCaseInsensitiveCompare(second.title) == .orderedAscending
+            }
     }
 
     var body: some View {
@@ -735,6 +871,7 @@ struct FavoritesView: View {
                             },
                             onPlayTap: {
                                 soundManager.toggleSound(sound)
+                                selectedSound = sound
                             }
                         )
                     }
@@ -747,7 +884,9 @@ struct FavoritesView: View {
         .sheet(item: $selectedSound) { sound in
             PlayerView(sound: sound)
                 .environmentObject(soundManager)
-                .environmentObject(FavoritesManager.shared)
+                .environmentObject(premiumManager)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
     }
 }
@@ -1661,7 +1800,7 @@ class RealSoundManager: ObservableObject {
 
         engine.attach(sourceNode)
         engine.connect(sourceNode, to: engine.mainMixerNode, format: format)
-        sourceNode.volume = Float((trackVolumes[sound.id] ?? 0.5) * masterVolume)
+        sourceNode.volume = Float((trackVolumes[sound.id] ?? 0.5) * masterVolume) * fadeOutManager.currentVolumeMultiplier
 
         guard prepareAudioEngineIfNeeded() else {
             engine.detach(sourceNode)
@@ -1735,8 +1874,35 @@ class RealSoundManager: ObservableObject {
         }
     }
 
+    func startFadeOutToggle(for sound: RealSound, duration: TimeInterval = 30.0) {
+        if fadeOutManager.isActiveFade {
+            stopFadeOut()
+            return
+        }
+
+        if !playingTracks.contains(sound.id) {
+            playSound(sound)
+        }
+
+        fadeOutManager.startFadeInThenOut(fadeInDuration: 8.0, holdDuration: 2.0, fadeOutDuration: duration) { [weak self] in
+            Task { @MainActor in
+                self?.stopAllSounds()
+                print("🌅 Fade in/out completed - all sounds stopped")
+            }
+        }
+
+        updateMasterVolume()
+        sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: true, status: "Fading Out")
+        PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: true, status: "Fading Out")
+    }
+
     func stopFadeOut() {
         fadeOutManager.stopFadeOut()
+        updateMasterVolume()
+        if let sound = currentSound {
+            sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: true)
+            PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: true)
+        }
     }
 
     func setVolume(_ volume: Double, for soundId: UUID) {
@@ -1936,9 +2102,18 @@ class FadeOutManager: ObservableObject {
     @Published var isActiveFade = false
     @Published var fadeProgress = 0.0
 
+    private enum FadeMode {
+        case out
+        case inThenOut
+    }
+
     private var fadeTimer: Timer?
     private var fadeStartTime: Date?
     private var totalFadeDuration: TimeInterval = 0
+    private var fadeInDuration: TimeInterval = 0
+    private var holdDuration: TimeInterval = 0
+    private var fadeOutDuration: TimeInterval = 0
+    private var fadeMode: FadeMode = .out
     private var onFadeComplete: (() -> Void)?
 
     private init() {}
@@ -1947,12 +2122,62 @@ class FadeOutManager: ObservableObject {
         stopFadeOut() // Stop any existing fade
 
         totalFadeDuration = duration
+        fadeInDuration = 0
+        holdDuration = 0
+        fadeOutDuration = duration
+        fadeMode = .out
         fadeStartTime = Date()
         isActiveFade = true
         fadeProgress = 0.0
         onFadeComplete = onComplete
 
-        // Start fade animation
+        startProgressTimer()
+
+        HapticManager.shared.fadeStart()
+        print("🌅 Fade out started: \(Int(duration))s")
+    }
+
+    func startFadeInThenOut(
+        fadeInDuration: TimeInterval = 8.0,
+        holdDuration: TimeInterval = 2.0,
+        fadeOutDuration: TimeInterval = 30.0,
+        onComplete: @escaping () -> Void
+    ) {
+        stopFadeOut()
+
+        self.fadeInDuration = fadeInDuration
+        self.holdDuration = holdDuration
+        self.fadeOutDuration = fadeOutDuration
+        totalFadeDuration = fadeInDuration + holdDuration + fadeOutDuration
+        fadeMode = .inThenOut
+        fadeStartTime = Date()
+        isActiveFade = true
+        fadeProgress = 0.0
+        onFadeComplete = onComplete
+
+        startProgressTimer()
+
+        HapticManager.shared.fadeStart()
+        print("🌅 Fade in/out started: \(Int(totalFadeDuration))s")
+    }
+
+    func stopFadeOut() {
+        fadeTimer?.invalidate()
+        fadeTimer = nil
+        isActiveFade = false
+        fadeProgress = 0.0
+        fadeStartTime = nil
+        totalFadeDuration = 0
+        fadeInDuration = 0
+        holdDuration = 0
+        fadeOutDuration = 0
+        fadeMode = .out
+        onFadeComplete = nil
+
+        print("🌅 Fade out stopped")
+    }
+
+    private func startProgressTimer() {
         fadeTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
 
@@ -1969,20 +2194,6 @@ class FadeOutManager: ObservableObject {
                 }
             }
         }
-
-        HapticManager.shared.fadeStart()
-        print("🌅 Fade out started: \(Int(duration))s")
-    }
-
-    func stopFadeOut() {
-        fadeTimer?.invalidate()
-        fadeTimer = nil
-        isActiveFade = false
-        fadeProgress = 0.0
-        fadeStartTime = nil
-        onFadeComplete = nil
-
-        print("🌅 Fade out stopped")
     }
 
     private func completeFade() {
@@ -1996,14 +2207,36 @@ class FadeOutManager: ObservableObject {
         fadeProgress = 0.0
         fadeStartTime = nil
         totalFadeDuration = 0
+        fadeInDuration = 0
+        holdDuration = 0
+        fadeOutDuration = 0
+        fadeMode = .out
         onFadeComplete = nil
     }
 
     var currentVolumeMultiplier: Float {
-        if isActiveFade {
+        guard isActiveFade else { return 1.0 }
+
+        switch fadeMode {
+        case .out:
             return Float(1.0 - fadeProgress)
+        case .inThenOut:
+            guard let startTime = fadeStartTime else { return 1.0 }
+            let elapsed = Date().timeIntervalSince(startTime)
+
+            if fadeInDuration > 0, elapsed < fadeInDuration {
+                return Float(max(min(elapsed / fadeInDuration, 1.0), 0.0))
+            }
+
+            if elapsed < fadeInDuration + holdDuration {
+                return 1.0
+            }
+
+            guard fadeOutDuration > 0 else { return 0.0 }
+            let fadeOutElapsed = elapsed - fadeInDuration - holdDuration
+            let fadeOutProgress = max(min(fadeOutElapsed / fadeOutDuration, 1.0), 0.0)
+            return Float(1.0 - fadeOutProgress)
         }
-        return 1.0
     }
 
     var formattedTimeRemaining: String {

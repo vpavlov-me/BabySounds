@@ -50,7 +50,16 @@ struct QuickStartWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: QuickStartProvider()) { entry in
             QuickStartWidgetView(entry: entry)
-                .containerBackground(.black, for: .widget)
+                .containerBackground(for: .widget) {
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.05, green: 0.07, blue: 0.13),
+                            Color(red: 0.01, green: 0.02, blue: 0.05)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
         }
         .configurationDisplayName("BabySounds")
         .description("Quickly reopen a calming sound for bedtime.")
@@ -90,9 +99,10 @@ struct SmallQuickStartView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(entry.snapshot.isPlaying ? "Playing" : "Start")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.62))
                     Text(sound.title)
                         .font(.headline)
+                        .foregroundStyle(.white)
                         .lineLimit(2)
                         .minimumScaleFactor(0.78)
                 }
@@ -100,6 +110,7 @@ struct SmallQuickStartView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .padding()
         }
+        .widgetAccentable()
     }
 }
 
@@ -112,9 +123,10 @@ struct MediumQuickStartView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(entry.snapshot.isPlaying ? "Playing" : "Quick Start")
                         .font(.headline)
+                        .foregroundStyle(.white)
                     Text(entry.snapshot.currentSoundTitle ?? "Bedtime sounds")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.62))
                         .lineLimit(1)
                 }
                 Spacer()
@@ -132,17 +144,23 @@ struct MediumQuickStartView: View {
                             Text(sound.title)
                                 .font(.caption)
                                 .fontWeight(.medium)
+                                .foregroundStyle(.white)
                                 .lineLimit(1)
                             Spacer(minLength: 0)
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 8)
-                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                        .background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(.white.opacity(0.08), lineWidth: 1)
+                        }
                     }
                 }
             }
         }
         .padding()
+        .widgetAccentable()
     }
 }
 
@@ -206,10 +224,11 @@ struct LiveActivityLockScreenView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(context.state.soundTitle)
                     .font(.headline)
+                    .foregroundStyle(.white)
                     .lineLimit(1)
                 Text(context.state.status)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.62))
             }
 
             Spacer()
@@ -218,9 +237,10 @@ struct LiveActivityLockScreenView: View {
                 VStack(alignment: .trailing, spacing: 3) {
                     Text(timerEndDate, style: .timer)
                         .font(.headline.monospacedDigit())
+                        .foregroundStyle(.white)
                     Text("Timer")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.62))
                 }
             }
         }
