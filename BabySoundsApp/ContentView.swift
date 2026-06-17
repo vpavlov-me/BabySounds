@@ -69,7 +69,6 @@ struct ContentView: View {
                 .environmentObject(premiumManager)
                 .tabItem {
                     Image(systemName: "music.note")
-                    Text("Sounds")
                 }
 
             FavoritesView()
@@ -78,7 +77,6 @@ struct ContentView: View {
                 .environmentObject(favoritesManager)
                 .tabItem {
                     Image(systemName: "heart.fill")
-                    Text("Favorites")
                 }
 
             SettingsView()
@@ -86,7 +84,6 @@ struct ContentView: View {
                 .environmentObject(premiumManager)
                 .tabItem {
                     Image(systemName: "gearshape.fill")
-                    Text("Settings")
                 }
         }
         .accentColor(.pink)
@@ -119,31 +116,21 @@ struct SoundsView: View {
 
     var body: some View {
         NavigationView {
-            List(sortedSounds) { sound in
-                SoundRow(
-                    sound: sound,
-                    isPlaying: soundManager.isPlaying(sound.id),
-                    isFavorite: favoritesManager.isFavorite(sound),
-                    onTap: {
-                        if sound.premium, !premiumManager.isPremium {
-                            showingPremiumSheet = true
-                        } else {
-                            selectedSound = sound
-                        }
-                    },
-                    onFavoriteTap: {
-                        favoritesManager.toggleFavorite(sound)
-                    },
-                    onPlayTap: {
-                        if sound.premium, !premiumManager.isPremium {
-                            showingPremiumSheet = true
-                        } else {
-                            soundManager.toggleSound(sound)
-                            selectedSound = sound
-                        }
+            SoundGrid(
+                sounds: sortedSounds,
+                isPlaying: { soundManager.isPlaying($0.id) },
+                isFavorite: { favoritesManager.isFavorite($0) },
+                onTap: { sound in
+                    if sound.premium, !premiumManager.isPremium {
+                        showingPremiumSheet = true
+                    } else {
+                        selectedSound = sound
                     }
-                )
-            }
+                },
+                onFavoriteTap: { sound in
+                    favoritesManager.toggleFavorite(sound)
+                }
+            )
             .navigationTitle("Sounds")
             .safeAreaInset(edge: .bottom) {
                 if !soundManager.playingTracks.isEmpty {
@@ -164,6 +151,124 @@ struct SoundsView: View {
             PremiumUpgradeView()
                 .environmentObject(premiumManager)
         }
+        .onReceive(soundManager.$deepLinkedSound.compactMap { $0 }) { sound in
+            if sound.premium, !premiumManager.isPremium {
+                showingPremiumSheet = true
+            } else {
+                selectedSound = sound
+            }
+            soundManager.deepLinkedSound = nil
+        }
+    }
+}
+
+// MARK: - SoundGrid
+
+struct SoundGrid: View {
+    let sounds: [RealSound]
+    let isPlaying: (RealSound) -> Bool
+    let isFavorite: (RealSound) -> Bool
+    let onTap: (RealSound) -> Void
+    let onFavoriteTap: (RealSound) -> Void
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 14),
+        GridItem(.flexible(), spacing: 14)
+    ]
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(sounds) { sound in
+                    SoundCard(
+                        sound: sound,
+                        isPlaying: isPlaying(sound),
+                        isFavorite: isFavorite(sound),
+                        onTap: {
+                            onTap(sound)
+                        },
+                        onFavoriteTap: {
+                            onFavoriteTap(sound)
+                        }
+                    )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .padding(.bottom, 110)
+        }
+        .scrollContentBackground(.hidden)
+        .background(Color.black)
+    }
+}
+
+// MARK: - SoundCard
+
+struct SoundCard: View {
+    let sound: RealSound
+    let isPlaying: Bool
+    let isFavorite: Bool
+    let onTap: () -> Void
+    let onFavoriteTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            GeometryReader { proxy in
+                ZStack(alignment: .topTrailing) {
+                    BundledArtwork(name: sound.artworkName)
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                        .clipped()
+                        .overlay(alignment: .bottom) {
+                            LinearGradient(
+                                colors: [.clear, .black.opacity(0.24), .black.opacity(0.72)],
+                                startPoint: .center,
+                                endPoint: .bottom
+                            )
+                        }
+
+                    Button(action: onFavoriteTap) {
+                        Image(systemName: isFavorite ? "heart.fill" : "heart")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(isFavorite ? Color.pink : .white.opacity(0.82))
+                            .frame(width: 44, height: 44)
+                            .background(.black.opacity(0.16), in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(10)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Text(isPlaying ? "NOW PLAYING" : sound.category.localizedName.uppercased())
+                                .font(.caption2.weight(.bold))
+                                .foregroundStyle(isPlaying ? Color.pink : .white.opacity(0.78))
+                                .lineLimit(1)
+
+                            if sound.premium {
+                                Image(systemName: "crown.fill")
+                                    .font(.caption2.weight(.bold))
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+
+                        Text(sound.title)
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.78)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                }
+            }
+            .aspectRatio(2.0 / 3.0, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(.white.opacity(0.08), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -224,7 +329,7 @@ struct LoadingView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            ZStack {
+            ZStack(alignment: .top) {
                 Circle()
                     .stroke(Color.pink.opacity(0.3), lineWidth: 4)
                     .frame(width: 50, height: 50)
@@ -295,6 +400,7 @@ struct ErrorView: View {
 
 struct PlayerView: View {
     let sound: RealSound
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var soundManager: RealSoundManager
     @EnvironmentObject var premiumManager: PremiumManager
     @StateObject private var favoritesManager = FavoritesManager.shared
@@ -302,8 +408,8 @@ struct PlayerView: View {
     @StateObject private var fadeOutManager = FadeOutManager.shared
     @State private var currentSound: RealSound
     @State private var showingPremiumSheet = false
-
-    private let timerOptions = [15, 30, 45, 60]
+    @State private var showingTimerSheet = false
+    @State private var transitionDirection = 1
 
     init(sound: RealSound) {
         self.sound = sound
@@ -324,68 +430,58 @@ struct PlayerView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        GeometryReader { proxy in
+            let isCompactHeight = proxy.size.height < 780
+            let viewportWidth = min(proxy.size.width, UIScreen.main.bounds.width)
+            let viewportHeight = proxy.size.height + proxy.safeAreaInsets.top + proxy.safeAreaInsets.bottom
+
             ZStack {
                 BundledArtwork(name: currentSound.artworkName)
-                    .ignoresSafeArea()
+                    .frame(width: viewportWidth, height: viewportHeight)
+                    .clipped()
+                    .ignoresSafeArea(.container, edges: .all)
                     .overlay {
                         LinearGradient(
-                            colors: [.black.opacity(0.12), .black.opacity(0.36), .black.opacity(0.82)],
+                            colors: [.black.opacity(0.16), .black.opacity(0.32), .black.opacity(0.88)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                         .ignoresSafeArea()
                     }
+                    .id("artwork-\(currentSound.id)")
+                    .transition(pageTransition)
 
                 VStack(spacing: 0) {
-                    Spacer(minLength: 36)
+                    playerTopBar
+                        .padding(.horizontal, 16)
+                        .padding(.top, max(proxy.safeAreaInsets.top + 8, 18))
+                        .frame(width: viewportWidth)
 
-                    VStack(spacing: 18) {
-                        Text(statusText)
-                            .font(.headline)
-                            .foregroundStyle(.white.opacity(0.72))
+                    Spacer(minLength: isCompactHeight ? 190 : 260)
 
-                        Button {
-                            soundManager.toggleSound(currentSound)
-                        } label: {
-                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 34, weight: .bold))
-                                .foregroundStyle(.white)
-                                .frame(width: 86, height: 86)
-                                .background(.pink, in: Circle())
-                                .shadow(color: .pink.opacity(0.38), radius: 22, x: 0, y: 12)
-                        }
-                        .buttonStyle(.plain)
+                    VStack(spacing: isCompactHeight ? 14 : 18) {
+                        playbackControls
+                            .padding(.horizontal, 40)
+                            .frame(width: viewportWidth)
+
+                        volumeControl
+                            .padding(.horizontal, 28)
+                            .frame(width: viewportWidth)
                     }
-                    .padding(.horizontal, 28)
-
-                    Spacer(minLength: 220)
-                }
-
-                VStack {
-                    Spacer()
-                    playerSettingsPanel
-                        .padding(.horizontal, 18)
-                        .padding(.bottom, 12)
-                }
-            }
-            .navigationTitle(currentSound.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        HapticManager.shared.favoriteToggle()
-                        favoritesManager.toggleFavorite(currentSound)
-                    } label: {
-                        Image(systemName: favoritesManager.isFavorite(currentSound) ? "heart.fill" : "heart")
-                            .foregroundStyle(favoritesManager.isFavorite(currentSound) ? Color.pink : .primary)
+                    .padding(.top, 40)
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom + 28, 42))
+                    .frame(width: viewportWidth)
+                    .background(alignment: .bottom) {
+                        ProgressiveControlsBackdrop()
+                            .frame(width: viewportWidth, height: isCompactHeight ? 238 : 276)
                     }
-                    .accessibilityLabel(favoritesManager.isFavorite(currentSound) ? "Remove from favorites" : "Add to favorites")
                 }
+                .frame(width: viewportWidth, height: proxy.size.height)
+                .id("content-\(currentSound.id)")
+                .transition(pageTransition)
             }
+            .frame(width: viewportWidth, height: viewportHeight, alignment: .top)
+            .ignoresSafeArea(.container, edges: .bottom)
             .gesture(
                 DragGesture(minimumDistance: 44)
                     .onEnded { value in
@@ -407,101 +503,137 @@ struct PlayerView: View {
             PremiumUpgradeView()
                 .environmentObject(premiumManager)
         }
+        .sheet(isPresented: $showingTimerSheet) {
+            SleepTimerSheet(
+                sound: currentSound,
+                onStart: { minutes, fadeOutAtEnd in
+                    startTimer(minutes: minutes, fadeOutAtEnd: fadeOutAtEnd)
+                },
+                onStop: {
+                    cancelTimer()
+                }
+            )
+            .environmentObject(soundManager)
+            .environmentObject(premiumManager)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
     }
 
-    private var playerSettingsPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Sleep Timer")
-                    .font(.headline)
+    private var playerTopBar: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
-                Spacer()
-                if sleepTimer.isActive {
-                    Text(sleepTimer.formattedTimeRemaining)
-                        .font(.subheadline.monospacedDigit())
-                        .foregroundStyle(.orange)
-                }
+                    .frame(width: 44, height: 44)
+                    .background(.white.opacity(0.08), in: Circle())
             }
+            .accessibilityLabel("Close player")
 
-            HStack(spacing: 8) {
-                ForEach(timerOptions, id: \.self) { option in
-                    Button {
-                        startTimer(minutes: option)
-                    } label: {
-                        VStack(spacing: 1) {
-                            Text("\(option)")
-                                .font(.headline)
-                            Text("min")
-                                .font(.caption2)
-                            if option > 30 && !premiumManager.isPremium {
-                                Image(systemName: "crown.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(.orange)
-                            }
-                        }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(timerBackground(for: option), in: RoundedRectangle(cornerRadius: 14))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(.white.opacity(0.14), lineWidth: 1)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            Spacer(minLength: 8)
 
-            Toggle(isOn: Binding(
-                get: { fadeOutManager.isActiveFade },
-                set: { isOn in
-                    if isOn {
-                        soundManager.startFadeOutToggle(for: currentSound, duration: 30.0)
-                    } else {
-                        soundManager.stopFadeOut()
-                    }
-                }
-            )) {
-                HStack(spacing: 10) {
-                    Image(systemName: "moon.zzz.fill")
-                        .foregroundStyle(.pink)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Fade Out")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                        Text(fadeOutManager.isActiveFade ? fadeOutManager.formattedTimeRemaining : "Gently ease in, then fade down")
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.62))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
-                }
+            VStack(spacing: 3) {
+                Text(currentSound.title)
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+                Text(currentSound.category.localizedName)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.70))
+                    .lineLimit(1)
             }
-            .toggleStyle(SwitchToggleStyle(tint: .pink))
-        }
-        .padding(16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22))
-        .overlay {
-            RoundedRectangle(cornerRadius: 22)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
+            .frame(maxWidth: .infinity)
+
+            Spacer(minLength: 8)
+
+            Button {
+                HapticManager.shared.favoriteToggle()
+                favoritesManager.toggleFavorite(currentSound)
+            } label: {
+                Image(systemName: favoritesManager.isFavorite(currentSound) ? "heart.fill" : "heart")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(favoritesManager.isFavorite(currentSound) ? Color.pink : .white)
+                    .frame(width: 44, height: 44)
+                    .background(.white.opacity(0.08), in: Circle())
+            }
+            .accessibilityLabel(favoritesManager.isFavorite(currentSound) ? "Remove from favorites" : "Add to favorites")
         }
     }
 
-    private var statusText: String {
-        if fadeOutManager.isActiveFade {
-            return "Fade Out"
+    private var playbackControls: some View {
+        HStack(alignment: .center) {
+            PlayerCircleButton(
+                title: "Timer",
+                systemImage: sleepTimer.isActive ? "timer.circle.fill" : "timer",
+                size: 62,
+                progress: sleepTimer.isActive ? sleepTimer.progressPercentage : nil,
+                detail: sleepTimer.isActive ? sleepTimer.formattedTimeRemaining : nil
+            ) {
+                showingTimerSheet = true
+            }
+
+            Spacer()
+
+            Button {
+                soundManager.toggleSound(currentSound)
+            } label: {
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 38, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 96, height: 96)
+                    .background(.white.opacity(0.12), in: Circle())
+                    .overlay {
+                        Circle()
+                            .stroke(.white.opacity(0.20), lineWidth: 1)
+                    }
+                    .shadow(color: .black.opacity(0.26), radius: 20, x: 0, y: 12)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(isPlaying ? "Pause" : "Play")
+
+            Spacer()
+
+            PlayerCircleButton(
+                title: "Stop",
+                systemImage: "stop.fill",
+                size: 62
+            ) {
+                stopImmediately()
+            }
         }
-        if sleepTimer.isActive {
-            return "Timer"
-        }
-        return isPlaying ? "Playing" : "Paused"
     }
 
-    private func timerBackground(for option: Int) -> Color {
-        if option > 30 && !premiumManager.isPremium {
-            return .orange.opacity(0.22)
+    private var volumeControl: some View {
+        HStack(spacing: 14) {
+            Image(systemName: "speaker.fill")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.86))
+            Slider(
+                value: Binding(
+                    get: { soundManager.getVolume(for: currentSound.id) },
+                    set: { soundManager.setVolume($0, for: currentSound.id) }
+                ),
+                in: 0...1
+            )
+            .tint(.pink)
+            Image(systemName: "speaker.wave.2.fill")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.86))
         }
-        return sleepTimer.isActive ? .white.opacity(0.12) : .white.opacity(0.09)
+        .accessibilityElement(children: .contain)
+    }
+
+    private var pageTransition: AnyTransition {
+        let insertionEdge: Edge = transitionDirection >= 0 ? .trailing : .leading
+        let removalEdge: Edge = transitionDirection >= 0 ? .leading : .trailing
+        return .asymmetric(
+            insertion: .move(edge: insertionEdge).combined(with: .opacity),
+            removal: .move(edge: removalEdge).combined(with: .opacity)
+        )
     }
 
     private func switchSound(by offset: Int) {
@@ -514,13 +646,17 @@ struct PlayerView: View {
             return
         }
 
-        currentSound = nextSound
+        transitionDirection = offset
+        HapticManager.shared.selection()
+        withAnimation(.easeInOut(duration: 0.28)) {
+            currentSound = nextSound
+        }
         if !soundManager.isPlaying(nextSound.id) {
             soundManager.toggleSound(nextSound)
         }
     }
 
-    private func startTimer(minutes: Int) {
+    private func startTimer(minutes: Int, fadeOutAtEnd: Bool) {
         guard minutes <= 30 || premiumManager.isPremium else {
             showingPremiumSheet = true
             return
@@ -532,7 +668,11 @@ struct PlayerView: View {
 
         sleepTimer.startTimer(duration: TimeInterval(minutes * 60)) {
             Task { @MainActor in
-                soundManager.fadeOutAllSounds(duration: 30.0)
+                if fadeOutAtEnd {
+                    soundManager.fadeOutAllSounds(duration: 30.0)
+                } else {
+                    soundManager.stopAllSounds()
+                }
             }
         }
         let endDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
@@ -543,6 +683,299 @@ struct PlayerView: View {
             timerEndDate: endDate,
             status: "Timer"
         )
+    }
+
+    private func cancelTimer() {
+        sleepTimer.stopTimer()
+        SharedPlaybackStore.shared.clearTimer()
+        PlaybackLiveActivityController.startOrUpdate(
+            soundTitle: currentSound.title,
+            isPlaying: isPlaying,
+            status: isPlaying ? "Playing" : "Paused"
+        )
+    }
+
+    private func stopImmediately() {
+        soundManager.stopSound(currentSound)
+    }
+}
+
+struct PlayerCircleButton: View {
+    let title: String
+    let systemImage: String
+    let size: CGFloat
+    var progress: Double?
+    var detail: String?
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(.white.opacity(0.10))
+                    Circle()
+                        .stroke(.white.opacity(0.15), lineWidth: 1)
+                    if let progress {
+                        Circle()
+                            .trim(from: 0, to: max(0.02, progress))
+                            .stroke(
+                                Color.pink,
+                                style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                            )
+                            .rotationEffect(.degrees(-90))
+                            .padding(3)
+                    }
+                    VStack(spacing: 2) {
+                        Image(systemName: systemImage)
+                            .font(.system(size: detail == nil ? 23 : 18, weight: .semibold))
+                        if let detail {
+                            Text(detail)
+                                .font(.system(size: 10, weight: .bold, design: .rounded).monospacedDigit())
+                                .minimumScaleFactor(0.7)
+                                .lineLimit(1)
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .frame(width: size - 10, height: size - 10)
+                }
+                .frame(width: size, height: size)
+                .overlay {
+                        Circle()
+                            .stroke(.white.opacity(0.15), lineWidth: 1)
+                }
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .lineLimit(1)
+            }
+            .frame(width: 78)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+    }
+}
+
+struct ProgressiveControlsBackdrop: View {
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .mask(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.0),
+                            .init(color: .black.opacity(0.22), location: 0.24),
+                            .init(color: .black.opacity(0.72), location: 0.58),
+                            .init(color: .black, location: 1.0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0.0),
+                    .init(color: .black.opacity(0.22), location: 0.34),
+                    .init(color: .black.opacity(0.62), location: 0.72),
+                    .init(color: .black.opacity(0.86), location: 1.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+struct SleepTimerSheet: View {
+    let sound: RealSound
+    let onStart: (Int, Bool) -> Void
+    let onStop: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var premiumManager: PremiumManager
+    @StateObject private var sleepTimer = SleepTimerManager.shared
+    @State private var selectedMinutes = 30
+    @State private var fadeOutAtEnd = true
+    @State private var showingPremiumSheet = false
+
+    var body: some View {
+        GeometryReader { proxy in
+            let width = min(proxy.size.width, UIScreen.main.bounds.width)
+
+            ZStack {
+                Color.black.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    Capsule()
+                        .fill(.white.opacity(0.16))
+                        .frame(width: 66, height: 6)
+                        .padding(.top, 12)
+
+                    HStack {
+                        Spacer()
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.7))
+                                .frame(width: 48, height: 48)
+                                .background(.white.opacity(0.10), in: Circle())
+                        }
+                        .accessibilityLabel("Close timer")
+                    }
+                    .padding(.horizontal, 24)
+
+                    Text("Sleep timer")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.top, 16)
+
+                    Toggle(isOn: $fadeOutAtEnd) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Fade out at end")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(.white)
+                            Text(sound.title)
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.55))
+                        }
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: .pink))
+                    .padding(.top, 46)
+                    .padding(.horizontal, 28)
+
+                    Spacer(minLength: 28)
+
+                    TimerDialView(
+                        selectedMinutes: $selectedMinutes,
+                        isRunning: sleepTimer.isActive,
+                        timeText: sleepTimer.isActive ? sleepTimer.formattedTimeRemaining : "\(selectedMinutes):00"
+                    )
+                    .frame(width: min(width - 64, 330), height: min(width - 64, 330))
+
+                    Spacer(minLength: 42)
+
+                    Button {
+                        if sleepTimer.isActive {
+                            onStop()
+                        } else {
+                            guard selectedMinutes <= 30 || premiumManager.isPremium else {
+                                showingPremiumSheet = true
+                                return
+                            }
+                            onStart(selectedMinutes, fadeOutAtEnd)
+                        }
+                    } label: {
+                        Text(sleepTimer.isActive ? "Stop" : "Start")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 58)
+                            .background(Color.pink, in: Capsule())
+                    }
+                    .padding(.horizontal, 58)
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom + 18, 32))
+                }
+                .frame(width: width, height: proxy.size.height)
+            }
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            if sleepTimer.isActive {
+                selectedMinutes = max(1, Int(ceil(sleepTimer.totalTime / 60)))
+            }
+        }
+        .sheet(isPresented: $showingPremiumSheet) {
+            PremiumUpgradeView()
+                .environmentObject(premiumManager)
+        }
+    }
+}
+
+struct TimerDialView: View {
+    @Binding var selectedMinutes: Int
+    let isRunning: Bool
+    let timeText: String
+
+    private let step = 5
+    private let maxMinutes = 60
+
+    var body: some View {
+        GeometryReader { proxy in
+            let size = min(proxy.size.width, proxy.size.height)
+            let center = CGPoint(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            let radius = size * 0.38
+            let progress = Double(selectedMinutes) / Double(maxMinutes)
+
+            ZStack {
+                ForEach(Array(stride(from: 0, through: 55, by: 5)), id: \.self) { minute in
+                    Text(minute == 0 ? "00" : "\(minute)")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(.white.opacity(minute == selectedMinutes ? 0.92 : 0.45))
+                        .position(labelPosition(for: minute, center: center, radius: radius + 34))
+                }
+
+                Circle()
+                    .stroke(.white.opacity(0.09), lineWidth: 9)
+                    .frame(width: radius * 2, height: radius * 2)
+
+                Circle()
+                    .trim(from: 0, to: max(0.01, progress))
+                    .stroke(Color.pink, style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .frame(width: radius * 2, height: radius * 2)
+
+                Circle()
+                    .fill(Color.pink)
+                    .frame(width: 26, height: 26)
+                    .position(knobPosition(progress: progress, center: center, radius: radius))
+                    .shadow(color: .pink.opacity(0.38), radius: 12, x: 0, y: 0)
+
+                Text(timeText)
+                    .font(.system(size: 42, weight: .bold, design: .rounded).monospacedDigit())
+                    .foregroundStyle(.white)
+                    .minimumScaleFactor(0.74)
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        guard !isRunning else { return }
+                        selectedMinutes = minutes(for: value.location, center: center)
+                    }
+            )
+        }
+    }
+
+    private func labelPosition(for minute: Int, center: CGPoint, radius: CGFloat) -> CGPoint {
+        let angle = (Double(minute) / Double(maxMinutes)) * 2 * Double.pi - Double.pi / 2
+        return CGPoint(
+            x: center.x + cos(angle) * radius,
+            y: center.y + sin(angle) * radius
+        )
+    }
+
+    private func knobPosition(progress: Double, center: CGPoint, radius: CGFloat) -> CGPoint {
+        let angle = progress * 2 * Double.pi - Double.pi / 2
+        return CGPoint(
+            x: center.x + cos(angle) * radius,
+            y: center.y + sin(angle) * radius
+        )
+    }
+
+    private func minutes(for location: CGPoint, center: CGPoint) -> Int {
+        let dx = location.x - center.x
+        let dy = location.y - center.y
+        var angle = atan2(dy, dx) + .pi / 2
+        if angle < 0 {
+            angle += 2 * .pi
+        }
+        let rawMinutes = Int(round((angle / (2 * .pi)) * Double(maxMinutes) / Double(step))) * step
+        return min(max(rawMinutes == 0 ? maxMinutes : rawMinutes, step), maxMinutes)
     }
 }
 
@@ -858,23 +1291,17 @@ struct FavoritesView: View {
                 if favoriteSounds.isEmpty {
                     EmptyFavoritesView()
                 } else {
-                    List(favoriteSounds) { sound in
-                        SoundRow(
-                            sound: sound,
-                            isPlaying: soundManager.isPlaying(sound.id),
-                            isFavorite: true,
-                            onTap: {
-                                selectedSound = sound
-                            },
-                            onFavoriteTap: {
-                                favoritesManager.toggleFavorite(sound)
-                            },
-                            onPlayTap: {
-                                soundManager.toggleSound(sound)
-                                selectedSound = sound
-                            }
-                        )
-                    }
+                    SoundGrid(
+                        sounds: favoriteSounds,
+                        isPlaying: { soundManager.isPlaying($0.id) },
+                        isFavorite: { _ in true },
+                        onTap: { sound in
+                            selectedSound = sound
+                        },
+                        onFavoriteTap: { sound in
+                            favoritesManager.toggleFavorite(sound)
+                        }
+                    )
                 }
             }
             .navigationTitle("Favorites")
@@ -896,9 +1323,11 @@ struct FavoritesView: View {
 struct EmptyFavoritesView: View {
     var body: some View {
         VStack(spacing: 24) {
-            Image(systemName: "heart")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
+            BundledArtwork(name: "favorites-empty")
+                .scaledToFit()
+                .frame(width: 132, height: 132)
+                .clipShape(RoundedRectangle(cornerRadius: 28))
+                .shadow(color: Color.pink.opacity(0.20), radius: 18, x: 0, y: 10)
 
             VStack(spacing: 8) {
                 Text("No Favorite Sounds")
@@ -1611,6 +2040,7 @@ struct RealSound: Identifiable {
 class RealSoundManager: ObservableObject {
     @Published var playingTracks: Set<UUID> = []
     @Published var trackVolumes: [UUID: Double] = [:]
+    @Published var deepLinkedSound: RealSound?
     @Published var masterVolume = 0.5 {
         didSet {
             // Apply safe volume limits before updating
@@ -1756,7 +2186,9 @@ class RealSoundManager: ObservableObject {
             return
         }
 
-        if url.host == "play" {
+        if url.host == "open" {
+            deepLinkedSound = sound
+        } else if url.host == "play" {
             toggleSound(sound)
         }
     }
@@ -1779,7 +2211,7 @@ class RealSoundManager: ObservableObject {
 
     private func playSound(_ sound: RealSound) {
         if !playingTracks.isEmpty {
-            stopAllSounds()
+            stopAllSounds(preserveTimer: true)
         }
         playGeneratedAudio(sound: sound)
     }
@@ -1831,7 +2263,7 @@ class RealSoundManager: ObservableObject {
         print("🎵 Updated Now Playing: \(sound.title)")
     }
 
-    func stopSound(_ sound: RealSound) {
+    func stopSound(_ sound: RealSound, preserveTimer: Bool = false) {
         playingTracks.remove(sound.id)
 
         // Stop generated (DSP) node
@@ -1844,19 +2276,33 @@ class RealSoundManager: ObservableObject {
 
         if playingTracks.isEmpty {
             sharedPlaybackStore.clearPlayback(lastPlayedSoundId: sound.slug)
+            if !preserveTimer {
+                stopPlaybackBoundTimers()
+            }
             PlaybackLiveActivityController.end()
             MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
         }
     }
 
-    func stopAllSounds() {
+    func stopAllSounds(preserveTimer: Bool = false) {
         let soundsToStop = playingTracks
         for soundId in soundsToStop {
             if let sound = allSounds.first(where: { $0.id == soundId }) {
-                stopSound(sound)
+                stopSound(sound, preserveTimer: preserveTimer)
             }
         }
         print("⏹️ Stopped all sounds")
+    }
+
+    private func stopPlaybackBoundTimers() {
+        if SleepTimerManager.shared.isActive {
+            SleepTimerManager.shared.stopTimer()
+            SharedPlaybackStore.shared.clearTimer()
+        }
+
+        if fadeOutManager.isActiveFade {
+            fadeOutManager.stopFadeOut()
+        }
     }
 
     func fadeOutAllSounds(duration: TimeInterval = 10.0) {
