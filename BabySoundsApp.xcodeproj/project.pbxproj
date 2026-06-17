@@ -9,7 +9,36 @@
 /* Begin PBXBuildFile section */
 		CE0A0A0A2C495F2E00000001 /* BabySoundsAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */; };
 		CE0A0A0C2C495F2E00000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A0B2C495F2E00000001 /* ContentView.swift */; };
+		CE0A0A302C49610000000001 /* DesignAssets in Resources */ = {isa = PBXBuildFile; fileRef = CE0A0A2F2C49610000000001 /* DesignAssets */; };
+		CE0A0A322C49620000000001 /* BabySoundsShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A312C49620000000001 /* BabySoundsShared.swift */; };
+		CE0A0A332C49620000000001 /* BabySoundsShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A312C49620000000001 /* BabySoundsShared.swift */; };
+		CE0A0A392C49620000000001 /* BabySoundsWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0A0A352C49620000000001 /* BabySoundsWidgetBundle.swift */; };
+		CE0A0A422C49620000000001 /* BabySoundsWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = CE0A0A382C49620000000001 /* BabySoundsWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CE0A0A442C49620000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE0A09FE2C495F2E00000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE0A0A3D2C49620000000001;
+			remoteInfo = BabySoundsWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CE0A0A412C49620000000001 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CE0A0A422C49620000000001 /* BabySoundsWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 
 /* Begin PBXFileReference section */
@@ -17,10 +46,23 @@
 		CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabySoundsAppApp.swift; sourceTree = "<group>"; };
 		CE0A0A0B2C495F2E00000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		CE0A0A0D2C495F2F00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CE0A0A2F2C49610000000001 /* DesignAssets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DesignAssets; sourceTree = "<group>"; };
+		CE0A0A312C49620000000001 /* BabySoundsShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabySoundsShared.swift; sourceTree = "<group>"; };
+		CE0A0A352C49620000000001 /* BabySoundsWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabySoundsWidgetBundle.swift; sourceTree = "<group>"; };
+		CE0A0A362C49620000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CE0A0A372C49620000000001 /* BabySoundsWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BabySoundsWidget.entitlements; sourceTree = "<group>"; };
+		CE0A0A382C49620000000001 /* BabySoundsWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BabySoundsWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		CE0A0A032C495F2E00000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE0A0A3A2C49620000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -34,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				CE0A0A082C495F2E00000001 /* BabySoundsApp */,
+				CE0A0A342C49620000000001 /* BabySoundsWidget */,
 				CE0A0A072C495F2E00000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -42,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				CE0A0A062C495F2E00000001 /* BabySoundsApp.app */,
+				CE0A0A382C49620000000001 /* BabySoundsWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -50,10 +94,22 @@
 			isa = PBXGroup;
 			children = (
 				CE0A0A092C495F2E00000001 /* BabySoundsAppApp.swift */,
+				CE0A0A312C49620000000001 /* BabySoundsShared.swift */,
 				CE0A0A0B2C495F2E00000001 /* ContentView.swift */,
 				CE0A0A0D2C495F2F00000001 /* Assets.xcassets */,
+				CE0A0A2F2C49610000000001 /* DesignAssets */,
 			);
 			path = BabySoundsApp;
+			sourceTree = "<group>";
+		};
+		CE0A0A342C49620000000001 /* BabySoundsWidget */ = {
+			isa = PBXGroup;
+			children = (
+				CE0A0A352C49620000000001 /* BabySoundsWidgetBundle.swift */,
+				CE0A0A362C49620000000001 /* Info.plist */,
+				CE0A0A372C49620000000001 /* BabySoundsWidget.entitlements */,
+			);
+			path = BabySoundsWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -66,10 +122,12 @@
 				CE0A0A022C495F2E00000001 /* Sources */,
 				CE0A0A032C495F2E00000001 /* Frameworks */,
 				CE0A0A042C495F2E00000001 /* Resources */,
+				CE0A0A412C49620000000001 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				CE0A0A432C49620000000001 /* PBXTargetDependency */,
 			);
 			name = BabySoundsApp;
 			packageProductDependencies = (
@@ -77,6 +135,25 @@
 			productName = BabySoundsApp;
 			productReference = CE0A0A062C495F2E00000001 /* BabySoundsApp.app */;
 			productType = "com.apple.product-type.application";
+		};
+		CE0A0A3D2C49620000000001 /* BabySoundsWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE0A0A402C49620000000001 /* Build configuration list for PBXNativeTarget "BabySoundsWidget" */;
+			buildPhases = (
+				CE0A0A3B2C49620000000001 /* Sources */,
+				CE0A0A3A2C49620000000001 /* Frameworks */,
+				CE0A0A3C2C49620000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BabySoundsWidget;
+			packageProductDependencies = (
+			);
+			productName = BabySoundsWidget;
+			productReference = CE0A0A382C49620000000001 /* BabySoundsWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -89,6 +166,9 @@
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
 					CE0A0A052C495F2E00000001 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					CE0A0A3D2C49620000000001 = {
 						CreatedOnToolsVersion = 15.4;
 					};
 				};
@@ -108,12 +188,21 @@
 			projectRoot = "";
 			targets = (
 				CE0A0A052C495F2E00000001 /* BabySoundsApp */,
+				CE0A0A3D2C49620000000001 /* BabySoundsWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		CE0A0A042C495F2E00000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE0A0A302C49610000000001 /* DesignAssets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE0A0A3C2C49620000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -127,12 +216,30 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE0A0A322C49620000000001 /* BabySoundsShared.swift in Sources */,
 				CE0A0A0C2C495F2E00000001 /* ContentView.swift in Sources */,
 				CE0A0A0A2C495F2E00000001 /* BabySoundsAppApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE0A0A3B2C49620000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE0A0A332C49620000000001 /* BabySoundsShared.swift in Sources */,
+				CE0A0A392C49620000000001 /* BabySoundsWidgetBundle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CE0A0A432C49620000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE0A0A3D2C49620000000001 /* BabySoundsWidget */;
+			targetProxy = CE0A0A442C49620000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 
 /* Begin XCBuildConfiguration section */
@@ -317,6 +424,66 @@
 			};
 			name = Release;
 		};
+		CE0A0A3E2C49620000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = BabySoundsWidget/BabySoundsWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BabySoundsWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app.widget;
+				PRODUCT_BUNDLE_PACKAGE_TYPE = "XPC!";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CE0A0A3F2C49620000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = BabySoundsWidget/BabySoundsWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BabySoundsWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.babysounds.app.widget;
+				PRODUCT_BUNDLE_PACKAGE_TYPE = "XPC!";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -334,6 +501,15 @@
 			buildConfigurations = (
 				CE0A0A2B2C495F2F00000001 /* Debug */,
 				CE0A0A2C2C495F2F00000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE0A0A402C49620000000001 /* Build configuration list for PBXNativeTarget "BabySoundsWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE0A0A3E2C49620000000001 /* Debug */,
+				CE0A0A3F2C49620000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -6,11 +6,5 @@
 	<array>
 		<string>group.com.babysounds.app</string>
 	</array>
-	<!-- In-App Purchases (StoreKit) -->
-	<key>com.apple.developer.in-app-payments</key>
-	<array/>
-	<!-- Background Audio -->
-	<key>com.apple.developer.playback-session-coordination</key>
-	<true/>
 </dict>
 </plist>

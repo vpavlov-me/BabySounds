@@ -3,6 +3,7 @@ import ActivityKit
 import MediaPlayer
 import StoreKit
 import SwiftUI
+import UIKit
 @preconcurrency import UserNotifications
 
 // MARK: - HapticManager
@@ -417,6 +418,27 @@ struct PlayerView: View {
     }
 }
 
+// MARK: - BundledArtwork
+
+struct BundledArtwork: View {
+    let name: String
+
+    var body: some View {
+        if let url = Bundle.main.url(forResource: name, withExtension: "png", subdirectory: "DesignAssets"),
+           let image = UIImage(contentsOfFile: url.path) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+        } else {
+            LinearGradient(
+                colors: [.blue.opacity(0.32), .indigo.opacity(0.22)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+}
+
 // MARK: - SoundArtwork
 
 struct SoundArtwork: View {
@@ -426,23 +448,24 @@ struct SoundArtwork: View {
 
     var body: some View {
         RoundedRectangle(cornerRadius: min(size * 0.18, 28))
-            .fill(
-                LinearGradient(
-                    colors: [
-                        sound.color.opacity(0.22),
-                        Color(.secondarySystemBackground),
-                        sound.color.opacity(0.10),
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
             .overlay {
-                Image(systemName: sound.sfSymbol)
-                    .font(.system(size: iconSize, weight: .semibold))
-                    .foregroundStyle(sound.color)
+                BundledArtwork(name: sound.artworkName)
+                    .clipShape(RoundedRectangle(cornerRadius: min(size * 0.18, 28)))
+                    .overlay {
+                        LinearGradient(
+                            colors: [.clear, .black.opacity(size > 120 ? 0.18 : 0.10)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: min(size * 0.18, 28)))
+                    }
             }
             .frame(width: size, height: size)
+            .overlay(
+                RoundedRectangle(cornerRadius: min(size * 0.18, 28))
+                    .stroke(.white.opacity(0.08), lineWidth: 1)
+            )
+            .clipped()
             .accessibilityHidden(true)
     }
 }
@@ -1386,6 +1409,25 @@ struct RealSound: Identifiable {
             .joined(separator: "-")
     }
 
+    var artworkName: String {
+        switch title {
+        case "White Noise", "Pink Noise", "Deep Pink", "Brown Noise":
+            return "white-noise"
+        case "Air Conditioner", "Box Fan":
+            return "fan"
+        case "Ocean Waves":
+            return "ocean"
+        case "Forest Rain":
+            return "rain"
+        case "Gentle Stream":
+            return "forest-rain"
+        case "Heartbeat", "Womb Environment":
+            return "heartbeat"
+        default:
+            return "white-noise"
+        }
+    }
+
     var sfSymbol: String {
         switch title {
         case "White Noise": return "waveform"
@@ -1458,6 +1500,7 @@ class RealSoundManager: ObservableObject {
     private let safeVolumeManager = SafeVolumeManager.shared
     private let fadeOutManager = FadeOutManager.shared
     private let sharedPlaybackStore = SharedPlaybackStore.shared
+    private var hasPreparedAudioEngine = false
 
     var currentSound: RealSound? {
         guard let currentId = playingTracks.first else { return nil }
@@ -1485,7 +1528,8 @@ class RealSoundManager: ObservableObject {
         // Настройка аудио сессии
         setupAudioSession()
 
-        // Настройка аудио движка
+        // Аудио-движок запускается лениво при первом Play, чтобы старт приложения
+        // не зависел от готовности аудио-IO в Simulator или на устройстве.
         setupAudioEngine()
 
         // Инициализация SafeVolumeManager
@@ -1495,11 +1539,8 @@ class RealSoundManager: ObservableObject {
         let safeInitialVolume = safeVolumeManager.applySafeVolume(to: Float(masterVolume))
         masterVolume = Double(safeInitialVolume)
 
-        // Симуляция инициализации (на случай проблем с аудио файлами)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            self.isAudioReady = true
-            print("✅ Real Audio System Ready with SafeVolumeManager")
-        }
+        isAudioReady = true
+        print("✅ Real Audio System Ready with SafeVolumeManager")
 
         // Инициализация громкости для всех звуков
         for sound in allSounds {
@@ -1539,16 +1580,25 @@ class RealSoundManager: ObservableObject {
     }
 
     private func setupAudioEngine() {
+        print("✅ Audio engine will start on first playback")
+    }
+
+    private func prepareAudioEngineIfNeeded() -> Bool {
+        guard !hasPreparedAudioEngine else { return true }
+
         do {
             // AVAudioEngine manages mainMixerNode→outputNode automatically.
             // Manual connection with a mismatched format causes kAUStartIO error.
             engine.mainMixerNode.outputVolume = 1.0
             engine.prepare()
             try engine.start()
+            hasPreparedAudioEngine = true
             let sr = engine.outputNode.outputFormat(forBus: 0).sampleRate
             print("✅ Audio engine started at \(sr) Hz")
+            return true
         } catch {
             print("❌ Failed to start audio engine: \(error)")
+            return false
         }
     }
 
@@ -1581,8 +1631,6 @@ class RealSoundManager: ObservableObject {
     }
 
     func toggleSound(_ sound: RealSound) {
-        guard isAudioReady else { return }
-
         if playingTracks.contains(sound.id) {
             stopSound(sound)
         } else {
@@ -1598,9 +1646,7 @@ class RealSoundManager: ObservableObject {
     }
 
     private func playGeneratedAudio(sound: RealSound) {
-        // Use hardware sample rate so no silent resampling mismatch
-        let hwFormat = engine.outputNode.outputFormat(forBus: 0)
-        let sampleRate = hwFormat.sampleRate > 0 ? hwFormat.sampleRate : 44100.0
+        let sampleRate = 44100.0
         guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 2) else {
             print("❌ Failed to create audio format")
             return
@@ -1616,6 +1662,12 @@ class RealSoundManager: ObservableObject {
         engine.attach(sourceNode)
         engine.connect(sourceNode, to: engine.mainMixerNode, format: format)
         sourceNode.volume = Float((trackVolumes[sound.id] ?? 0.5) * masterVolume)
+
+        guard prepareAudioEngineIfNeeded() else {
+            engine.detach(sourceNode)
+            generatorStates.removeValue(forKey: sound.id)
+            return
+        }
 
         sourceNodes[sound.id] = sourceNode
         playingTracks.insert(sound.id)
@@ -2246,22 +2298,11 @@ class PremiumManager: ObservableObject {
 
 // MARK: - Shared Playback State
 
-struct SharedPlaybackSnapshot: Codable {
-    var currentSoundId: String?
-    var currentSoundTitle: String?
-    var isPlaying: Bool
-    var timerEndDate: Date?
-    var lastPlayedSoundId: String?
-    var favoriteIds: [String]
-    var status: String
-}
-
 @MainActor
 final class SharedPlaybackStore {
     static let shared = SharedPlaybackStore()
 
-    private let defaults = UserDefaults(suiteName: "group.com.babysounds.app") ?? .standard
-    private let snapshotKey = "BabySoundsPlaybackSnapshot"
+    private let defaults = UserDefaults(suiteName: BabySoundsShared.appGroupId) ?? .standard
 
     private init() {}
 
@@ -2311,18 +2352,10 @@ final class SharedPlaybackStore {
     }
 
     private func loadSnapshot() -> SharedPlaybackSnapshot {
-        guard let data = defaults.data(forKey: snapshotKey),
+        guard let data = defaults.data(forKey: BabySoundsShared.snapshotKey),
               let snapshot = try? JSONDecoder().decode(SharedPlaybackSnapshot.self, from: data)
         else {
-            return SharedPlaybackSnapshot(
-                currentSoundId: nil,
-                currentSoundTitle: nil,
-                isPlaying: false,
-                timerEndDate: nil,
-                lastPlayedSoundId: nil,
-                favoriteIds: [],
-                status: "Stopped"
-            )
+            return .empty
         }
 
         return snapshot
@@ -2330,22 +2363,11 @@ final class SharedPlaybackStore {
 
     private func save(_ snapshot: SharedPlaybackSnapshot) {
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
-        defaults.set(data, forKey: snapshotKey)
+        defaults.set(data, forKey: BabySoundsShared.snapshotKey)
     }
 }
 
 // MARK: - Live Activity
-
-struct BabySoundsPlaybackAttributes: ActivityAttributes {
-    public struct ContentState: Codable, Hashable {
-        var soundTitle: String
-        var isPlaying: Bool
-        var timerEndDate: Date?
-        var status: String
-    }
-
-    var sessionName: String
-}
 
 enum PlaybackLiveActivityController {
     static func startOrUpdate(

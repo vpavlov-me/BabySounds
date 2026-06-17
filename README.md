@@ -16,6 +16,7 @@ The MVP flow is intentionally simple: open the app, choose one sound, set a slee
 - Premium support through StoreKit for premium sounds and extended 45/60 minute timers
 - Settings with restore purchases, feedback, rating, privacy policy, and terms links
 - Display-only Live Activity integration for active playback and timer state
+- WidgetKit extension with a small quick-start widget and a medium favorites / recent sounds widget
 - Offline-friendly UI using SF Symbols and local SwiftUI artwork, not remote placeholder images
 
 ## Requirements
@@ -31,15 +32,23 @@ BabySounds/
 ├── BabySoundsApp.xcodeproj
 ├── BabySoundsApp/
 │   ├── BabySoundsAppApp.swift
+│   ├── BabySoundsShared.swift
 │   ├── ContentView.swift
 │   ├── Info.plist
 │   ├── BabySoundsApp.entitlements
+│   ├── DesignAssets/
 │   └── Assets.xcassets/
+├── BabySoundsWidget/
+│   ├── BabySoundsWidgetBundle.swift
+│   ├── Info.plist
+│   └── BabySoundsWidget.entitlements
 ├── LICENSE
 └── README.md
 ```
 
-Most of the current MVP implementation lives in `BabySoundsApp/ContentView.swift`.
+Most of the current app MVP implementation lives in `BabySoundsApp/ContentView.swift`.
+Shared widget / Live Activity models live in `BabySoundsApp/BabySoundsShared.swift`.
+WidgetKit and Live Activity UI live in `BabySoundsWidget/BabySoundsWidgetBundle.swift`.
 
 ## Development
 
@@ -65,4 +74,6 @@ xcrun simctl launch booted com.babysounds.app
 
 - The app is parent-operated; it is not a child-facing play product in the MVP.
 - Live Activity is display-only and mirrors active sound/timer state without adding remote controls.
+- Widgets use `babysounds://play?soundId=...` deep links. On iOS this opens the app and starts the selected sound when playback is available.
+- App and widget share only minimal playback state through `group.com.babysounds.app`: current sound, timer end date, last played sound, and favorite IDs.
 - Asset catalogs are not part of the current app target resources because the local environment has an iOS SDK/runtime mismatch that breaks `actool`; the UI does not depend on those assets.
