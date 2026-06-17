@@ -1,23 +1,25 @@
 # BabySounds
 
-BabySounds is a compact iOS 17+ SwiftUI app for parents who need to start a calming sleep sound quickly, especially at night.
+BabySounds is a compact iOS 17+ SwiftUI app for quick night-time sleep sound playback.
 
-The MVP flow is intentionally simple: open the app, choose one sound, set a sleep timer, lock the phone, and keep playback available through background audio and Lock Screen / Control Center controls.
+The current product direction is intentionally simple: open the app, choose a sound, adjust the sleep timer if needed, and keep playback available through background audio, widgets, and Live Activity status.
 
-## Features
+## Current Features
 
-- Simple sound catalog with white, pink, brown, fan, nature, heartbeat, and womb-style sounds
-- Generated audio playback with no bundled sound-file dependencies
-- Single-sound playback: starting a new sound stops the previous one
-- Background audio with Now Playing metadata for Lock Screen and Control Center
-- Sleep Timer with 15, 30, 45, and 60 minute options
-- Gentle 30 second fade out when the timer ends
-- Favorites for quick access to preferred sounds
-- Premium support through StoreKit for premium sounds and extended 45/60 minute timers
-- Settings with restore purchases, feedback, rating, privacy policy, and terms links
-- Display-only Live Activity integration for active playback and timer state
-- WidgetKit extension with a small quick-start widget and a medium favorites / recent sounds widget
-- Offline-friendly UI using SF Symbols and local SwiftUI artwork, not remote placeholder images
+- Two-column sound catalog with visual sound cards
+- Local 9:16 artwork for sound detail backgrounds
+- Single active sound at a time
+- Full-screen player sheet with swipe navigation between sounds
+- Sleep timer sheet with circular time selection
+- Optional fade-out at the end of the timer
+- Favorites tab with an illustrated empty state
+- Icon-only bottom tab bar
+- Dark mode by default
+- Native launch screen with centered app icon
+- Background audio with Now Playing metadata
+- WidgetKit quick-start widgets
+- Display-only Live Activity for current playback and timer state
+- StoreKit premium gate for premium sounds and longer timer durations
 
 ## Requirements
 
@@ -28,52 +30,75 @@ The MVP flow is intentionally simple: open the app, choose one sound, set a slee
 ## Project Structure
 
 ```text
-BabySounds/
+BabySound/
 ├── BabySoundsApp.xcodeproj
 ├── BabySoundsApp/
+│   ├── Assets.xcassets/
+│   │   ├── AppIcon.appiconset/
+│   │   ├── LaunchBackground.colorset/
+│   │   └── LaunchIcon.imageset/
+│   ├── DesignAssets/
+│   ├── BabySoundsApp.entitlements
 │   ├── BabySoundsAppApp.swift
 │   ├── BabySoundsShared.swift
 │   ├── ContentView.swift
-│   ├── Info.plist
-│   ├── BabySoundsApp.entitlements
-│   ├── DesignAssets/
-│   └── Assets.xcassets/
+│   └── Info.plist
 ├── BabySoundsWidget/
+│   ├── BabySoundsWidget.entitlements
 │   ├── BabySoundsWidgetBundle.swift
-│   ├── Info.plist
-│   └── BabySoundsWidget.entitlements
+│   └── Info.plist
 ├── LICENSE
 └── README.md
 ```
 
-Most of the current app MVP implementation lives in `BabySoundsApp/ContentView.swift`.
-Shared widget / Live Activity models live in `BabySoundsApp/BabySoundsShared.swift`.
-WidgetKit and Live Activity UI live in `BabySoundsWidget/BabySoundsWidgetBundle.swift`.
+Most of the app UI, audio engine, premium flow, and settings are currently implemented in `BabySoundsApp/ContentView.swift`.
+
+Shared widget and Live Activity models live in `BabySoundsApp/BabySoundsShared.swift`.
+
+Widget and Live Activity UI live in `BabySoundsWidget/BabySoundsWidgetBundle.swift`.
+
+## Assets
+
+- `BabySoundsApp/Assets.xcassets` contains the app icon and launch screen assets.
+- `BabySoundsApp/DesignAssets` contains generated UI artwork used by SwiftUI at runtime.
+- Sound illustrations are stored as portrait 9:16 PNG files for player backgrounds and cropped into cards in the catalog.
 
 ## Development
 
-Build for the booted simulator:
+Build the app target for Simulator:
 
 ```bash
 xcodebuild \
   -project BabySoundsApp.xcodeproj \
-  -scheme BabySoundsApp \
-  -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,id=22EA8DBA-AC1A-4F15-ADAC-DC10511EF70A' \
-  -configuration Debug build
+  -target BabySoundsApp \
+  -configuration Debug \
+  -sdk iphonesimulator build
 ```
 
-Launch after building:
+Install and launch the built app on the booted simulator:
 
 ```bash
-xcrun simctl install booted ~/Library/Developer/Xcode/DerivedData/BabySoundsApp-*/Build/Products/Debug-iphonesimulator/BabySoundsApp.app
+xcrun simctl install booted build/Debug-iphonesimulator/BabySoundsApp.app
 xcrun simctl launch booted com.babysounds.app
 ```
 
-## Notes
+To reset the installed app during UI checks:
 
-- The app is parent-operated; it is not a child-facing play product in the MVP.
-- Live Activity is display-only and mirrors active sound/timer state without adding remote controls.
-- Widgets use `babysounds://play?soundId=...` deep links. On iOS this opens the app and starts the selected sound when playback is available.
-- App and widget share only minimal playback state through `group.com.babysounds.app`: current sound, timer end date, last played sound, and favorite IDs.
-- Asset catalogs are not part of the current app target resources because the local environment has an iOS SDK/runtime mismatch that breaks `actool`; the UI does not depend on those assets.
+```bash
+xcrun simctl terminate booted com.babysounds.app || true
+xcrun simctl uninstall booted com.babysounds.app || true
+```
+
+## Runtime Notes
+
+- The app group is `group.com.babysounds.app`.
+- Deep links use the `babysounds://` scheme.
+- Widgets can start playback via `babysounds://play?soundId=...`.
+- `babysounds://open?soundId=...` opens the player sheet for a sound.
+- Live Activity mirrors playback and timer state; it does not expose remote controls.
+
+## Repository Hygiene
+
+The repository intentionally keeps only the Xcode project, app source, widget source, local assets, license, and this README.
+
+Ignored local files include Xcode user data, build products, DerivedData, local environment files, and IDE folders.

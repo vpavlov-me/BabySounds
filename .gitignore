@@ -3,9 +3,6 @@
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/*.xcscheme
 !*.xcodeproj/xcshareddata/
-*.xcworkspace/*
-!*.xcworkspace/contents.xcworkspacedata
-!*.xcworkspace/xcshareddata/
 
 # User settings
 xcuserdata/

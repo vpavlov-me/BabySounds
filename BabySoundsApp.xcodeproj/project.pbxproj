@@ -123,7 +123,6 @@
 				CE0A0A022C495F2E00000001 /* Sources */,
 				CE0A0A032C495F2E00000001 /* Frameworks */,
 				CE0A0A042C495F2E00000001 /* Resources */,
-				CE0A0A4A2C49630000000001 /* Copy App Icons */,
 				CE0A0A412C49620000000001 /* Embed App Extensions */,
 			);
 			buildRules = (
@@ -213,25 +212,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		CE0A0A4A2C49630000000001 /* Copy App Icons */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/BabySoundsApp/Assets.xcassets/AppIcon.appiconset",
-			);
-			name = "Copy App Icons";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "ICON_DIR=\"${SRCROOT}/BabySoundsApp/Assets.xcassets/AppIcon.appiconset\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"${DEST_DIR}\"\ncp \"${ICON_DIR}\"/AppIcon-*.png \"${DEST_DIR}/\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		CE0A0A022C495F2E00000001 /* Sources */ = {
