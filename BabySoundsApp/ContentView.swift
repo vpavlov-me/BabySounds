@@ -1,12 +1,31 @@
 import AVFoundation
 import ActivityKit
 import MediaPlayer
+import SafariServices
 import StoreKit
 import SwiftUI
 import UIKit
 @preconcurrency import UserNotifications
 
 // MARK: - HapticManager
+
+struct SafariRoute: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+struct InAppSafariView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let controller = SFSafariViewController(url: url)
+        controller.preferredControlTintColor = UIColor(red: 0x30 / 255, green: 0xAA / 255, blue: 0xF5 / 255, alpha: 1)
+        controller.dismissButtonStyle = .close
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+}
 
 @MainActor
 class HapticManager {
@@ -61,6 +80,7 @@ struct ContentView: View {
     @StateObject private var soundManager = RealSoundManager()
     @StateObject private var premiumManager = PremiumManager.shared
     @StateObject private var favoritesManager = FavoritesManager.shared
+    @AppStorage("HasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some View {
         TabView {
@@ -69,6 +89,7 @@ struct ContentView: View {
                 .environmentObject(premiumManager)
                 .tabItem {
                     Image(systemName: "music.note")
+                        .accessibilityLabel("Sounds")
                 }
 
             FavoritesView()
@@ -77,6 +98,7 @@ struct ContentView: View {
                 .environmentObject(favoritesManager)
                 .tabItem {
                     Image(systemName: "heart.fill")
+                        .accessibilityLabel("Favorites")
                 }
 
             SettingsView()
@@ -84,14 +106,26 @@ struct ContentView: View {
                 .environmentObject(premiumManager)
                 .tabItem {
                     Image(systemName: "gearshape.fill")
+                        .accessibilityLabel("Settings")
                 }
         }
-        .accentColor(.pink)
+        .tint(AppTheme.accent)
         .onAppear {
             soundManager.initializeAudio()
         }
         .onOpenURL { url in
             soundManager.handleDeepLink(url)
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { !hasCompletedOnboarding },
+            set: { isPresented in
+                if !isPresented {
+                    hasCompletedOnboarding = true
+                }
+            }
+        )) {
+            OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                .environmentObject(premiumManager)
         }
     }
 }
@@ -133,8 +167,10 @@ struct SoundsView: View {
             )
             .navigationTitle("Sounds")
             .safeAreaInset(edge: .bottom) {
-                if !soundManager.playingTracks.isEmpty {
-                    NowPlayingBar()
+                if soundManager.currentSound != nil {
+                    NowPlayingBar { sound in
+                        selectedSound = sound
+                    }
                         .environmentObject(soundManager)
                 }
             }
@@ -229,7 +265,7 @@ struct SoundCard: View {
                     Button(action: onFavoriteTap) {
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
                             .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(isFavorite ? Color.pink : .white.opacity(0.82))
+                            .foregroundStyle(isFavorite ? AppTheme.accent : .white.opacity(0.82))
                             .frame(width: 44, height: 44)
                             .background(.black.opacity(0.16), in: Circle())
                     }
@@ -240,7 +276,7 @@ struct SoundCard: View {
                         HStack(spacing: 6) {
                             Text(isPlaying ? "NOW PLAYING" : sound.category.localizedName.uppercased())
                                 .font(.caption2.weight(.bold))
-                                .foregroundStyle(isPlaying ? Color.pink : .white.opacity(0.78))
+                                .foregroundStyle(isPlaying ? AppTheme.accent : .white.opacity(0.78))
                                 .lineLimit(1)
 
                             if sound.premium {
@@ -293,7 +329,7 @@ struct SoundRow: View {
                         .foregroundStyle(.primary)
                     Text(isPlaying ? "Now playing" : sound.category.localizedName)
                         .font(.caption)
-                        .foregroundStyle(isPlaying ? Color.pink : Color.secondary)
+                        .foregroundStyle(isPlaying ? AppTheme.accent : Color.secondary)
                 }
 
                 Spacer()
@@ -306,14 +342,14 @@ struct SoundRow: View {
 
                 Button(action: onFavoriteTap) {
                     Image(systemName: isFavorite ? "heart.fill" : "heart")
-                        .foregroundStyle(isFavorite ? Color.pink : Color.secondary)
+                        .foregroundStyle(isFavorite ? AppTheme.accent : Color.secondary)
                 }
                 .buttonStyle(.plain)
 
                 Button(action: onPlayTap) {
                     Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(Color.pink)
+                        .foregroundStyle(AppTheme.accent)
                 }
                 .buttonStyle(.plain)
             }
@@ -331,12 +367,12 @@ struct LoadingView: View {
         VStack(spacing: 20) {
             ZStack(alignment: .top) {
                 Circle()
-                    .stroke(Color.pink.opacity(0.3), lineWidth: 4)
+                    .stroke(AppTheme.accent.opacity(0.3), lineWidth: 4)
                     .frame(width: 50, height: 50)
 
                 Circle()
                     .trim(from: 0, to: 0.8)
-                    .stroke(Color.pink, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .stroke(AppTheme.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                     .frame(width: 50, height: 50)
                     .rotationEffect(Angle(degrees: rotationAngle))
                     .animation(.linear(duration: 1.0).repeatForever(autoreverses: false), value: rotationAngle)
@@ -388,7 +424,7 @@ struct ErrorView: View {
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.pink)
+                                .fill(AppTheme.accent)
                         )
                 }
             }
@@ -459,12 +495,19 @@ struct PlayerView: View {
 
                     Spacer(minLength: isCompactHeight ? 190 : 260)
 
-                    VStack(spacing: isCompactHeight ? 14 : 18) {
+                    VStack(spacing: isCompactHeight ? 24 : 30) {
                         playbackControls
-                            .padding(.horizontal, 40)
+                            .padding(.horizontal, 52)
                             .frame(width: viewportWidth)
 
+                        if sleepTimer.isActive {
+                            timerProgressControl
+                                .padding(.horizontal, 28)
+                                .frame(width: viewportWidth)
+                        }
+
                         volumeControl
+                            .padding(.top, sleepTimer.isActive ? (isCompactHeight ? 10 : 18) : 0)
                             .padding(.horizontal, 28)
                             .frame(width: viewportWidth)
                     }
@@ -508,6 +551,7 @@ struct PlayerView: View {
                 sound: currentSound,
                 onStart: { minutes, fadeOutAtEnd in
                     startTimer(minutes: minutes, fadeOutAtEnd: fadeOutAtEnd)
+                    showingTimerSheet = false
                 },
                 onStop: {
                     cancelTimer()
@@ -556,7 +600,7 @@ struct PlayerView: View {
             } label: {
                 Image(systemName: favoritesManager.isFavorite(currentSound) ? "heart.fill" : "heart")
                     .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(favoritesManager.isFavorite(currentSound) ? Color.pink : .white)
+                    .foregroundStyle(favoritesManager.isFavorite(currentSound) ? AppTheme.accent : .white)
                     .frame(width: 44, height: 44)
                     .background(.white.opacity(0.08), in: Circle())
             }
@@ -565,46 +609,56 @@ struct PlayerView: View {
     }
 
     private var playbackControls: some View {
-        HStack(alignment: .center) {
-            PlayerCircleButton(
-                title: "Timer",
-                systemImage: sleepTimer.isActive ? "timer.circle.fill" : "timer",
-                size: 62,
-                progress: sleepTimer.isActive ? sleepTimer.progressPercentage : nil,
-                detail: sleepTimer.isActive ? sleepTimer.formattedTimeRemaining : nil
-            ) {
+        HStack(alignment: .center, spacing: 72) {
+            PlayerIconButton(systemImage: sleepTimer.isActive ? "timer.circle.fill" : "timer") {
                 showingTimerSheet = true
             }
-
-            Spacer()
+            .accessibilityLabel("Timer")
 
             Button {
-                soundManager.toggleSound(currentSound)
+                if isPlaying {
+                    soundManager.pauseSound(currentSound)
+                } else {
+                    soundManager.toggleSound(currentSound)
+                }
             } label: {
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 38, weight: .bold))
+                    .font(.system(size: 54, weight: .bold))
                     .foregroundStyle(.white)
-                    .frame(width: 96, height: 96)
-                    .background(.white.opacity(0.12), in: Circle())
-                    .overlay {
-                        Circle()
-                            .stroke(.white.opacity(0.20), lineWidth: 1)
-                    }
-                    .shadow(color: .black.opacity(0.26), radius: 20, x: 0, y: 12)
+                    .frame(width: 72, height: 72)
+                    .contentShape(Rectangle())
+                    .offset(x: isPlaying ? 0 : 4)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isPlaying ? "Pause" : "Play")
 
-            Spacer()
-
-            PlayerCircleButton(
-                title: "Stop",
-                systemImage: "stop.fill",
-                size: 62
-            ) {
+            PlayerIconButton(systemImage: "stop.fill") {
                 stopImmediately()
             }
+            .accessibilityLabel("Stop")
         }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var timerProgressControl: some View {
+        let elapsed = max(0, sleepTimer.totalTime - sleepTimer.timeRemaining)
+
+        return VStack(spacing: 7) {
+            Slider(value: .constant(elapsed), in: 0...max(sleepTimer.totalTime, 1))
+                .tint(AppTheme.accent)
+                .allowsHitTesting(false)
+
+            HStack {
+                Text(formatDuration(elapsed))
+                Spacer()
+                Text("-\(sleepTimer.formattedTimeRemaining)")
+            }
+            .font(.caption.monospacedDigit().weight(.semibold))
+            .foregroundStyle(.white.opacity(0.72))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Sleep timer")
+        .accessibilityValue(sleepTimer.formattedTimeRemaining)
     }
 
     private var volumeControl: some View {
@@ -619,7 +673,7 @@ struct PlayerView: View {
                 ),
                 in: 0...1
             )
-            .tint(.pink)
+            .tint(AppTheme.accent)
             Image(systemName: "speaker.wave.2.fill")
                 .font(.body.weight(.semibold))
                 .foregroundStyle(.white.opacity(0.86))
@@ -698,61 +752,28 @@ struct PlayerView: View {
     private func stopImmediately() {
         soundManager.stopSound(currentSound)
     }
+
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let totalSeconds = max(0, Int(duration))
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return "\(minutes):\(String(format: "%02d", seconds))"
+    }
 }
 
-struct PlayerCircleButton: View {
-    let title: String
+struct PlayerIconButton: View {
     let systemImage: String
-    let size: CGFloat
-    var progress: Double?
-    var detail: String?
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(.white.opacity(0.10))
-                    Circle()
-                        .stroke(.white.opacity(0.15), lineWidth: 1)
-                    if let progress {
-                        Circle()
-                            .trim(from: 0, to: max(0.02, progress))
-                            .stroke(
-                                Color.pink,
-                                style: StrokeStyle(lineWidth: 4, lineCap: .round)
-                            )
-                            .rotationEffect(.degrees(-90))
-                            .padding(3)
-                    }
-                    VStack(spacing: 2) {
-                        Image(systemName: systemImage)
-                            .font(.system(size: detail == nil ? 23 : 18, weight: .semibold))
-                        if let detail {
-                            Text(detail)
-                                .font(.system(size: 10, weight: .bold, design: .rounded).monospacedDigit())
-                                .minimumScaleFactor(0.7)
-                                .lineLimit(1)
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    .frame(width: size - 10, height: size - 10)
-                }
-                .frame(width: size, height: size)
-                .overlay {
-                        Circle()
-                            .stroke(.white.opacity(0.15), lineWidth: 1)
-                }
-                Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.9))
-                    .lineLimit(1)
-            }
-            .frame(width: 78)
+            Image(systemName: systemImage)
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 54, height: 54)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
     }
 }
 
@@ -844,7 +865,7 @@ struct SleepTimerSheet: View {
                                 .foregroundStyle(.white.opacity(0.55))
                         }
                     }
-                    .toggleStyle(SwitchToggleStyle(tint: .pink))
+                    .toggleStyle(SwitchToggleStyle(tint: AppTheme.accent))
                     .padding(.top, 46)
                     .padding(.horizontal, 28)
 
@@ -875,7 +896,7 @@ struct SleepTimerSheet: View {
                             .foregroundStyle(.black)
                             .frame(maxWidth: .infinity)
                             .frame(height: 58)
-                            .background(Color.pink, in: Capsule())
+                            .background(AppTheme.accent, in: Capsule())
                     }
                     .padding(.horizontal, 58)
                     .padding(.bottom, max(proxy.safeAreaInsets.bottom + 18, 32))
@@ -925,15 +946,15 @@ struct TimerDialView: View {
 
                 Circle()
                     .trim(from: 0, to: max(0.01, progress))
-                    .stroke(Color.pink, style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                    .stroke(AppTheme.accent, style: StrokeStyle(lineWidth: 9, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                     .frame(width: radius * 2, height: radius * 2)
 
                 Circle()
-                    .fill(Color.pink)
+                    .fill(AppTheme.accent)
                     .frame(width: 26, height: 26)
                     .position(knobPosition(progress: progress, center: center, radius: radius))
-                    .shadow(color: .pink.opacity(0.38), radius: 12, x: 0, y: 0)
+                    .shadow(color: AppTheme.accent.opacity(0.38), radius: 12, x: 0, y: 0)
 
                 Text(timeText)
                     .font(.system(size: 42, weight: .bold, design: .rounded).monospacedDigit())
@@ -985,8 +1006,7 @@ struct BundledArtwork: View {
     let name: String
 
     var body: some View {
-        if let url = Bundle.main.url(forResource: name, withExtension: "png", subdirectory: "DesignAssets"),
-           let image = UIImage(contentsOfFile: url.path) {
+        if let image = UIImage.bundledDesignAsset(named: name) {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFill()
@@ -997,6 +1017,23 @@ struct BundledArtwork: View {
                 endPoint: .bottomTrailing
             )
         }
+    }
+}
+
+private extension UIImage {
+    static func bundledDesignAsset(named name: String) -> UIImage? {
+        let bundle = Bundle.main
+
+        let candidates = [
+            bundle.url(forResource: name, withExtension: "png", subdirectory: "DesignAssets"),
+            bundle.url(forResource: name, withExtension: "png")
+        ]
+
+        return candidates
+            .compactMap { $0 }
+            .lazy
+            .compactMap { UIImage(contentsOfFile: $0.path) }
+            .first
     }
 }
 
@@ -1097,7 +1134,7 @@ struct TimerPickerView: View {
                             .frame(height: 92)
                         }
                         .buttonStyle(.bordered)
-                        .tint(option > 30 && !premiumManager.isPremium ? .orange : .pink)
+                        .tint(option > 30 && !premiumManager.isPremium ? .orange : AppTheme.accent)
                     }
                 }
 
@@ -1154,69 +1191,92 @@ struct TimerPickerView: View {
 
 struct NowPlayingBar: View {
     @EnvironmentObject var soundManager: RealSoundManager
+    @StateObject private var favoritesManager = FavoritesManager.shared
     @StateObject private var sleepTimer = SleepTimerManager.shared
     @StateObject private var fadeOutManager = FadeOutManager.shared
+    let onOpen: (RealSound) -> Void
 
     var body: some View {
         if let firstPlayingSound = soundManager.currentSound {
-            HStack(spacing: 12) {
-                // Sound icon
-                SoundArtwork(sound: firstPlayingSound, size: 40, iconSize: 18)
+            Button {
+                onOpen(firstPlayingSound)
+            } label: {
+                HStack(spacing: 12) {
+                    SoundArtwork(sound: firstPlayingSound, size: 40, iconSize: 16)
 
-                // Info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(firstPlayingSound.title)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.primary)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(firstPlayingSound.title)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
 
-                    if sleepTimer.isActive || fadeOutManager.isActiveFade {
-                        HStack(spacing: 8) {
-                            if sleepTimer.isActive {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "timer")
-                                        .font(.caption2)
-                                        .foregroundColor(.orange)
-                                    Text(sleepTimer.formattedTimeRemaining)
-                                        .font(.caption)
+                        if sleepTimer.isActive || fadeOutManager.isActiveFade {
+                            HStack(spacing: 8) {
+                                if sleepTimer.isActive {
+                                    Label(sleepTimer.formattedTimeRemaining, systemImage: "timer")
+                                        .font(.caption.weight(.semibold))
                                         .foregroundColor(.orange)
                                 }
-                            }
 
-                            if fadeOutManager.isActiveFade {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "minus.magnifyingglass")
-                                        .font(.caption2)
-                                        .foregroundColor(.blue)
-                                    Text(fadeOutManager.formattedTimeRemaining)
-                                        .font(.caption)
-                                        .foregroundColor(.blue)
+                                if fadeOutManager.isActiveFade {
+                                    Label(fadeOutManager.formattedTimeRemaining, systemImage: "minus.magnifyingglass")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundColor(AppTheme.accent)
                                 }
                             }
+                        } else {
+                            Text("Playing")
+                                .font(.caption.weight(.medium))
+                                .foregroundColor(.white.opacity(0.62))
                         }
-                    } else {
-                        Text("Playing") // Placeholder
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    HStack(spacing: 18) {
+                        Button {
+                            HapticManager.shared.favoriteToggle()
+                            favoritesManager.toggleFavorite(firstPlayingSound)
+                        } label: {
+                            Image(systemName: favoritesManager.isFavorite(firstPlayingSound) ? "heart.fill" : "heart")
+                                .font(.title3.weight(.semibold))
+                                .foregroundColor(favoritesManager.isFavorite(firstPlayingSound) ? AppTheme.accent : .white)
+                                .frame(width: 34, height: 34)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(favoritesManager.isFavorite(firstPlayingSound) ? "Remove from favorites" : "Add to favorites")
+
+                        Button {
+                            if soundManager.isPlaying(firstPlayingSound.id) {
+                                soundManager.pauseSound(firstPlayingSound)
+                            } else {
+                                soundManager.toggleSound(firstPlayingSound)
+                            }
+                        } label: {
+                            Image(systemName: soundManager.isPlaying(firstPlayingSound.id) ? "pause.fill" : "play.fill")
+                                .font(.title3.weight(.bold))
+                                .foregroundColor(AppTheme.accent)
+                                .frame(width: 34, height: 34)
+                                .contentShape(Rectangle())
+                                .offset(x: soundManager.isPlaying(firstPlayingSound.id) ? 0 : 2)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(soundManager.isPlaying(firstPlayingSound.id) ? "Pause" : "Play")
                     }
                 }
-
-                Spacer()
-
-                // Controls
-                HStack(spacing: 16) {
-                    Button(action: {
-                        soundManager.toggleSound(firstPlayingSound)
-                    }) {
-                        Image(systemName: "pause.fill")
-                            .font(.title3)
-                            .foregroundColor(.pink)
-                    }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(.white.opacity(0.10), lineWidth: 1)
                 }
+                .shadow(color: .black.opacity(0.28), radius: 18, x: 0, y: 10)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .buttonStyle(.plain)
+            .padding(.horizontal, 18)
+            .padding(.bottom, 14)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
 }
@@ -1306,6 +1366,14 @@ struct FavoritesView: View {
             }
             .navigationTitle("Favorites")
             .navigationBarTitleDisplayMode(.large)
+            .safeAreaInset(edge: .bottom) {
+                if soundManager.currentSound != nil {
+                    NowPlayingBar { sound in
+                        selectedSound = sound
+                    }
+                    .environmentObject(soundManager)
+                }
+            }
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .sheet(item: $selectedSound) { sound in
@@ -1327,7 +1395,7 @@ struct EmptyFavoritesView: View {
                 .scaledToFit()
                 .frame(width: 132, height: 132)
                 .clipShape(RoundedRectangle(cornerRadius: 28))
-                .shadow(color: Color.pink.opacity(0.20), radius: 18, x: 0, y: 10)
+                .shadow(color: AppTheme.accent.opacity(0.20), radius: 18, x: 0, y: 10)
 
             VStack(spacing: 8) {
                 Text("No Favorite Sounds")
@@ -1346,110 +1414,327 @@ struct EmptyFavoritesView: View {
     }
 }
 
+// MARK: - Onboarding
+
+struct OnboardingView: View {
+    @Binding var hasCompletedOnboarding: Bool
+    @EnvironmentObject var premiumManager: PremiumManager
+    @State private var page = 0
+    @State private var showingPaywall = false
+
+    private let pages = [
+        OnboardingPage(
+            artwork: "onboarding-sounds",
+            title: "Sleep sounds for calm nights",
+            subtitle: "Open BabySounds at bedtime and start a soft loop in one tap."
+        ),
+        OnboardingPage(
+            artwork: "onboarding-player",
+            title: "Set a gentle sleep timer",
+            subtitle: "Choose a timer, fade out at the end, and let the sound disappear quietly."
+        ),
+        OnboardingPage(
+            artwork: "onboarding-paywall",
+            title: "Keep favorites close",
+            subtitle: "Save the sounds that work best and return to them from the app, widgets, and Live Activities."
+        )
+    ]
+
+    var body: some View {
+        ZStack {
+            AppTheme.surface.ignoresSafeArea()
+            TabView(selection: $page) {
+                ForEach(pages.indices, id: \.self) { index in
+                    OnboardingPageView(page: pages[index])
+                        .tag(index)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+
+            VStack {
+                Spacer()
+                HStack(spacing: 8) {
+                    ForEach(pages.indices, id: \.self) { index in
+                        Capsule()
+                            .fill(index == page ? AppTheme.accent : .white.opacity(0.25))
+                            .frame(width: index == page ? 24 : 8, height: 8)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: page)
+                    }
+                }
+                .padding(.bottom, 20)
+
+                Button {
+                    if page == pages.count - 1 {
+                        showingPaywall = true
+                    } else {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            page += 1
+                        }
+                    }
+                } label: {
+                    Text(page == pages.count - 1 ? "Continue" : "Next")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 58)
+                        .background(AppTheme.accent, in: Capsule())
+                }
+                .padding(.horizontal, 28)
+                .padding(.bottom, 18)
+            }
+        }
+        .preferredColorScheme(.dark)
+        .fullScreenCover(isPresented: $showingPaywall, onDismiss: {
+            hasCompletedOnboarding = true
+        }) {
+            PremiumUpgradeView(allowDismiss: true) {
+                hasCompletedOnboarding = true
+            }
+            .environmentObject(premiumManager)
+        }
+    }
+}
+
+struct OnboardingPage {
+    let artwork: String
+    let title: String
+    let subtitle: String
+}
+
+struct OnboardingPageView: View {
+    let page: OnboardingPage
+
+    var body: some View {
+        VStack(spacing: 28) {
+            BundledArtwork(name: page.artwork)
+                .scaledToFit()
+                .frame(height: 500)
+                .clipShape(RoundedRectangle(cornerRadius: 42, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 42, style: .continuous)
+                        .stroke(.white.opacity(0.12), lineWidth: 1)
+                }
+                .shadow(color: .black.opacity(0.34), radius: 24, x: 0, y: 16)
+                .padding(.horizontal, 62)
+                .padding(.top, 48)
+
+            VStack(spacing: 12) {
+                Text(page.title)
+                    .font(.system(size: 30, weight: .bold))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 28)
+
+                Text(page.subtitle)
+                    .font(.body)
+                    .lineSpacing(3)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.86)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.white.opacity(0.66))
+                    .padding(.horizontal, 34)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 150)
+        }
+    }
+}
+
 // MARK: - PremiumUpgradeView
 
 struct PremiumUpgradeView: View {
     @EnvironmentObject var premiumManager: PremiumManager
     @Environment(\.dismiss) private var dismiss
+    let allowDismiss: Bool
+    let onCompleted: (() -> Void)?
+    @State private var isPurchasing = false
+    @State private var purchaseMessage: String?
+    @State private var safariRoute: SafariRoute?
+
+    init(allowDismiss: Bool = true, onCompleted: (() -> Void)? = nil) {
+        self.allowDismiss = allowDismiss
+        self.onCompleted = onCompleted
+    }
+
+    private var recommendedProduct: Product? {
+        premiumManager.availableProducts.first(where: { $0.id == "baby.annual" }) ?? premiumManager.availableProducts.first
+    }
 
     var body: some View {
-        NavigationView {
+        GeometryReader { proxy in
             ZStack {
-                // Gradient background
-                LinearGradient(
-                    colors: [Color.purple.opacity(0.3), Color.pink.opacity(0.3)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                BundledArtwork(name: "gentle-stream")
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                    .clipped()
+                    .ignoresSafeArea()
+                    .overlay {
+                        LinearGradient(
+                            colors: [.black.opacity(0.10), .black.opacity(0.62), .black.opacity(0.94)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .ignoresSafeArea()
+                    }
 
-                ScrollView {
-                    VStack(spacing: 32) {
-                        Spacer(minLength: 40)
-
-                        // Premium Icon
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 80))
-                            .foregroundColor(.orange)
-                            .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
-
-                        // Title
-                        VStack(spacing: 16) {
-                            Text("Unlock Premium Sounds")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .multilineTextAlignment(.center)
-
-                            Text("Unlock premium sounds and longer sleep timers for calm nights.")
-                                .font(.body)
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 20)
+                VStack(spacing: 0) {
+                    HStack {
+                        if allowDismiss {
+                            Button {
+                                dismiss()
+                                onCompleted?()
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundStyle(.white.opacity(0.88))
+                                    .frame(width: 44, height: 44)
+                                    .background(.black.opacity(0.22), in: Circle())
+                            }
+                            .accessibilityLabel("Close premium")
                         }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, max(proxy.safeAreaInsets.top + 12, 30))
 
-                        // Features
-                        VStack(spacing: 16) {
-                            FeatureRow(
-                                icon: "music.note.list",
-                                title: "Premium Sounds",
-                                subtitle: "More calming sounds when you need them"
-                            )
-                            FeatureRow(
-                                icon: "timer",
-                                title: "Extended Sleep Timer",
-                                subtitle: "45 and 60 minute timer options"
-                            )
-                        }
-                        .padding(.horizontal, 20)
+                    Spacer(minLength: 58)
 
-                        // Pricing
-                        VStack(spacing: 16) {
-                            if premiumManager.availableProducts.isEmpty {
-                                // Loading state
-                                HStack {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                    Text("Loading plans...")
-                                        .foregroundColor(.secondary)
+                    Image(systemName: "moon.stars.fill")
+                        .font(.system(size: 62, weight: .semibold))
+                        .foregroundStyle(AppTheme.accent)
+                        .shadow(color: AppTheme.accent.opacity(0.45), radius: 18, x: 0, y: 0)
+                        .padding(.bottom, 28)
+
+                    VStack(spacing: 8) {
+                        Text("BabySounds Premium")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                        Text("Unlock the full bedtime experience")
+                            .font(.title3.weight(.medium))
+                            .foregroundStyle(.white.opacity(0.70))
+                            .multilineTextAlignment(.center)
+                    }
+
+                    VStack(spacing: 16) {
+                        PaywallFeatureRow(icon: "sparkles", title: "All premium sounds", subtitle: "High quality calming loops")
+                        PaywallFeatureRow(icon: "timer", title: "Longer sleep timer", subtitle: "Up to 60 minutes")
+                        PaywallFeatureRow(icon: "rectangle.on.rectangle.slash", title: "No ads", subtitle: "Uninterrupted sleep")
+                        PaywallFeatureRow(icon: "waveform", title: "Fresh sounds", subtitle: "More bedtime scenes over time")
+                    }
+                    .padding(.top, 28)
+                    .padding(.horizontal, 44)
+
+                    Spacer(minLength: 22)
+
+                    Button {
+                        Task {
+                            if recommendedProduct == nil {
+                                purchaseMessage = nil
+                                await premiumManager.refreshProducts()
+                                if recommendedProduct == nil {
+                                    purchaseMessage = "Plans are not available in this environment. Check StoreKit configuration or try again."
                                 }
-                                .frame(height: 56)
+                                return
+                            }
+
+                            guard let product = recommendedProduct else { return }
+                            isPurchasing = true
+                            await premiumManager.purchaseProduct(product)
+                            isPurchasing = false
+                            if premiumManager.isPremium {
+                                dismiss()
+                                onCompleted?()
                             } else {
-                                // Show real StoreKit products
-                                ForEach(premiumManager.availableProducts, id: \.id) { product in
-                                    ProductCard(product: product, premiumManager: premiumManager, dismiss: dismiss)
-                                }
+                                purchaseMessage = "Purchase was not completed. Please try again."
                             }
-
-                            Button("Restore Purchases") {
-                                Task {
-                                    await premiumManager.restorePurchases()
-                                }
-                            }
-                            .font(.caption)
-                            .foregroundColor(.blue)
                         }
-                        .padding(.horizontal, 20)
+                    } label: {
+                        VStack(spacing: 4) {
+                            if isPurchasing || premiumManager.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                            } else if recommendedProduct == nil {
+                                Text("Load Premium Plans")
+                                    .font(.title3.weight(.bold))
+                                Text("Tap to retry StoreKit")
+                                    .font(.subheadline.weight(.semibold))
+                                    .opacity(0.78)
+                            } else {
+                                Text("Start 4-Day Free Trial")
+                                    .font(.title3.weight(.bold))
+                                Text(recommendedProduct.map { "\($0.displayPrice) after trial" } ?? "Then subscription continues")
+                                    .font(.subheadline.weight(.semibold))
+                                    .opacity(0.78)
+                            }
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 76)
+                        .background(AppTheme.accent, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    }
+                    .disabled(isPurchasing || premiumManager.isLoading)
+                    .padding(.horizontal, 28)
 
-                        Spacer(minLength: 40)
+                    if let purchaseMessage {
+                        Text(purchaseMessage)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.white.opacity(0.66))
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 34)
+                            .padding(.top, 10)
                     }
+
+                    Text("Cancel anytime. No commitment.")
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.62))
+                        .padding(.top, purchaseMessage == nil ? 18 : 10)
+
+                    HStack(spacing: 16) {
+                        Button("Restore Purchases") {
+                            Task { await premiumManager.restorePurchases() }
+                        }
+                        Button("Terms of Use") {
+                            openInApp(URL(string: "https://babysounds.app/terms"))
+                        }
+                        Button("Privacy Policy") {
+                            openInApp(URL(string: "https://babysounds.app/privacy"))
+                        }
+                    }
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.62))
+                    .padding(.top, 24)
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom + 14, 26))
                 }
             }
-            .navigationTitle("Premium")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
+        }
+        .preferredColorScheme(.dark)
+        .task {
+            if premiumManager.availableProducts.isEmpty {
+                await premiumManager.refreshProducts()
             }
+        }
+        .sheet(item: $safariRoute) { route in
+            InAppSafariView(url: route.url)
+                .ignoresSafeArea()
+        }
+    }
+
+    private func openInApp(_ url: URL?) {
+        guard let url else { return }
+        if ["http", "https"].contains(url.scheme?.lowercased()) {
+            safariRoute = SafariRoute(url: url)
+        } else {
+            UIApplication.shared.open(url)
         }
     }
 }
 
-// MARK: - FeatureRow
-
-struct FeatureRow: View {
+struct PaywallFeatureRow: View {
     let icon: String
     let title: String
     let subtitle: String
@@ -1457,111 +1742,22 @@ struct FeatureRow: View {
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(.blue)
-                .frame(width: 32)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 48, height: 48)
+                .background(AppTheme.accent.opacity(0.18), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
                 Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.62))
             }
 
             Spacer()
-
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
         }
-        .padding(.vertical, 8)
-    }
-}
-
-// MARK: - ProductCard
-
-struct ProductCard: View {
-    let product: Product
-    let premiumManager: PremiumManager
-    let dismiss: DismissAction
-
-    @State private var isLoading = false
-
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(product.displayName)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-
-                    Text(product.description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(product.displayPrice)
-                        .font(.title2)
-                        .fontWeight(.bold)
-
-                    if product.id == "baby.annual" {
-                        Text("Save 50%")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                            .fontWeight(.medium)
-                    }
-                }
-            }
-
-            Button(action: {
-                Task {
-                    isLoading = true
-                    await premiumManager.purchaseProduct(product)
-                    isLoading = false
-
-                    if premiumManager.isPremium {
-                        dismiss()
-                    }
-                }
-            }) {
-                HStack {
-                    if isLoading {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                    } else {
-                        Text("Start 7-Day Free Trial")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                    }
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(product.id == "baby.annual" ? Color.green : Color.blue)
-                )
-            }
-            .disabled(isLoading || premiumManager.isLoading)
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.regularMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(
-                            product.id == "baby.annual" ? Color.green : Color.blue,
-                            lineWidth: product.id == "baby.annual" ? 2 : 1
-                        )
-                )
-        )
     }
 }
 
@@ -1571,103 +1767,102 @@ struct SettingsView: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @EnvironmentObject var premiumManager: PremiumManager
     @State private var showingPremiumSheet = false
+    @State private var safariRoute: SafariRoute?
 
     var body: some View {
         NavigationView {
-            List {
-                Section {
-                    HStack {
-                        Image(systemName: premiumManager.isPremium ? "crown.fill" : "crown")
-                            .foregroundColor(premiumManager.isPremium ? .orange : .gray)
-                            .frame(width: 24)
+            ZStack {
+                AppTheme.surface.ignoresSafeArea()
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(premiumManager.isPremium ? "Premium Active" : "Free Plan")
-                                .foregroundColor(.primary)
-                            Text(premiumManager.isPremium ? "Premium Sounds and Extended Timer unlocked" : "Premium unlocks premium sounds and 45/60 minute timers")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 26) {
+                        Button {
+                            showingPremiumSheet = true
+                        } label: {
+                            HStack(spacing: 16) {
+                                Image(systemName: "crown.fill")
+                                    .font(.system(size: 30, weight: .bold))
+                                    .foregroundStyle(.orange)
+                                    .frame(width: 52, height: 52)
 
-                        Spacer()
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(premiumManager.isPremium ? "Premium" : "Upgrade to Premium")
+                                        .font(.headline.weight(.bold))
+                                        .foregroundStyle(.white)
+                                    Text(premiumManager.isPremium ? "You have access to all features" : "Start a 4-day free trial")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.white.opacity(0.62))
+                                }
 
-                        if !premiumManager.isPremium {
-                            Button("Upgrade") {
-                                showingPremiumSheet = true
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.headline.weight(.semibold))
+                                    .foregroundStyle(.white.opacity(0.54))
                             }
-                            .font(.caption)
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
+                            .padding(16)
+                            .background(
+                                LinearGradient(
+                                    colors: [AppTheme.accent.opacity(0.28), .white.opacity(0.08)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            )
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .stroke(.white.opacity(0.08), lineWidth: 1)
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        SettingsSection(title: "Account") {
+                            SettingsActionRow(icon: "arrow.clockwise.circle.fill", title: "Restore Purchases") {
+                                Task { await premiumManager.restorePurchases() }
+                            }
+                        }
+
+                        SettingsSection(title: "Support") {
+                            SettingsActionRow(icon: "envelope.fill", title: "Send Feedback") {
+                                open(URL(string: "mailto:support@babysounds.app?subject=Baby%20Sounds%20Feedback"))
+                            }
+                            SettingsActionRow(icon: "star.fill", title: "Rate the App") {
+                                open(URL(string: "https://apps.apple.com/app/id6670503696?action=write-review"))
+                            }
+                            ShareLink(item: URL(string: "https://babysounds.app")!) {
+                                SettingsRowContent(icon: "square.and.arrow.up.fill", title: "Share BabySounds", trailing: "chevron.right")
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        SettingsSection(title: "Information") {
+                            SettingsActionRow(icon: "hand.raised.fill", title: "Privacy Policy") {
+                                openInApp(URL(string: "https://babysounds.app/privacy"))
+                            }
+                            SettingsActionRow(icon: "doc.plaintext.fill", title: "Terms of Use") {
+                                openInApp(URL(string: "https://babysounds.app/terms"))
+                            }
+                            SettingsRowContent(icon: "number.circle.fill", title: "Version", trailingText: "1.0.0")
                         }
                     }
-
-                    Button("Restore Purchases") {
-                        Task {
-                            await premiumManager.restorePurchases()
-                        }
-                    }
-                    .foregroundColor(.blue)
-                } header: {
-                    Text("PREMIUM")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Section {
-                    Button {
-                        open(URL(string: "mailto:support@babysounds.app?subject=Baby%20Sounds%20Feedback"))
-                    } label: {
-                        Label("Send Feedback", systemImage: "paperplane.fill")
-                            .foregroundColor(.blue)
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        open(URL(string: "https://apps.apple.com/app/id6670503696?action=write-review"))
-                    } label: {
-                        Label("Rate App", systemImage: "star.fill")
-                            .foregroundColor(.blue)
-                    }
-                    .buttonStyle(.plain)
-                } header: {
-                    Text("SUPPORT")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Section {
-                    Button {
-                        open(URL(string: "https://babysounds.app/privacy"))
-                    } label: {
-                        SettingsLinkRow(icon: "hand.raised.fill", title: "Privacy Policy")
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        open(URL(string: "https://babysounds.app/terms"))
-                    } label: {
-                        SettingsLinkRow(icon: "doc.text.fill", title: "Terms of Use")
-                    }
-                    .buttonStyle(.plain)
-                } header: {
-                    Text("LEGAL")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                } footer: {
-                    Text("BabySounds 1.0")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, 20)
+                    .padding(.horizontal, 22)
+                    .padding(.top, 18)
+                    .padding(.bottom, 120)
                 }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(AppTheme.surface, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .preferredColorScheme(.dark)
         .sheet(isPresented: $showingPremiumSheet) {
             PremiumUpgradeView()
                 .environmentObject(premiumManager)
+        }
+        .sheet(item: $safariRoute) { route in
+            InAppSafariView(url: route.url)
+                .ignoresSafeArea()
         }
     }
 
@@ -1675,22 +1870,81 @@ struct SettingsView: View {
         guard let url else { return }
         UIApplication.shared.open(url)
     }
+
+    private func openInApp(_ url: URL?) {
+        guard let url else { return }
+        safariRoute = SafariRoute(url: url)
+    }
 }
 
-struct SettingsLinkRow: View {
-    let icon: String
+struct SettingsSection<Content: View>: View {
     let title: String
+    @ViewBuilder let content: Content
 
     var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .frame(width: 24)
+        VStack(alignment: .leading, spacing: 10) {
             Text(title)
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.52))
+                .padding(.horizontal, 2)
+
+            VStack(spacing: 0) {
+                content
+            }
+            .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(.white.opacity(0.06), lineWidth: 1)
+            }
         }
+    }
+}
+
+struct SettingsActionRow: View {
+    let icon: String
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            SettingsRowContent(icon: icon, title: title, trailing: "chevron.right")
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct SettingsRowContent: View {
+    let icon: String
+    let title: String
+    var trailing: String?
+    var trailingText: String?
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 19, weight: .semibold))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.white.opacity(0.88))
+                .frame(width: 28, height: 28)
+
+            Text(title)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.white)
+
+            Spacer()
+
+            if let trailingText {
+                Text(trailingText)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.54))
+            } else if let trailing {
+                Image(systemName: trailing)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.42))
+            }
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 58)
     }
 }
 
@@ -1979,18 +2233,17 @@ struct RealSound: Identifiable {
 
     var artworkName: String {
         switch title {
-        case "White Noise", "Pink Noise", "Deep Pink", "Brown Noise":
-            return "white-noise"
-        case "Air Conditioner", "Box Fan":
-            return "fan"
-        case "Ocean Waves":
-            return "ocean"
-        case "Forest Rain":
-            return "rain"
-        case "Gentle Stream":
-            return "forest-rain"
-        case "Heartbeat", "Womb Environment":
-            return "heartbeat"
+        case "White Noise": return "white-noise"
+        case "Pink Noise": return "pink-noise"
+        case "Deep Pink": return "deep-pink"
+        case "Brown Noise": return "brown-noise"
+        case "Air Conditioner": return "air-conditioner"
+        case "Box Fan": return "box-fan"
+        case "Ocean Waves": return "ocean-waves"
+        case "Forest Rain": return "forest-rain"
+        case "Gentle Stream": return "gentle-stream"
+        case "Heartbeat": return "heartbeat"
+        case "Womb Environment": return "womb-environment"
         default:
             return "white-noise"
         }
@@ -2041,6 +2294,7 @@ class RealSoundManager: ObservableObject {
     @Published var playingTracks: Set<UUID> = []
     @Published var trackVolumes: [UUID: Double] = [:]
     @Published var deepLinkedSound: RealSound?
+    @Published private var pausedSound: RealSound?
     @Published var masterVolume = 0.5 {
         didSet {
             // Apply safe volume limits before updating
@@ -2072,14 +2326,16 @@ class RealSoundManager: ObservableObject {
     private var hasPreparedAudioEngine = false
 
     var currentSound: RealSound? {
-        guard let currentId = playingTracks.first else { return nil }
-        return allSounds.first { $0.id == currentId }
+        if let currentId = playingTracks.first {
+            return allSounds.first { $0.id == currentId }
+        }
+        return pausedSound
     }
 
     // MVP sound catalog
     let allSounds: [RealSound] = [
         RealSound(title: "White Noise", id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!, category: .white, color: .gray),
-        RealSound(title: "Pink Noise", id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!, category: .pink, color: .pink),
+        RealSound(title: "Pink Noise", id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!, category: .pink, color: AppTheme.accent),
         RealSound(title: "Deep Pink", id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!, category: .pink, premium: true, color: .purple),
         RealSound(title: "Brown Noise", id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!, category: .brown, color: .brown),
         RealSound(title: "Air Conditioner", id: UUID(uuidString: "00000000-0000-0000-0000-000000000005")!, category: .fan, color: .blue),
@@ -2088,7 +2344,7 @@ class RealSoundManager: ObservableObject {
         RealSound(title: "Forest Rain", id: UUID(uuidString: "00000000-0000-0000-0000-000000000008")!, category: .nature, color: .green),
         RealSound(title: "Gentle Stream", id: UUID(uuidString: "00000000-0000-0000-0000-000000000009")!, category: .nature, premium: true, color: .teal),
         RealSound(title: "Heartbeat", id: UUID(uuidString: "00000000-0000-0000-0000-000000000010")!, category: .womb, color: .red),
-        RealSound(title: "Womb Environment", id: UUID(uuidString: "00000000-0000-0000-0000-000000000011")!, category: .womb, premium: true, color: .pink),
+        RealSound(title: "Womb Environment", id: UUID(uuidString: "00000000-0000-0000-0000-000000000011")!, category: .womb, premium: true, color: AppTheme.accent),
     ]
 
     func initializeAudio() {
@@ -2242,6 +2498,7 @@ class RealSoundManager: ObservableObject {
 
         sourceNodes[sound.id] = sourceNode
         playingTracks.insert(sound.id)
+        pausedSound = nil
         updateNowPlayingInfo(with: sound)
         sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: true)
         PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: true)
@@ -2265,6 +2522,9 @@ class RealSoundManager: ObservableObject {
 
     func stopSound(_ sound: RealSound, preserveTimer: Bool = false) {
         playingTracks.remove(sound.id)
+        if pausedSound?.id == sound.id {
+            pausedSound = nil
+        }
 
         // Stop generated (DSP) node
         if let sourceNode = sourceNodes[sound.id] {
@@ -2282,6 +2542,25 @@ class RealSoundManager: ObservableObject {
             PlaybackLiveActivityController.end()
             MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
         }
+    }
+
+    func pauseSound(_ sound: RealSound) {
+        guard playingTracks.contains(sound.id) else { return }
+
+        playingTracks.remove(sound.id)
+
+        if let sourceNode = sourceNodes[sound.id] {
+            engine.detach(sourceNode)
+            sourceNodes.removeValue(forKey: sound.id)
+            generatorStates.removeValue(forKey: sound.id)
+            print("⏸️ Paused generated audio: \(sound.title)")
+        }
+
+        pausedSound = sound
+        stopPlaybackBoundTimers()
+        sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: false, status: "Paused")
+        PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: false, status: "Paused")
+        MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
     }
 
     func stopAllSounds(preserveTimer: Bool = false) {
@@ -2801,6 +3080,12 @@ class RealSubscriptionService: ObservableObject {
         }
     }
 
+    func reloadProducts() async {
+        productsLoaded = false
+        availableProducts = []
+        await loadProducts()
+    }
+
     func purchase(_ product: Product) async {
         isLoading = true
         defer { isLoading = false }
@@ -2960,6 +3245,10 @@ class PremiumManager: ObservableObject {
 
     func purchaseProduct(_ product: Product) async {
         await subscriptionService.purchase(product)
+    }
+
+    func refreshProducts() async {
+        await subscriptionService.reloadProducts()
     }
 
     func restorePurchases() async {

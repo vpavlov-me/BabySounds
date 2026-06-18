@@ -1,10 +1,17 @@
 import ActivityKit
 import Foundation
+import SwiftUI
 
 enum BabySoundsShared {
     static let appGroupId = "group.com.babysounds.app"
     static let snapshotKey = "BabySoundsPlaybackSnapshot"
     static let defaultSoundSlug = "white-noise"
+}
+
+enum AppTheme {
+    static let accent = Color(red: 0x30 / 255, green: 0xAA / 255, blue: 0xF5 / 255)
+    static let surface = Color(red: 0.02, green: 0.05, blue: 0.10)
+    static let elevatedSurface = Color.white.opacity(0.08)
 }
 
 struct SharedPlaybackSnapshot: Codable {
