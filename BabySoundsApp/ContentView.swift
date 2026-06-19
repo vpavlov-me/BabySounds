@@ -1570,7 +1570,7 @@ struct PremiumUpgradeView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                BundledArtwork(name: "gentle-stream")
+                BundledArtwork(name: "onboarding-paywall")
                     .frame(width: proxy.size.width, height: proxy.size.height)
                     .clipped()
                     .ignoresSafeArea()
