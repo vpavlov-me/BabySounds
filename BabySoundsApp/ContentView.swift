@@ -81,10 +81,15 @@ struct ContentView: View {
     @StateObject private var premiumManager = PremiumManager.shared
     @StateObject private var favoritesManager = FavoritesManager.shared
     @AppStorage("HasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var selectedSound: RealSound?
+    @State private var showingPremiumSheet = false
 
     var body: some View {
         TabView {
-            SoundsView()
+            SoundsView(
+                onSelectSound: { selectedSound = $0 },
+                onPremiumRequired: { showingPremiumSheet = true }
+            )
                 .environmentObject(soundManager)
                 .environmentObject(premiumManager)
                 .tabItem {
@@ -92,7 +97,7 @@ struct ContentView: View {
                         .accessibilityLabel("Sounds")
                 }
 
-            FavoritesView()
+            FavoritesView(onSelectSound: { selectedSound = $0 })
                 .environmentObject(soundManager)
                 .environmentObject(premiumManager)
                 .environmentObject(favoritesManager)
@@ -110,11 +115,39 @@ struct ContentView: View {
                 }
         }
         .tint(AppTheme.accent)
+        .overlay(alignment: .bottom) {
+            if soundManager.currentSound != nil {
+                NowPlayingBar { sound in
+                    selectedSound = sound
+                }
+                .environmentObject(soundManager)
+                .padding(.bottom, 74)
+            }
+        }
         .onAppear {
             soundManager.initializeAudio()
         }
         .onOpenURL { url in
             soundManager.handleDeepLink(url)
+        }
+        .onReceive(soundManager.$deepLinkedSound.compactMap { $0 }) { sound in
+            if sound.premium, !premiumManager.isPremium {
+                showingPremiumSheet = true
+            } else {
+                selectedSound = sound
+            }
+            soundManager.deepLinkedSound = nil
+        }
+        .sheet(item: $selectedSound) { sound in
+            PlayerView(sound: sound)
+                .environmentObject(soundManager)
+                .environmentObject(premiumManager)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingPremiumSheet) {
+            PremiumUpgradeView()
+                .environmentObject(premiumManager)
         }
         .fullScreenCover(isPresented: Binding(
             get: { !hasCompletedOnboarding },
@@ -136,8 +169,8 @@ struct SoundsView: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @EnvironmentObject var premiumManager: PremiumManager
     @StateObject private var favoritesManager = FavoritesManager.shared
-    @State private var selectedSound: RealSound?
-    @State private var showingPremiumSheet = false
+    let onSelectSound: (RealSound) -> Void
+    let onPremiumRequired: () -> Void
 
     private var sortedSounds: [RealSound] {
         soundManager.allSounds.sorted { first, second in
@@ -156,9 +189,9 @@ struct SoundsView: View {
                 isFavorite: { favoritesManager.isFavorite($0) },
                 onTap: { sound in
                     if sound.premium, !premiumManager.isPremium {
-                        showingPremiumSheet = true
+                        onPremiumRequired()
                     } else {
-                        selectedSound = sound
+                        onSelectSound(sound)
                     }
                 },
                 onFavoriteTap: { sound in
@@ -166,35 +199,8 @@ struct SoundsView: View {
                 }
             )
             .navigationTitle("Sounds")
-            .safeAreaInset(edge: .bottom) {
-                if soundManager.currentSound != nil {
-                    NowPlayingBar { sound in
-                        selectedSound = sound
-                    }
-                        .environmentObject(soundManager)
-                }
-            }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .sheet(item: $selectedSound) { sound in
-            PlayerView(sound: sound)
-                .environmentObject(soundManager)
-                .environmentObject(premiumManager)
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $showingPremiumSheet) {
-            PremiumUpgradeView()
-                .environmentObject(premiumManager)
-        }
-        .onReceive(soundManager.$deepLinkedSound.compactMap { $0 }) { sound in
-            if sound.premium, !premiumManager.isPremium {
-                showingPremiumSheet = true
-            } else {
-                selectedSound = sound
-            }
-            soundManager.deepLinkedSound = nil
-        }
     }
 }
 
@@ -251,16 +257,26 @@ struct SoundCard: View {
         Button(action: onTap) {
             GeometryReader { proxy in
                 ZStack(alignment: .topTrailing) {
-                    BundledArtwork(name: sound.artworkName)
-                        .frame(width: proxy.size.width, height: proxy.size.height)
-                        .clipped()
-                        .overlay(alignment: .bottom) {
-                            LinearGradient(
-                                colors: [.clear, .black.opacity(0.24), .black.opacity(0.72)],
-                                startPoint: .center,
-                                endPoint: .bottom
-                            )
-                        }
+                    ZStack {
+                        BundledArtwork(name: sound.artworkName)
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                            .opacity(0.58)
+                            .blur(radius: 14)
+                            .scaleEffect(1.12)
+
+                        BundledArtwork(name: sound.artworkName, contentMode: .fit)
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                    }
+                    .background(Color.black)
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                    .clipped()
+                    .overlay(alignment: .bottom) {
+                        LinearGradient(
+                            colors: [.clear, .black.opacity(0.12), .black.opacity(0.58)],
+                            startPoint: .center,
+                            endPoint: .bottom
+                        )
+                    }
 
                     Button(action: onFavoriteTap) {
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
@@ -1004,12 +1020,13 @@ struct TimerDialView: View {
 
 struct BundledArtwork: View {
     let name: String
+    var contentMode: ContentMode = .fill
 
     var body: some View {
-        if let image = UIImage.bundledDesignAsset(named: name) {
+        if let image = UIImage.bundledArtwork(named: name) {
             Image(uiImage: image)
                 .resizable()
-                .scaledToFill()
+                .aspectRatio(contentMode: contentMode)
         } else {
             LinearGradient(
                 colors: [.blue.opacity(0.32), .indigo.opacity(0.22)],
@@ -1021,15 +1038,17 @@ struct BundledArtwork: View {
 }
 
 private extension UIImage {
-    static func bundledDesignAsset(named name: String) -> UIImage? {
+    static func bundledArtwork(named name: String) -> UIImage? {
         let bundle = Bundle.main
 
-        let candidates = [
+        let directAsset = UIImage(named: name)
+        let fileURLs = [
             bundle.url(forResource: name, withExtension: "png", subdirectory: "DesignAssets"),
+            bundle.url(forResource: name, withExtension: nil, subdirectory: "DesignAssets"),
             bundle.url(forResource: name, withExtension: "png")
         ]
 
-        return candidates
+        return directAsset ?? fileURLs
             .compactMap { $0 }
             .lazy
             .compactMap { UIImage(contentsOfFile: $0.path) }
@@ -1332,7 +1351,7 @@ struct FavoritesView: View {
     @EnvironmentObject var soundManager: RealSoundManager
     @EnvironmentObject var premiumManager: PremiumManager
     @StateObject private var favoritesManager = FavoritesManager.shared
-    @State private var selectedSound: RealSound?
+    let onSelectSound: (RealSound) -> Void
 
     var favoriteSounds: [RealSound] {
         soundManager.allSounds
@@ -1356,7 +1375,7 @@ struct FavoritesView: View {
                         isPlaying: { soundManager.isPlaying($0.id) },
                         isFavorite: { _ in true },
                         onTap: { sound in
-                            selectedSound = sound
+                            onSelectSound(sound)
                         },
                         onFavoriteTap: { sound in
                             favoritesManager.toggleFavorite(sound)
@@ -1366,23 +1385,8 @@ struct FavoritesView: View {
             }
             .navigationTitle("Favorites")
             .navigationBarTitleDisplayMode(.large)
-            .safeAreaInset(edge: .bottom) {
-                if soundManager.currentSound != nil {
-                    NowPlayingBar { sound in
-                        selectedSound = sound
-                    }
-                    .environmentObject(soundManager)
-                }
-            }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .sheet(item: $selectedSound) { sound in
-            PlayerView(sound: sound)
-                .environmentObject(soundManager)
-                .environmentObject(premiumManager)
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-        }
     }
 }
 
