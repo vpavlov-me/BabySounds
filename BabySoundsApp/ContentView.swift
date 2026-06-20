@@ -264,7 +264,7 @@ struct SoundCard: View {
                             .blur(radius: 14)
                             .scaleEffect(1.12)
 
-                        BundledArtwork(name: sound.artworkName, contentMode: .fit)
+                        BundledArtwork(name: sound.artworkName)
                             .frame(width: proxy.size.width, height: proxy.size.height)
                     }
                     .background(Color.black)
