@@ -2,7 +2,7 @@
 
 BabySounds is a compact iOS 17+ SwiftUI app for quick night-time sleep sound playback.
 
-The current product direction is intentionally simple: open the app, choose a sound, adjust the sleep timer if needed, and keep playback available through background audio, widgets, and Live Activity status.
+The current product direction is intentionally simple: open the app, choose a sound, adjust the sleep timer if needed, and keep playback available through background audio, widgets, and system Now Playing controls.
 
 ## Current Features
 
@@ -16,9 +16,9 @@ The current product direction is intentionally simple: open the app, choose a so
 - Icon-only bottom tab bar
 - Dark mode by default
 - Native launch screen with centered app icon
-- Background audio with Now Playing metadata
+- Background audio with Now Playing metadata and remote playback controls
+- System volume and AirPlay route controls in the player
 - WidgetKit quick-start widgets
-- Display-only Live Activity for current playback and timer state
 - StoreKit premium gate for premium sounds and longer timer durations
 
 ## Requirements
@@ -53,9 +53,9 @@ BabySound/
 
 Most of the app UI, audio engine, premium flow, and settings are currently implemented in `BabySoundsApp/ContentView.swift`.
 
-Shared widget and Live Activity models live in `BabySoundsApp/BabySoundsShared.swift`.
+Shared widget models live in `BabySoundsApp/BabySoundsShared.swift`.
 
-Widget and Live Activity UI live in `BabySoundsWidget/BabySoundsWidgetBundle.swift`.
+Widget UI lives in `BabySoundsWidget/BabySoundsWidgetBundle.swift`.
 
 ## Assets
 
@@ -70,15 +70,16 @@ Build the app target for Simulator:
 ```bash
 xcodebuild \
   -project BabySoundsApp.xcodeproj \
-  -target BabySoundsApp \
+  -scheme BabySoundsApp \
   -configuration Debug \
-  -sdk iphonesimulator build
+  -sdk iphonesimulator \
+  -derivedDataPath build/DerivedData build
 ```
 
 Install and launch the built app on the booted simulator:
 
 ```bash
-xcrun simctl install booted build/Debug-iphonesimulator/BabySoundsApp.app
+xcrun simctl install booted build/DerivedData/Build/Products/Debug-iphonesimulator/BabySoundsApp.app
 xcrun simctl launch booted com.babysounds.app
 ```
 
@@ -95,7 +96,7 @@ xcrun simctl uninstall booted com.babysounds.app || true
 - Deep links use the `babysounds://` scheme.
 - Widgets can start playback via `babysounds://play?soundId=...`.
 - `babysounds://open?soundId=...` opens the player sheet for a sound.
-- Live Activity mirrors playback and timer state; it does not expose remote controls.
+- Lock Screen and Control Center playback use native Now Playing metadata and remote commands.
 
 ## Repository Hygiene
 

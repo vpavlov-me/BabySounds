@@ -1,4 +1,3 @@
-import ActivityKit
 import Foundation
 import SwiftUI
 
@@ -32,17 +31,6 @@ struct SharedPlaybackSnapshot: Codable {
         favoriteIds: [],
         status: "Stopped"
     )
-}
-
-struct BabySoundsPlaybackAttributes: ActivityAttributes {
-    public struct ContentState: Codable, Hashable {
-        var soundTitle: String
-        var isPlaying: Bool
-        var timerEndDate: Date?
-        var status: String
-    }
-
-    var sessionName: String
 }
 
 struct WidgetSound: Identifiable, Hashable {

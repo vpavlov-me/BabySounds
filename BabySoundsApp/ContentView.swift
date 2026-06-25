@@ -1,5 +1,5 @@
 import AVFoundation
-import ActivityKit
+import AVKit
 import MediaPlayer
 import SafariServices
 import StoreKit
@@ -143,7 +143,7 @@ struct ContentView: View {
                 .environmentObject(soundManager)
                 .environmentObject(premiumManager)
                 .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
+                .presentationDragIndicator(.hidden)
         }
         .sheet(isPresented: $showingPremiumSheet) {
             PremiumUpgradeView()
@@ -462,6 +462,10 @@ struct PlayerView: View {
     @State private var showingPremiumSheet = false
     @State private var showingTimerSheet = false
     @State private var transitionDirection = 1
+    @State private var playbackPosition: TimeInterval = 0
+    @State private var isEditingPlaybackPosition = false
+
+    private let progressTicker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     init(sound: RealSound) {
         self.sound = sound
@@ -483,18 +487,24 @@ struct PlayerView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let isCompactHeight = proxy.size.height < 780
             let viewportWidth = min(proxy.size.width, UIScreen.main.bounds.width)
             let viewportHeight = proxy.size.height + proxy.safeAreaInsets.top + proxy.safeAreaInsets.bottom
+            let coverSize = min(viewportWidth - 48, min(proxy.size.height * 0.42, 390))
 
             ZStack {
                 BundledArtwork(name: currentSound.artworkName)
                     .frame(width: viewportWidth, height: viewportHeight)
                     .clipped()
+                    .blur(radius: 34, opaque: true)
+                    .scaleEffect(1.18)
                     .ignoresSafeArea(.container, edges: .all)
                     .overlay {
+                        Color.black.opacity(0.46)
+                            .ignoresSafeArea()
+                    }
+                    .overlay {
                         LinearGradient(
-                            colors: [.black.opacity(0.16), .black.opacity(0.32), .black.opacity(0.88)],
+                            colors: [.black.opacity(0.10), .black.opacity(0.22), .black.opacity(0.72)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -504,36 +514,58 @@ struct PlayerView: View {
                     .transition(pageTransition)
 
                 VStack(spacing: 0) {
+                    Capsule()
+                        .fill(.white.opacity(0.34))
+                        .frame(width: 58, height: 5)
+                        .padding(.top, max(proxy.safeAreaInsets.top + 10, 16))
+                        .padding(.bottom, 12)
+
                     playerTopBar
-                        .padding(.horizontal, 16)
-                        .padding(.top, max(proxy.safeAreaInsets.top + 8, 18))
+                        .padding(.horizontal, 18)
                         .frame(width: viewportWidth)
 
-                    Spacer(minLength: isCompactHeight ? 190 : 260)
+                    Spacer(minLength: 18)
 
-                    VStack(spacing: isCompactHeight ? 24 : 30) {
-                        playbackControls
-                            .padding(.horizontal, 52)
+                    BundledArtwork(name: currentSound.artworkName)
+                        .aspectRatio(1, contentMode: .fill)
+                        .frame(width: coverSize, height: coverSize)
+                        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                        .shadow(color: .black.opacity(0.34), radius: 28, x: 0, y: 18)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                .stroke(.white.opacity(0.10), lineWidth: 1)
+                        }
+                        .padding(.horizontal, 24)
+                        .id("cover-\(currentSound.id)")
+                        .transition(pageTransition)
+
+                    Spacer(minLength: 28)
+
+                    VStack(spacing: 24) {
+                        titleBlock
+                            .padding(.horizontal, 30)
                             .frame(width: viewportWidth)
 
-                        if sleepTimer.isActive {
-                            timerProgressControl
-                                .padding(.horizontal, 28)
-                                .frame(width: viewportWidth)
-                        }
+                        trackProgressControl
+                            .padding(.horizontal, 30)
+                            .frame(width: viewportWidth)
+
+                        playbackControls
+                            .padding(.horizontal, 48)
+                            .frame(width: viewportWidth)
 
                         volumeControl
-                            .padding(.top, sleepTimer.isActive ? (isCompactHeight ? 10 : 18) : 0)
-                            .padding(.horizontal, 28)
+                            .padding(.top, 4)
+                            .padding(.horizontal, 30)
+                            .frame(width: viewportWidth)
+
+                        bottomActions
+                            .padding(.top, 2)
+                            .padding(.horizontal, 48)
                             .frame(width: viewportWidth)
                     }
-                    .padding(.top, 40)
-                    .padding(.bottom, max(proxy.safeAreaInsets.bottom + 28, 42))
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom + 18, 30))
                     .frame(width: viewportWidth)
-                    .background(alignment: .bottom) {
-                        ProgressiveControlsBackdrop()
-                            .frame(width: viewportWidth, height: isCompactHeight ? 238 : 276)
-                    }
                 }
                 .frame(width: viewportWidth, height: proxy.size.height)
                 .id("content-\(currentSound.id)")
@@ -557,6 +589,11 @@ struct PlayerView: View {
             if !soundManager.isPlaying(currentSound.id) {
                 soundManager.toggleSound(currentSound)
             }
+            playbackPosition = soundManager.playbackElapsedTime
+        }
+        .onReceive(progressTicker) { _ in
+            guard !isEditingPlaybackPosition else { return }
+            playbackPosition = soundManager.playbackElapsedTime
         }
         .sheet(isPresented: $showingPremiumSheet) {
             PremiumUpgradeView()
@@ -595,21 +632,6 @@ struct PlayerView: View {
 
             Spacer(minLength: 8)
 
-            VStack(spacing: 3) {
-                Text(currentSound.title)
-                    .font(.system(size: 26, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.78)
-                Text(currentSound.category.localizedName)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.white.opacity(0.70))
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity)
-
-            Spacer(minLength: 8)
-
             Button {
                 HapticManager.shared.favoriteToggle()
                 favoritesManager.toggleFavorite(currentSound)
@@ -624,12 +646,68 @@ struct PlayerView: View {
         }
     }
 
-    private var playbackControls: some View {
-        HStack(alignment: .center, spacing: 72) {
-            PlayerIconButton(systemImage: sleepTimer.isActive ? "timer.circle.fill" : "timer") {
-                showingTimerSheet = true
+    private var titleBlock: some View {
+        HStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(currentSound.title)
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+
+                Text(currentSound.category.localizedName)
+                    .font(.system(size: 20, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.62))
+                    .lineLimit(1)
             }
-            .accessibilityLabel("Timer")
+
+            Spacer(minLength: 12)
+
+            Image(systemName: currentSound.category.sfSymbol)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.82))
+                .frame(width: 48, height: 48)
+                .background(.white.opacity(0.10), in: Circle())
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var trackProgressControl: some View {
+        VStack(spacing: 8) {
+            Slider(
+                value: Binding(
+                    get: { min(max(playbackPosition, 0), soundManager.playbackDuration) },
+                    set: { playbackPosition = $0 }
+                ),
+                in: 0...soundManager.playbackDuration,
+                onEditingChanged: { isEditing in
+                    isEditingPlaybackPosition = isEditing
+                    if !isEditing {
+                        soundManager.setPlaybackPosition(playbackPosition)
+                    }
+                }
+            )
+            .tint(.white.opacity(0.92))
+
+            HStack {
+                Text(formatDuration(playbackPosition))
+                Spacer()
+                Text("-\(formatDuration(max(soundManager.playbackDuration - playbackPosition, 0)))")
+            }
+            .font(.caption.monospacedDigit().weight(.semibold))
+            .foregroundStyle(.white.opacity(0.56))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Playback progress")
+        .accessibilityValue("\(formatDuration(playbackPosition)) of \(formatDuration(soundManager.playbackDuration))")
+    }
+
+    private var playbackControls: some View {
+        HStack(alignment: .center, spacing: 64) {
+            PlayerIconButton(systemImage: "backward.fill") {
+                switchSound(by: -1)
+            }
+            .accessibilityLabel("Previous sound")
 
             Button {
                 if isPlaying {
@@ -639,42 +717,21 @@ struct PlayerView: View {
                 }
             } label: {
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 54, weight: .bold))
+                    .font(.system(size: 58, weight: .bold))
                     .foregroundStyle(.white)
-                    .frame(width: 72, height: 72)
+                    .frame(width: 80, height: 80)
                     .contentShape(Rectangle())
                     .offset(x: isPlaying ? 0 : 4)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isPlaying ? "Pause" : "Play")
 
-            PlayerIconButton(systemImage: "stop.fill") {
-                stopImmediately()
+            PlayerIconButton(systemImage: "forward.fill") {
+                switchSound(by: 1)
             }
-            .accessibilityLabel("Stop")
+            .accessibilityLabel("Next sound")
         }
         .frame(maxWidth: .infinity, alignment: .center)
-    }
-
-    private var timerProgressControl: some View {
-        let elapsed = max(0, sleepTimer.totalTime - sleepTimer.timeRemaining)
-
-        return VStack(spacing: 7) {
-            Slider(value: .constant(elapsed), in: 0...max(sleepTimer.totalTime, 1))
-                .tint(AppTheme.accent)
-                .allowsHitTesting(false)
-
-            HStack {
-                Text(formatDuration(elapsed))
-                Spacer()
-                Text("-\(sleepTimer.formattedTimeRemaining)")
-            }
-            .font(.caption.monospacedDigit().weight(.semibold))
-            .foregroundStyle(.white.opacity(0.72))
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Sleep timer")
-        .accessibilityValue(sleepTimer.formattedTimeRemaining)
     }
 
     private var volumeControl: some View {
@@ -689,12 +746,45 @@ struct PlayerView: View {
                 ),
                 in: 0...1
             )
-            .tint(AppTheme.accent)
+            .tint(.white.opacity(0.92))
             Image(systemName: "speaker.wave.2.fill")
                 .font(.body.weight(.semibold))
                 .foregroundStyle(.white.opacity(0.86))
         }
         .accessibilityElement(children: .contain)
+    }
+
+    private var bottomActions: some View {
+        HStack(spacing: 44) {
+            PlayerBottomActionButton(
+                systemImage: sleepTimer.isActive ? "timer.circle.fill" : "timer",
+                title: sleepTimer.isActive ? sleepTimer.formattedTimeRemaining : "Timer"
+            ) {
+                showingTimerSheet = true
+            }
+            .accessibilityLabel("Timer")
+
+            SystemRoutePicker()
+                .frame(width: 54, height: 54)
+                .accessibilityLabel("Audio output")
+
+            ShareLink(item: shareURL) {
+                VStack(spacing: 7) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 25, weight: .semibold))
+                        .frame(width: 54, height: 38)
+                    Text("Share")
+                        .font(.caption2.weight(.semibold))
+                }
+                .foregroundStyle(.white.opacity(0.74))
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var shareURL: URL {
+        URL(string: "babysounds://open?soundId=\(currentSound.slug)") ?? URL(string: "babysounds://open")!
     }
 
     private var pageTransition: AnyTransition {
@@ -721,6 +811,7 @@ struct PlayerView: View {
         withAnimation(.easeInOut(duration: 0.28)) {
             currentSound = nextSound
         }
+        playbackPosition = 0
         if !soundManager.isPlaying(nextSound.id) {
             soundManager.toggleSound(nextSound)
         }
@@ -747,22 +838,11 @@ struct PlayerView: View {
         }
         let endDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
         SharedPlaybackStore.shared.updateTimer(endDate: endDate)
-        PlaybackLiveActivityController.startOrUpdate(
-            soundTitle: currentSound.title,
-            isPlaying: true,
-            timerEndDate: endDate,
-            status: "Timer"
-        )
     }
 
     private func cancelTimer() {
         sleepTimer.stopTimer()
         SharedPlaybackStore.shared.clearTimer()
-        PlaybackLiveActivityController.startOrUpdate(
-            soundTitle: currentSound.title,
-            isPlaying: isPlaying,
-            status: isPlaying ? "Playing" : "Paused"
-        )
     }
 
     private func stopImmediately() {
@@ -790,6 +870,44 @@ struct PlayerIconButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct PlayerBottomActionButton: View {
+    let systemImage: String
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 7) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 25, weight: .semibold))
+                    .frame(width: 54, height: 38)
+                Text(title)
+                    .font(.caption2.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+            .foregroundStyle(.white.opacity(0.74))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct SystemRoutePicker: UIViewRepresentable {
+    func makeUIView(context: Context) -> AVRoutePickerView {
+        let view = AVRoutePickerView()
+        view.prioritizesVideoDevices = false
+        view.tintColor = .white.withAlphaComponent(0.74)
+        view.activeTintColor = UIColor(red: 0x30 / 255, green: 0xAA / 255, blue: 0xF5 / 255, alpha: 1)
+        view.backgroundColor = .clear
+        return view
+    }
+
+    func updateUIView(_ uiView: AVRoutePickerView, context: Context) {
+        uiView.tintColor = .white.withAlphaComponent(0.74)
+        uiView.activeTintColor = UIColor(red: 0x30 / 255, green: 0xAA / 255, blue: 0xF5 / 255, alpha: 1)
     }
 }
 
@@ -1056,6 +1174,10 @@ private extension UIImage {
     }
 }
 
+private func makeNowPlayingArtwork(from image: UIImage) -> MPMediaItemArtwork {
+    MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+}
+
 // MARK: - SoundArtwork
 
 struct SoundArtwork: View {
@@ -1117,13 +1239,6 @@ struct TimerPickerView: View {
                         Button("Cancel Timer") {
                             sleepTimer.stopTimer()
                             SharedPlaybackStore.shared.clearTimer()
-                            if let sound = soundManager.currentSound {
-                                PlaybackLiveActivityController.startOrUpdate(
-                                    soundTitle: sound.title,
-                                    isPlaying: true,
-                                    status: "Playing"
-                                )
-                            }
                             isPresented = false
                         }
                         .buttonStyle(.bordered)
@@ -1194,14 +1309,6 @@ struct TimerPickerView: View {
         }
         let endDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
         SharedPlaybackStore.shared.updateTimer(endDate: endDate)
-        if let sound = soundManager.currentSound {
-            PlaybackLiveActivityController.startOrUpdate(
-                soundTitle: sound.title,
-                isPlaying: true,
-                timerEndDate: endDate,
-                status: "Timer"
-            )
-        }
         isPresented = false
     }
 }
@@ -2319,8 +2426,10 @@ class RealSoundManager: ObservableObject {
     }
 
     @Published var isAudioReady = false
+    @Published var playbackElapsedTime: TimeInterval = 0
 
     private let maxConcurrentTracks = 1
+    let playbackDuration: TimeInterval = 60 * 60
     private let engine = AVAudioEngine()
     private var sourceNodes: [UUID: AVAudioSourceNode] = [:]
     private var generatorStates: [UUID: NoiseGeneratorState] = [:]
@@ -2328,6 +2437,10 @@ class RealSoundManager: ObservableObject {
     private let fadeOutManager = FadeOutManager.shared
     private let sharedPlaybackStore = SharedPlaybackStore.shared
     private var hasPreparedAudioEngine = false
+    private var remoteCommandsConfigured = false
+    private var playbackStartDate: Date?
+    private var playbackPositionOffset: TimeInterval = 0
+    private var playbackProgressTimer: Timer?
 
     var currentSound: RealSound? {
         if let currentId = playingTracks.first {
@@ -2384,32 +2497,187 @@ class RealSoundManager: ObservableObject {
     private func setupAudioSession() {
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true)
+            try session.setCategory(.playback, mode: .default, policy: .longFormAudio, options: [])
+            setupRemoteTransportControls()
 
-            // Настройка Now Playing Info
-            setupNowPlayingInfo()
-
-            print("✅ Audio session configured with background playback")
+            print("✅ Audio session configured for exclusive background playback")
         } catch {
             print("❌ Failed to setup audio session: \(error)")
         }
     }
 
-    private func setupNowPlayingInfo() {
-        // Настройка для отображения в Control Center и Lock Screen
-        var nowPlayingInfo: [String: Any] = [:]
-        nowPlayingInfo[MPMediaItemPropertyTitle] = "Baby Sounds"
-        nowPlayingInfo[MPMediaItemPropertyArtist] = "Sleep Helper"
-        nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = "Baby Sleep Sounds"
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+    private func setupRemoteTransportControls() {
+        guard !remoteCommandsConfigured else { return }
+        remoteCommandsConfigured = true
 
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-        print("✅ Now Playing Info configured")
+        let commands = MPRemoteCommandCenter.shared()
+        commands.playCommand.isEnabled = true
+        commands.pauseCommand.isEnabled = true
+        commands.togglePlayPauseCommand.isEnabled = true
+        commands.stopCommand.isEnabled = true
+
+        commands.nextTrackCommand.isEnabled = false
+        commands.previousTrackCommand.isEnabled = false
+        commands.skipForwardCommand.isEnabled = false
+        commands.skipBackwardCommand.isEnabled = false
+        commands.changePlaybackPositionCommand.isEnabled = true
+
+        commands.playCommand.addTarget { [weak self] _ in
+            Task { @MainActor in
+                self?.resumeFromRemoteCommand()
+            }
+            return .success
+        }
+
+        commands.pauseCommand.addTarget { [weak self] _ in
+            Task { @MainActor in
+                self?.pauseFromRemoteCommand()
+            }
+            return .success
+        }
+
+        commands.togglePlayPauseCommand.addTarget { [weak self] _ in
+            Task { @MainActor in
+                self?.toggleFromRemoteCommand()
+            }
+            return .success
+        }
+
+        commands.stopCommand.addTarget { [weak self] _ in
+            Task { @MainActor in
+                self?.stopAllSounds()
+            }
+            return .success
+        }
+
+        commands.changePlaybackPositionCommand.addTarget { [weak self] event in
+            guard let event = event as? MPChangePlaybackPositionCommandEvent else {
+                return .commandFailed
+            }
+            Task { @MainActor in
+                self?.setPlaybackPosition(event.positionTime)
+            }
+            return .success
+        }
+    }
+
+    private func resumeFromRemoteCommand() {
+        guard playingTracks.isEmpty, let sound = pausedSound else { return }
+        playSound(sound)
+    }
+
+    private func pauseFromRemoteCommand() {
+        guard let sound = currentSound, playingTracks.contains(sound.id) else { return }
+        pauseSound(sound)
+    }
+
+    private func toggleFromRemoteCommand() {
+        if playingTracks.isEmpty {
+            resumeFromRemoteCommand()
+        } else {
+            pauseFromRemoteCommand()
+        }
+    }
+
+    private func activateAudioSession() -> Bool {
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+            return true
+        } catch {
+            print("❌ Failed to activate audio session: \(error)")
+            return false
+        }
+    }
+
+    private func deactivateAudioSession() {
+        engine.stop()
+        hasPreparedAudioEngine = false
+
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        } catch {
+            print("⚠️ Failed to deactivate audio session: \(error)")
+        }
     }
 
     private func setupAudioEngine() {
         print("✅ Audio engine will start on first playback")
+    }
+
+    private var currentPlaybackPosition: TimeInterval {
+        let rawPosition: TimeInterval
+        if let playbackStartDate, !playingTracks.isEmpty {
+            rawPosition = playbackPositionOffset + Date().timeIntervalSince(playbackStartDate)
+        } else {
+            rawPosition = playbackPositionOffset
+        }
+
+        guard playbackDuration > 0 else { return max(rawPosition, 0) }
+        let wrapped = rawPosition.truncatingRemainder(dividingBy: playbackDuration)
+        return wrapped >= 0 ? wrapped : wrapped + playbackDuration
+    }
+
+    private func startPlaybackTimeline(reset: Bool) {
+        if reset {
+            playbackPositionOffset = 0
+            playbackElapsedTime = 0
+        } else {
+            playbackPositionOffset = currentPlaybackPosition
+            playbackElapsedTime = playbackPositionOffset
+        }
+
+        playbackStartDate = Date()
+        playbackProgressTimer?.invalidate()
+        playbackProgressTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshPlaybackPosition()
+            }
+        }
+    }
+
+    private func pausePlaybackTimeline() {
+        playbackPositionOffset = currentPlaybackPosition
+        playbackElapsedTime = playbackPositionOffset
+        playbackStartDate = nil
+        playbackProgressTimer?.invalidate()
+        playbackProgressTimer = nil
+        updateNowPlayingPlaybackPosition(rate: 0)
+    }
+
+    private func stopPlaybackTimeline(reset: Bool = true) {
+        playbackStartDate = nil
+        playbackProgressTimer?.invalidate()
+        playbackProgressTimer = nil
+        if reset {
+            playbackPositionOffset = 0
+            playbackElapsedTime = 0
+        } else {
+            playbackPositionOffset = currentPlaybackPosition
+            playbackElapsedTime = playbackPositionOffset
+        }
+    }
+
+    private func refreshPlaybackPosition() {
+        playbackElapsedTime = currentPlaybackPosition
+    }
+
+    func setPlaybackPosition(_ position: TimeInterval) {
+        let clampedPosition = min(max(position, 0), playbackDuration)
+        playbackPositionOffset = clampedPosition
+        playbackElapsedTime = clampedPosition
+        if !playingTracks.isEmpty {
+            playbackStartDate = Date()
+        }
+        updateNowPlayingPlaybackPosition(rate: playingTracks.isEmpty ? 0 : 1)
+    }
+
+    private func updateNowPlayingPlaybackPosition(rate: Double) {
+        let infoCenter = MPNowPlayingInfoCenter.default()
+        guard var nowPlayingInfo = infoCenter.nowPlayingInfo else { return }
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = playbackElapsedTime
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = rate
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
+        infoCenter.nowPlayingInfo = nowPlayingInfo
     }
 
     private func prepareAudioEngineIfNeeded() -> Bool {
@@ -2477,6 +2745,9 @@ class RealSoundManager: ObservableObject {
     }
 
     private func playGeneratedAudio(sound: RealSound) {
+        guard activateAudioSession() else { return }
+        let shouldResetPlaybackPosition = pausedSound?.id != sound.id
+
         let sampleRate = 44100.0
         guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 2) else {
             print("❌ Failed to create audio format")
@@ -2502,25 +2773,33 @@ class RealSoundManager: ObservableObject {
 
         sourceNodes[sound.id] = sourceNode
         playingTracks.insert(sound.id)
+        startPlaybackTimeline(reset: shouldResetPlaybackPosition)
         pausedSound = nil
         updateNowPlayingInfo(with: sound)
         sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: true)
-        PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: true)
         print("▶️ Playing generated audio: \(sound.title) [\(sound.generatorType)]")
     }
 
     private func updateNowPlayingInfo(with sound: RealSound) {
-        var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+        var nowPlayingInfo: [String: Any] = [:]
 
         nowPlayingInfo[MPMediaItemPropertyTitle] = sound.title
         nowPlayingInfo[MPMediaItemPropertyArtist] = "Baby Sounds"
         nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = sound.category.localizedName
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0.0
+        nowPlayingInfo[MPNowPlayingInfoPropertyDefaultPlaybackRate] = 1.0
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = playbackElapsedTime
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
+        nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue
+        nowPlayingInfo[MPNowPlayingInfoPropertyExternalContentIdentifier] = sound.slug
 
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 3600.0
+        if let image = UIImage.bundledArtwork(named: sound.artworkName) {
+            nowPlayingInfo[MPMediaItemPropertyArtwork] = makeNowPlayingArtwork(from: image)
+        }
 
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        let infoCenter = MPNowPlayingInfoCenter.default()
+        infoCenter.nowPlayingInfo = nowPlayingInfo
+        infoCenter.playbackState = .playing
         print("🎵 Updated Now Playing: \(sound.title)")
     }
 
@@ -2543,14 +2822,18 @@ class RealSoundManager: ObservableObject {
             if !preserveTimer {
                 stopPlaybackBoundTimers()
             }
-            PlaybackLiveActivityController.end()
-            MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+            stopPlaybackTimeline()
+            let infoCenter = MPNowPlayingInfoCenter.default()
+            infoCenter.playbackState = .stopped
+            infoCenter.nowPlayingInfo = nil
+            deactivateAudioSession()
         }
     }
 
     func pauseSound(_ sound: RealSound) {
         guard playingTracks.contains(sound.id) else { return }
 
+        pausePlaybackTimeline()
         playingTracks.remove(sound.id)
 
         if let sourceNode = sourceNodes[sound.id] {
@@ -2563,12 +2846,18 @@ class RealSoundManager: ObservableObject {
         pausedSound = sound
         stopPlaybackBoundTimers()
         sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: false, status: "Paused")
-        PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: false, status: "Paused")
-        MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+        let infoCenter = MPNowPlayingInfoCenter.default()
+        infoCenter.playbackState = .paused
+        deactivateAudioSession()
     }
 
     func stopAllSounds(preserveTimer: Bool = false) {
         let soundsToStop = playingTracks
+        if soundsToStop.isEmpty, let pausedSound {
+            stopSound(pausedSound, preserveTimer: preserveTimer)
+            print("⏹️ Stopped all sounds")
+            return
+        }
         for soundId in soundsToStop {
             if let sound = allSounds.first(where: { $0.id == soundId }) {
                 stopSound(sound, preserveTimer: preserveTimer)
@@ -2599,7 +2888,6 @@ class RealSoundManager: ObservableObject {
         }
         if let sound = currentSound {
             sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: true, status: "Fading Out")
-            PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: true, status: "Fading Out")
         }
     }
 
@@ -2622,7 +2910,6 @@ class RealSoundManager: ObservableObject {
 
         updateMasterVolume()
         sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: true, status: "Fading Out")
-        PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: true, status: "Fading Out")
     }
 
     func stopFadeOut() {
@@ -2630,7 +2917,6 @@ class RealSoundManager: ObservableObject {
         updateMasterVolume()
         if let sound = currentSound {
             sharedPlaybackStore.updatePlayback(sound: sound, isPlaying: true)
-            PlaybackLiveActivityController.startOrUpdate(soundTitle: sound.title, isPlaying: true)
         }
     }
 
@@ -3336,56 +3622,6 @@ final class SharedPlaybackStore {
     private func save(_ snapshot: SharedPlaybackSnapshot) {
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
         defaults.set(data, forKey: BabySoundsShared.snapshotKey)
-    }
-}
-
-// MARK: - Live Activity
-
-enum PlaybackLiveActivityController {
-    static func startOrUpdate(
-        soundTitle: String,
-        isPlaying: Bool,
-        timerEndDate: Date? = nil,
-        status: String = "Playing"
-    ) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
-
-        let state = BabySoundsPlaybackAttributes.ContentState(
-            soundTitle: soundTitle,
-            isPlaying: isPlaying,
-            timerEndDate: timerEndDate,
-            status: status
-        )
-
-        Task {
-            if let currentActivity = Activity<BabySoundsPlaybackAttributes>.activities.first {
-                await currentActivity.update(ActivityContent(state: state, staleDate: nil))
-            } else {
-                do {
-                    _ = try Activity.request(
-                        attributes: BabySoundsPlaybackAttributes(sessionName: "BabySounds"),
-                        content: ActivityContent(state: state, staleDate: nil),
-                        pushType: nil
-                    )
-                } catch {
-                    print("⚠️ Live Activity unavailable: \(error)")
-                }
-            }
-        }
-    }
-
-    static func end() {
-        Task {
-            let state = BabySoundsPlaybackAttributes.ContentState(
-                soundTitle: "BabySounds",
-                isPlaying: false,
-                timerEndDate: nil,
-                status: "Stopped"
-            )
-            for activity in Activity<BabySoundsPlaybackAttributes>.activities {
-                await activity.end(ActivityContent(state: state, staleDate: nil), dismissalPolicy: .immediate)
-            }
-        }
     }
 }
 

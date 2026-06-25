@@ -1,4 +1,3 @@
-import ActivityKit
 import SwiftUI
 import WidgetKit
 
@@ -6,7 +5,6 @@ import WidgetKit
 struct BabySoundsWidgetBundle: WidgetBundle {
     var body: some Widget {
         QuickStartWidget()
-        PlaybackLiveActivityWidget()
     }
 }
 
@@ -161,90 +159,6 @@ struct MediumQuickStartView: View {
         }
         .padding()
         .widgetAccentable()
-    }
-}
-
-struct PlaybackLiveActivityWidget: Widget {
-    var body: some WidgetConfiguration {
-        ActivityConfiguration(for: BabySoundsPlaybackAttributes.self) { context in
-            LiveActivityLockScreenView(context: context)
-                .activityBackgroundTint(.black)
-                .activitySystemActionForegroundColor(AppTheme.accent)
-        } dynamicIsland: { context in
-            DynamicIsland {
-                DynamicIslandExpandedRegion(.leading) {
-                    Label(context.state.status, systemImage: context.state.isPlaying ? "pause.fill" : "stop.fill")
-                        .font(.caption)
-                }
-                DynamicIslandExpandedRegion(.trailing) {
-                    if let timerEndDate = context.state.timerEndDate {
-                        Text(timerEndDate, style: .timer)
-                            .font(.caption.monospacedDigit())
-                    }
-                }
-                DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.state.soundTitle)
-                        .font(.headline)
-                        .lineLimit(1)
-                }
-            } compactLeading: {
-                Image(systemName: context.state.isPlaying ? "moon.zzz.fill" : "moon.fill")
-                    .foregroundStyle(AppTheme.accent)
-            } compactTrailing: {
-                if let timerEndDate = context.state.timerEndDate {
-                    Text(timerEndDate, style: .timer)
-                        .font(.caption2.monospacedDigit())
-                } else {
-                    Image(systemName: "waveform")
-                        .foregroundStyle(AppTheme.accent)
-                }
-            } minimal: {
-                Image(systemName: "moon.zzz.fill")
-                    .foregroundStyle(AppTheme.accent)
-            }
-            .widgetURL(URL(string: "babysounds://open"))
-            .keylineTint(AppTheme.accent)
-        }
-    }
-}
-
-struct LiveActivityLockScreenView: View {
-    let context: ActivityViewContext<BabySoundsPlaybackAttributes>
-
-    var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(AppTheme.accent.opacity(0.18))
-                Image(systemName: context.state.isPlaying ? "moon.zzz.fill" : "moon.fill")
-                    .foregroundStyle(AppTheme.accent)
-            }
-            .frame(width: 46, height: 46)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(context.state.soundTitle)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
-                Text(context.state.status)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.62))
-            }
-
-            Spacer()
-
-            if let timerEndDate = context.state.timerEndDate {
-                VStack(alignment: .trailing, spacing: 3) {
-                    Text(timerEndDate, style: .timer)
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                    Text("Timer")
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.62))
-                }
-            }
-        }
-        .padding(.vertical, 4)
     }
 }
 
