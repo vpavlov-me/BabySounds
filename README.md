@@ -97,6 +97,8 @@ xcrun simctl uninstall booted com.babysounds.app || true
 - Widgets can start playback via `babysounds://play?soundId=...`.
 - `babysounds://open?soundId=...` opens the player sheet for a sound.
 - Lock Screen and Control Center playback use native Now Playing metadata and remote commands.
+- Public landing and release documents are served from GitHub Pages at `https://vpavlov-me.github.io/BabySounds/`.
+- In-app Privacy, Terms, Support, and TestFlight links point to the root GitHub Pages documents.
 
 ## Repository Hygiene
 

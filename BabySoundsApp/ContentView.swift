@@ -1810,10 +1810,10 @@ struct PremiumUpgradeView: View {
                             Task { await premiumManager.restorePurchases() }
                         }
                         Button("Terms of Use") {
-                            openInApp(URL(string: "https://babysounds.app/terms"))
+                            openInApp(URL(string: "https://vpavlov-me.github.io/BabySounds/terms.html"))
                         }
                         Button("Privacy Policy") {
-                            openInApp(URL(string: "https://babysounds.app/privacy"))
+                            openInApp(URL(string: "https://vpavlov-me.github.io/BabySounds/privacy.html"))
                         }
                     }
                     .font(.footnote.weight(.semibold))
@@ -1934,12 +1934,12 @@ struct SettingsView: View {
 
                         SettingsSection(title: "Support") {
                             SettingsActionRow(icon: "envelope.fill", title: "Send Feedback") {
-                                open(URL(string: "mailto:support@babysounds.app?subject=Baby%20Sounds%20Feedback"))
+                                openInApp(URL(string: "https://vpavlov-me.github.io/BabySounds/support.html"))
                             }
-                            SettingsActionRow(icon: "star.fill", title: "Rate the App") {
-                                open(URL(string: "https://apps.apple.com/app/id6670503696?action=write-review"))
+                            SettingsActionRow(icon: "paperplane.fill", title: "TestFlight Feedback") {
+                                openInApp(URL(string: "https://vpavlov-me.github.io/BabySounds/testflight.html"))
                             }
-                            ShareLink(item: URL(string: "https://babysounds.app")!) {
+                            ShareLink(item: URL(string: "https://vpavlov-me.github.io/BabySounds/")!) {
                                 SettingsRowContent(icon: "square.and.arrow.up.fill", title: "Share BabySounds", trailing: "chevron.right")
                             }
                             .buttonStyle(.plain)
@@ -1947,10 +1947,10 @@ struct SettingsView: View {
 
                         SettingsSection(title: "Information") {
                             SettingsActionRow(icon: "hand.raised.fill", title: "Privacy Policy") {
-                                openInApp(URL(string: "https://babysounds.app/privacy"))
+                                openInApp(URL(string: "https://vpavlov-me.github.io/BabySounds/privacy.html"))
                             }
                             SettingsActionRow(icon: "doc.plaintext.fill", title: "Terms of Use") {
-                                openInApp(URL(string: "https://babysounds.app/terms"))
+                                openInApp(URL(string: "https://vpavlov-me.github.io/BabySounds/terms.html"))
                             }
                             SettingsRowContent(icon: "number.circle.fill", title: "Version", trailingText: "1.0.0")
                         }
