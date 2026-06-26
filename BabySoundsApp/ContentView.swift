@@ -1933,7 +1933,7 @@ struct SettingsView: View {
                         }
 
                         SettingsSection(title: "Support") {
-                            SettingsActionRow(icon: "envelope.fill", title: "Send Feedback") {
+                            SettingsActionRow(icon: "questionmark.circle.fill", title: "Support") {
                                 openInApp(URL(string: "https://vpavlov-me.github.io/BabySounds/support.html"))
                             }
                             SettingsActionRow(icon: "paperplane.fill", title: "TestFlight Feedback") {
